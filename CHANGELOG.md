@@ -3,15 +3,30 @@ type: changelog
 category: release-notes
 scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
-last-updated: 2026-07-12T00:00:00Z
-last-model: claude-glm-5.2
-last-change: Phase 1 Character Editor MVP complete
+last-updated: 2026-09-07T00:00:00Z
+last-model: codex-gpt-6
+last-change: completed studio camera rendering and persistence repairs
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-09-07 - Studio camera and scene persistence
+
+### Added
+- Full-screen interactive photo studio with tripod lights, adjustable softboxes, DSLR cameras and lens controls.
+- Repeatable browser/GPU verification with two depth-separated checkerboards, exposure and zoom pixel comparisons, and scene reload checks.
+- Explicit unavailable state for the discontinued Ready Player Me creator, retaining its callback interface without opening the retired service.
+
+### Fixed
+- Render camera previews in linear HDR with explicit ACES tone mapping and sRGB output so ISO, aperture and shutter affect actual pixels.
+- Calculate vertical field of view from the 36 mm sensor width and viewfinder aspect ratio.
+- Replace uniform CSS blur with depth-aware thin-lens defocus; hide transform helpers from captured frames and restore render state.
+- Validate versioned scene payloads, lens limits and unique IDs before loading or saving; restore asset counters and block edits until hydration.
+- Preserve invalid or unavailable saves and show a visible notice when changes cannot be saved.
+- Keep the toolbar inside narrow screens and place the mobile preview below the studio header.
 
 ## 2026-07-12 — Phase 1: Character Editor MVP
 
