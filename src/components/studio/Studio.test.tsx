@@ -9,7 +9,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import type { StudioLight } from "@/lib/studio/scene-storage";
-import { LightSettingsPanel, Studio } from "./Studio";
+import { BackdropSettingsPanel, LightSettingsPanel, Studio } from "./Studio";
+import { kelvinToHex } from "@/lib/studio/light-presets";
 import { characterRepository } from "@/lib/character/repository";
 import { createCharacter } from "@/lib/character/schema";
 import { BASE_MODELS } from "@/lib/character/presets";
@@ -178,6 +179,8 @@ describe("LightSettingsPanel", () => {
     intensity: 95,
     spread: 0.62,
     color: "#fff0d2",
+    colorTemperature: null,
+    role: null,
   };
 
   it("locks flash to daylight, preserves softbox settings, and restores the bare color", () => {
@@ -261,17 +264,17 @@ describe("LightSettingsPanel", () => {
     expect(onResetTransform).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole("button", { name: "Set light color #d8e8ff" }));
-    expect(onChange).toHaveBeenCalledWith({ color: "#d8e8ff" });
+    expect(onChange).toHaveBeenCalledWith({ color: "#d8e8ff", colorTemperature: null });
 
     fireEvent.change(screen.getByRole("textbox", { name: "Light color hex code" }), {
       target: { value: "#12AB34" },
     });
-    expect(onChange).toHaveBeenCalledWith({ color: "#12ab34" });
+    expect(onChange).toHaveBeenCalledWith({ color: "#12ab34", colorTemperature: null });
 
     fireEvent.change(screen.getByRole("spinbutton", { name: "R color channel" }), {
       target: { value: "128" },
     });
-    expect(onChange).toHaveBeenCalledWith({ color: "#80f0d2" });
+    expect(onChange).toHaveBeenCalledWith({ color: "#80f0d2", colorTemperature: null });
 
     fireEvent.click(screen.getByRole("button", { name: "Close light settings" }));
     expect(onClose).toHaveBeenCalledOnce();
@@ -471,5 +474,83 @@ describe("Studio character model", () => {
     }));
     await renderReady();
     await waitFor(() => expect(JSON.parse(window.localStorage.getItem(SCENE_KEY)!).model).toBeNull());
+  });
+});
+
+describe("Light roles and colour temperature", () => {
+  const base: StudioLight = {
+    id: "light-1",
+    position: [0, 0, 0],
+    homePosition: [0, 0, 0],
+    rotation: [0, 0, 0],
+    headRotation: [0, 0, 0],
+    height: 2.4,
+    lightType: "bare",
+    modifier: "none",
+    softboxWidth: 90,
+    softboxHeight: 60,
+    intensity: 95,
+    spread: 0.62,
+    color: "#fff0d2",
+    colorTemperature: null,
+    role: null,
+  };
+
+  it("sets colour and kelvin together from the temperature slider", () => {
+    const onChange = vi.fn();
+    render(<LightSettingsPanel light={base} onChange={onChange} onClose={vi.fn()} onResetTransform={vi.fn()} />);
+    expect(screen.getByText("Custom")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Colour temperature"), { target: { value: "3200" } });
+    expect(onChange).toHaveBeenCalledWith({ color: kelvinToHex(3200), colorTemperature: 3200 });
+  });
+
+  it("shows the role in the title and applies a role", () => {
+    const onApplyRole = vi.fn();
+    render(
+      <LightSettingsPanel
+        light={{ ...base, role: "fill", colorTemperature: 4300 }}
+        onChange={vi.fn()}
+        onClose={vi.fn()}
+        onResetTransform={vi.fn()}
+        onApplyRole={onApplyRole}
+      />,
+    );
+    expect(screen.getByRole("heading", { name: "Fill light" })).toBeInTheDocument();
+    expect(screen.getByText("4300 K")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fill" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Rim" }));
+    expect(onApplyRole).toHaveBeenCalledWith("rim");
+  });
+
+  it("disables the temperature slider for flash", () => {
+    render(<LightSettingsPanel light={{ ...base, lightType: "flash" }} onChange={vi.fn()} onClose={vi.fn()} onResetTransform={vi.fn()} />);
+    expect(screen.getByLabelText("Colour temperature")).toBeDisabled();
+    expect(screen.getByText("5600 K")).toBeInTheDocument();
+  });
+
+  it("restores older saves with no light role and the default gray backdrop", async () => {
+    const aria = characterRepository.create(createCharacter({ name: "Aria", baseModelId: BASE_MODELS[0].id }));
+    window.localStorage.setItem("cinelab-studio-scene-v1", JSON.stringify({
+      version: 1,
+      lights: [{ ...base, id: "light-0" }],
+      cameras: [],
+      model: { characterId: aria.id, position: [2, 0, 0], rotation: [0, 0, 0] },
+    }));
+    render(<Studio />);
+    await waitFor(() => expect(screen.getByLabelText("Scene asset count")).toHaveTextContent("· Aria"));
+    // Role application through the 3D hotspot is verified in the browser; Html is mocked here.
+    const saved = () => JSON.parse(window.localStorage.getItem("cinelab-studio-scene-v1")!);
+    expect(saved().lights[0].role).toBeNull();
+    expect(saved().backdrop).toEqual({ color: "gray" });
+  });
+});
+
+describe("BackdropSettingsPanel", () => {
+  it("marks the current paper colour and changes it", () => {
+    const onChange = vi.fn();
+    render(<BackdropSettingsPanel backdrop={{ color: "gray" }} onChange={onChange} onClose={vi.fn()} />);
+    expect(screen.getByRole("button", { name: /gray/i })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: /white/i }));
+    expect(onChange).toHaveBeenCalledWith({ color: "white" });
   });
 });

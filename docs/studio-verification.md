@@ -18,7 +18,7 @@ Flash lights render as a 5600K daylight strobe with a harder, narrower beam. In 
 
 # Verification
 
-- `pnpm test`: 109 tests pass. On Node 25+ Vitest workers run with `--no-experimental-webstorage` (see `vitest.config.ts`) so jsdom's `localStorage` is used.
+- `pnpm test`: 119 tests pass. On Node 25+ Vitest workers run with `--no-experimental-webstorage` (see `vitest.config.ts`) so jsdom's `localStorage` is used.
 - `pnpm typecheck`, `pnpm lint`, and `pnpm build` pass.
 - Start `pnpm dev --port 3000`, then run `pnpm test:studio:browser` (default `STUDIO_URL` is `http://localhost:3000`; Next dev blocks `127.0.0.1` dev resources, which leaves the page unhydrated).
 - `node scripts/e2e-milestone.mjs` (same dev server) verifies the first milestone end to end: studio to library, create, save, reopen, open in studio, reload.

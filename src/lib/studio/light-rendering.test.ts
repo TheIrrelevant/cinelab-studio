@@ -31,6 +31,8 @@ const light: StudioLight = {
   intensity: 100,
   spread: 0.62,
   color: "#ef5350",
+  colorTemperature: null,
+  role: null,
 };
 
 describe("lightRenderParams", () => {

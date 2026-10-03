@@ -46,10 +46,19 @@ import {
   readScene,
   writeScene,
   nextAssetCounter,
+  BACKDROP_COLORS,
+  type StudioBackdrop,
   type StudioLight,
   type StudioModel,
 } from "@/lib/studio/scene-storage";
 import { CAPTURE_INTENSITY_KEY, FLASH_COLOR, lightRenderParams } from "@/lib/studio/light-rendering";
+import {
+  MAX_KELVIN,
+  MIN_KELVIN,
+  kelvinToHex,
+  lightRolePlacement,
+  type LightRole,
+} from "@/lib/studio/light-presets";
 
 type ToolId = "light" | "camera" | "model" | "pose" | "object" | "move" | "rotate" | "delete";
 
@@ -63,6 +72,10 @@ const DEFAULT_LIGHT_HEIGHT = 2.4;
 const MIN_LIGHT_HEIGHT = 1.3;
 const MAX_LIGHT_HEIGHT = 10;
 const DEFAULT_MODEL_POSITION: [number, number, number] = [0, 0, -1];
+const DEFAULT_KELVIN = 5600;
+const LIGHT_ROLE_LABELS: Record<LightRole, string> = { key: "Key", fill: "Fill", rim: "Rim" };
+/** Pointer travel (px) below which a press on the backdrop counts as a click, not an orbit drag. */
+const CLICK_TOLERANCE = 4;
 /** Query parameter used by the character library to open a character in the studio. */
 export const STUDIO_CHARACTER_PARAM = "character";
 
@@ -151,7 +164,17 @@ function ToolIcon({ tool }: { tool: ToolId }) {
   );
 }
 
-function Cyclorama() {
+function Cyclorama({
+  backdrop,
+  selected,
+  onSelect,
+  onOpenSettings,
+}: {
+  backdrop: StudioBackdrop;
+  selected: boolean;
+  onSelect: () => void;
+  onOpenSettings: () => void;
+}) {
   const geometry = useMemo(() => {
     const halfWidth = 30;
     const profile: Array<[number, number]> = [
@@ -185,11 +208,88 @@ function Cyclorama() {
     return result;
   }, []);
   const material = useMemo(
-    () => new MeshStandardMaterial({ color: "#777a7d", roughness: 0.86 }),
+    () => new MeshStandardMaterial({ color: BACKDROP_COLORS.gray, roughness: 0.86 }),
     [],
   );
+  useEffect(() => {
+    material.color.set(BACKDROP_COLORS[backdrop.color]);
+  }, [backdrop.color, material]);
 
-  return <mesh geometry={geometry} material={material} receiveShadow />;
+  return (
+    <>
+      <mesh
+        geometry={geometry}
+        material={material}
+        receiveShadow
+        onClick={(event) => {
+          if (event.delta > CLICK_TOLERANCE) return;
+          event.stopPropagation();
+          onSelect();
+        }}
+      />
+      {selected ? (
+        <Html position={[0, 2.8, -7.3]} center zIndexRange={[20, 0]}>
+          <button
+            type="button"
+            aria-label="Open backdrop settings"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenSettings();
+            }}
+            className="flex h-10 items-center gap-2 rounded-full border border-white/25 bg-[#171819]/95 px-3 text-xs text-white shadow-xl shadow-black/35 backdrop-blur-xl transition hover:border-amber-300/70 hover:text-amber-200"
+          >
+            <span aria-hidden="true" className="h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: BACKDROP_COLORS[backdrop.color] }} />
+            Backdrop
+          </button>
+        </Html>
+      ) : null}
+    </>
+  );
+}
+
+export function BackdropSettingsPanel({
+  backdrop,
+  onChange,
+  onClose,
+}: {
+  backdrop: StudioBackdrop;
+  onChange: (backdrop: StudioBackdrop) => void;
+  onClose: () => void;
+}) {
+  return (
+    <aside
+      aria-label="Backdrop settings"
+      className="absolute right-5 top-1/2 max-h-[calc(100dvh-2rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-[#151617]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-2xl"
+    >
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">Studio</p>
+          <h2 className="mt-1 text-sm font-medium">Seamless backdrop</h2>
+        </div>
+        <button type="button" aria-label="Close backdrop settings" onClick={onClose} className="h-8 w-8 rounded-full text-white/50 hover:bg-white/10 hover:text-white">×</button>
+      </div>
+      <fieldset>
+        <legend className="mb-2 text-xs text-white/55">Paper colour</legend>
+        <div className="grid grid-cols-3 gap-2">
+          {(Object.keys(BACKDROP_COLORS) as Array<StudioBackdrop["color"]>).map((color) => (
+            <button
+              key={color}
+              type="button"
+              aria-pressed={backdrop.color === color}
+              onClick={() => onChange({ color })}
+              className={`flex flex-col items-center gap-2 rounded-xl border p-2 text-[11px] capitalize transition ${
+                backdrop.color === color ? "border-amber-300/70 text-white" : "border-white/10 text-white/55 hover:border-white/25"
+              }`}
+            >
+              <span aria-hidden="true" className="h-8 w-full rounded-lg border border-white/15" style={{ backgroundColor: BACKDROP_COLORS[color] }} />
+              {color}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+    </aside>
+  );
 }
 
 function TubeBetween({
@@ -600,7 +700,15 @@ function StudioScene({
   onSelectModel,
   onMoveModel,
   onRotateModel,
+  backdrop,
+  backdropSelected,
+  onSelectBackdrop,
+  onOpenBackdropSettings,
 }: {
+  backdrop: StudioBackdrop;
+  backdropSelected: boolean;
+  onSelectBackdrop: () => void;
+  onOpenBackdropSettings: () => void;
   model: StudioModel | null;
   modelCharacter: Character | undefined;
   modelSelected: boolean;
@@ -637,7 +745,12 @@ function StudioScene({
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      <Cyclorama />
+      <Cyclorama
+        backdrop={backdrop}
+        selected={backdropSelected}
+        onSelect={onSelectBackdrop}
+        onOpenSettings={onOpenBackdropSettings}
+      />
       {lights.map((light) => (
         <TripodLight
           key={light.id}
@@ -687,11 +800,13 @@ export function LightSettingsPanel({
   onChange,
   onClose,
   onResetTransform,
+  onApplyRole,
 }: {
   light: StudioLight;
   onChange: (patch: LightPatch) => void;
   onClose: () => void;
   onResetTransform: () => void;
+  onApplyRole?: (role: LightRole) => void;
 }) {
   const [hexDraft, setHexDraft] = useState(light.color.toUpperCase());
   const isFlash = light.lightType === "flash";
@@ -701,7 +816,7 @@ export function LightSettingsPanel({
   const setColor = (color: string) => {
     if (isFlash) return;
     setHexDraft(color.toUpperCase());
-    onChange({ color });
+    onChange({ color, colorTemperature: null });
   };
 
   const setRgbChannel = (channelIndex: number, value: number) => {
@@ -723,7 +838,9 @@ export function LightSettingsPanel({
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">
             Selected light
           </p>
-          <h2 className="mt-1 text-sm font-medium text-white">Light settings</h2>
+          <h2 className="mt-1 text-sm font-medium text-white">
+            {light.role ? `${LIGHT_ROLE_LABELS[light.role]} light` : "Light settings"}
+          </h2>
         </div>
         <button
           type="button"
@@ -736,6 +853,27 @@ export function LightSettingsPanel({
       </div>
 
       <div className="space-y-5">
+        {onApplyRole ? (
+          <fieldset>
+            <legend className="mb-2 text-xs text-white/55">Lighting role</legend>
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-black/25 p-1">
+              {(Object.keys(LIGHT_ROLE_LABELS) as LightRole[]).map((role) => (
+                <button
+                  key={role}
+                  type="button"
+                  aria-pressed={light.role === role}
+                  onClick={() => onApplyRole(role)}
+                  className={`rounded-lg px-2 py-2 text-xs font-medium transition ${
+                    light.role === role ? "bg-white text-neutral-950" : "text-white/45 hover:text-white"
+                  }`}
+                >
+                  {LIGHT_ROLE_LABELS[role]}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[10px] text-white/35">Places and aims the light around the subject.</p>
+          </fieldset>
+        ) : null}
         <button
           type="button"
           onClick={onResetTransform}
@@ -966,6 +1104,30 @@ export function LightSettingsPanel({
               className="h-8 w-8 cursor-pointer rounded-full border-0 bg-transparent p-0"
             />
           </div>
+          <label className="mb-3 block">
+            <span className="mb-1 flex justify-between text-[10px] font-semibold uppercase tracking-[0.16em] text-white/35">
+              Colour temperature
+              <span className="normal-case tracking-normal text-white/55">
+                {isFlash ? "5600 K" : light.colorTemperature ? `${light.colorTemperature} K` : "Custom"}
+              </span>
+            </span>
+            <input
+              aria-label="Colour temperature"
+              type="range"
+              min={MIN_KELVIN}
+              max={MAX_KELVIN}
+              step="100"
+              value={isFlash ? DEFAULT_KELVIN : light.colorTemperature ?? DEFAULT_KELVIN}
+              onChange={(event) => {
+                if (isFlash) return;
+                const kelvin = Number(event.target.value);
+                const color = kelvinToHex(kelvin);
+                setHexDraft(color.toUpperCase());
+                onChange({ color, colorTemperature: kelvin });
+              }}
+              className="w-full accent-amber-300"
+            />
+          </label>
           <div className="grid grid-cols-3 gap-2">
             {RGB_CHANNELS.map((channel, channelIndex) => (
               <label key={channel} className="block">
@@ -997,7 +1159,7 @@ export function LightSettingsPanel({
                 const nextDraft = event.target.value;
                 setHexDraft(nextDraft.toUpperCase());
                 const normalized = normalizeHex(nextDraft);
-                if (normalized) onChange({ color: normalized });
+                if (normalized) onChange({ color: normalized, colorTemperature: null });
               }}
               onBlur={() => setHexDraft(light.color.toUpperCase())}
               className="h-9 w-full rounded-lg border border-white/10 bg-black/25 px-3 font-mono text-xs uppercase tracking-wider text-white outline-none transition focus:border-amber-300/70"
@@ -1025,6 +1187,9 @@ export function Studio() {
   const [model, setModel] = useState<StudioModel | null>(null);
   const [modelSelected, setModelSelected] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [backdrop, setBackdrop] = useState<StudioBackdrop>({ color: "gray" });
+  const [backdropSelected, setBackdropSelected] = useState(false);
+  const [backdropSettingsOpen, setBackdropSettingsOpen] = useState(false);
   const characters = useCharacterStore((state) => state.characters);
   const modelCharacter = model ? characters.find((character) => character.id === model.characterId) : undefined;
 
@@ -1036,6 +1201,7 @@ export function Studio() {
         cameraIdCounter.current = nextAssetCounter(scene.cameras);
         setLights(scene.lights);
         setCameras(scene.cameras);
+        setBackdrop(scene.backdrop);
         // Character store is hydrated by <StoreHydration/> before this deferred read.
         const known = new Set(useCharacterStore.getState().characters.map((character) => character.id));
         const requested = new URLSearchParams(window.location.search).get(STUDIO_CHARACTER_PARAM);
@@ -1067,7 +1233,7 @@ export function Studio() {
   useEffect(() => {
     if (storageStatus !== "ready") return;
     try {
-      writeScene(window.localStorage, { version: 1, lights, cameras, model });
+      writeScene(window.localStorage, { version: 1, lights, cameras, model, backdrop });
     } catch {
       // Defer the status update to keep the effect free of synchronous state changes.
       const timer = window.setTimeout(() => {
@@ -1076,7 +1242,7 @@ export function Studio() {
       }, 0);
       return () => window.clearTimeout(timer);
     }
-  }, [cameras, lights, model, storageStatus]);
+  }, [backdrop, cameras, lights, model, storageStatus]);
 
   const addLight = () => {
     if (storageStatus === "loading") return;
@@ -1103,6 +1269,8 @@ export function Studio() {
         intensity: 95,
         spread: 0.62,
         color: "#fff0d2",
+        colorTemperature: null,
+        role: null,
       },
     ]);
     setSelectedId(id);
@@ -1110,6 +1278,8 @@ export function Studio() {
     setSettingsLightId(null);
     setSettingsCameraId(null);
     setModelSelected(false);
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     setPickerOpen(false);
     setTransformMode("translate");
   };
@@ -1145,6 +1315,8 @@ export function Studio() {
     setSettingsLightId(null);
     setSettingsCameraId(null);
     setModelSelected(false);
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     setPickerOpen(false);
     setTransformMode("translate");
   };
@@ -1189,6 +1361,8 @@ export function Studio() {
     setSelectedCameraId(null);
     setSettingsCameraId(null);
     setModelSelected(false);
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     if (id === null || id !== settingsLightId) setSettingsLightId(null);
   };
 
@@ -1232,11 +1406,32 @@ export function Studio() {
     setSelectedId(null);
     setSettingsLightId(null);
     setModelSelected(false);
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     if (id !== settingsCameraId) setSettingsCameraId(null);
+  };
+
+  const selectBackdrop = () => {
+    setBackdropSelected(true);
+    setSelectedId(null);
+    setSelectedCameraId(null);
+    setModelSelected(false);
+    setSettingsLightId(null);
+    setSettingsCameraId(null);
+    setPickerOpen(false);
+  };
+
+  const applyLightRole = (id: string, role: LightRole) => {
+    const subject = model ?? { position: DEFAULT_MODEL_POSITION, rotation: [0, 0, 0] as [number, number, number] };
+    setLights((current) =>
+      current.map((light) => (light.id === id ? { ...light, ...lightRolePlacement(role, subject) } : light)),
+    );
   };
 
   const selectModel = () => {
     if (!modelSelected) setTransformMode("translate");
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     setModelSelected(true);
     setSelectedId(null);
     setSelectedCameraId(null);
@@ -1247,6 +1442,7 @@ export function Studio() {
   const openModelPicker = () => {
     if (storageStatus === "loading") return;
     setPickerOpen(true);
+    setBackdropSettingsOpen(false);
     setSettingsLightId(null);
     setSettingsCameraId(null);
   };
@@ -1265,6 +1461,8 @@ export function Studio() {
   const removeModel = () => {
     setModel(null);
     setModelSelected(false);
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     setPickerOpen(false);
   };
 
@@ -1278,6 +1476,8 @@ export function Studio() {
     }
     if (modelSelected) setModel(null);
     setModelSelected(false);
+    setBackdropSelected(false);
+    setBackdropSettingsOpen(false);
     setSelectedId(null);
     setSelectedCameraId(null);
     setSettingsLightId(null);
@@ -1372,6 +1572,13 @@ export function Studio() {
           onSelectModel={selectModel}
           onMoveModel={(position) => setModel((current) => (current ? { ...current, position } : current))}
           onRotateModel={(rotation) => setModel((current) => (current ? { ...current, rotation } : current))}
+          backdrop={backdrop}
+          backdropSelected={backdropSelected}
+          onSelectBackdrop={selectBackdrop}
+          onOpenBackdropSettings={() => {
+            setPickerOpen(false);
+            setBackdropSettingsOpen(true);
+          }}
         />
       </Canvas>
 
@@ -1390,6 +1597,15 @@ export function Studio() {
           onChange={(patch) => updateLight(settingsLight.id, patch)}
           onClose={() => setSettingsLightId(null)}
           onResetTransform={() => resetLightTransform(settingsLight.id)}
+          onApplyRole={(role) => applyLightRole(settingsLight.id, role)}
+        />
+      ) : null}
+
+      {backdropSettingsOpen ? (
+        <BackdropSettingsPanel
+          backdrop={backdrop}
+          onChange={setBackdrop}
+          onClose={() => setBackdropSettingsOpen(false)}
         />
       ) : null}
 

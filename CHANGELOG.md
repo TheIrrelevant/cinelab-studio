@@ -5,13 +5,20 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: first milestone closed (character in studio, navigation, e2e)
+last-change: backdrop colours, key/fill/rim roles, colour temperature
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Backdrop, light roles and colour temperature
+
+### Added
+- Selectable seamless backdrop: clicking the cyclorama selects it and shows a hotspot that opens white / gray / black paper settings. Stored as `backdrop.color` (older saves default to gray).
+- Key / Fill / Rim lighting roles in the light settings panel. A role places the light around the subject (the placed character, or the default spot), aims it at face height and sets power, softbox and spread (`src/lib/studio/light-presets.ts`). Stored as `role`; the panel title shows it.
+- Colour temperature slider (2000-10000 K) that sets the light colour from a black-body approximation. Stored as `colorTemperature`; picking a custom colour clears it. Disabled for flash (fixed 5600 K).
 
 ## 2026-10-03 - First milestone: characters in the studio
 
