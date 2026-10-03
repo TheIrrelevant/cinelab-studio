@@ -5,10 +5,7 @@
   "description": "Provider-neutral render contract: SceneJSON, requests, results, history.",
   "type": "module",
   "exports": {
-    "./components/SceneJsonPanel": "./src/components/SceneJsonPanel.tsx",
-    "./contract": "./src/contract.ts",
-    "./render-repository": "./src/render-repository.ts",
-    "./scene-json": "./src/scene-json.ts"
+    "./components/SceneJsonPanel": "./src/components/SceneJsonPanel.tsx"
   },
   "scripts": {
     "test": "vitest run",

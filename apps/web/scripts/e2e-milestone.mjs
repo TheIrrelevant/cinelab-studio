@@ -6,6 +6,7 @@
  *   Captures screenshots as real artifacts. Run with the dev server already on
  *   STUDIO_URL (default http://localhost:3000).
  * @scope cinelab-studio
+ * @depends playwright, running Next dev server on STUDIO_URL
  */
 
 import { chromium } from "playwright";

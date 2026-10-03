@@ -4,6 +4,7 @@
  *   presentation, body presets, skin tones, and hair styles. These are the only
  *   selectable values the editor allows in Phase 1 (constrained input, not free text).
  * @scope cinelab-studio
+ * @depends none
  */
 
 export type GenderPresentation = "feminine" | "masculine" | "androgynous";

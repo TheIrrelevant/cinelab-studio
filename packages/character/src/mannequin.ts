@@ -3,25 +3,14 @@
  * @description Derives placeholder mannequin proportions and colours from a saved
  *   character so the studio can show the active character before real avatars exist.
  * @scope cinelab-studio
- * @depends character/schema.ts, character/presets.ts
+ * @depends schema.ts, presets.ts, @cinelab/human/mannequin-spec
  */
 
 import type { Character } from "./schema";
 import { getSkinTone, type BodyPreset, type GenderPresentation } from "./presets";
+import type { HairShape, MannequinSpec } from "@cinelab/human/mannequin-spec";
 
-export type HairShape = "none" | "cap" | "bob" | "long" | "bun" | "curly";
-
-export type MannequinSpec = {
-  /** Standing height in metres. */
-  height: number;
-  /** Horizontal scale for torso, hips and limbs. */
-  girth: number;
-  /** Shoulder width relative to hips. */
-  shoulderRatio: number;
-  skin: string;
-  hairColor: string;
-  hair: HairShape;
-};
+export type { HairShape, MannequinSpec } from "@cinelab/human/mannequin-spec";
 
 const BODY: Record<BodyPreset | string, { height: number; girth: number }> = {
   slim: { height: 1.7, girth: 0.86 },

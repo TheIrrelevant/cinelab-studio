@@ -2,6 +2,7 @@
  * @file globals.css
  * @description Global theme tokens and normalized form-control behavior for Cinelab Studio.
  * @scope cinelab-studio
+ * @depends tailwindcss, packages/* sources
  */
 
 @import "tailwindcss";

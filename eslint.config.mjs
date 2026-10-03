@@ -6,6 +6,8 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   { settings: { next: { rootDir: "apps/web/" } } },
+  // Workspace rule: no source, test or script file over 200 lines (see tools/check-structure.mjs).
+  { files: ["**/*.{ts,tsx,js,mjs}"], rules: { "max-lines": ["error", { max: 200 }] } },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

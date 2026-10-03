@@ -3,6 +3,7 @@
  * @description Shared Tailwind classes for the studio's right-hand settings panels.
  *   Height leaves room for the header chips above and the toolbar below.
  * @scope cinelab-studio
+ * @depends none
  */
 
 export const RIGHT_PANEL_CLASS =

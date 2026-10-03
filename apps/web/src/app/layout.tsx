@@ -2,6 +2,7 @@
  * @file layout.tsx
  * @description Root layout for Cinelab Studio. Sets fonts, metadata, and full-height shell.
  * @scope cinelab-studio
+ * @depends next/font/google, globals.css
  */
 
 import type { Metadata } from "next";

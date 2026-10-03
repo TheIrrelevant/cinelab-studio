@@ -5,13 +5,27 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: moved to a pnpm workspace with feature packages
+last-change: 200-line split, selection/panel model, structure checks, AGENTS.md
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Agent-friendly structure
+
+### Changed
+- Every source, test and script file is at most 200 lines. `Studio.tsx` (1789 lines) became a 130-line composition of hooks (`useSceneState`, `useStudioUi`, `useAssetActions`) and components (header, toolbar, panels, scene, lights, camera, model). Character editor, render contract and large tests were split the same way.
+- Studio selection is one `selection` plus at most one side `panel` (`components/studio/ui-state.ts`) instead of nine separate flags; behaviour is unchanged.
+- The jointed mannequin and `MannequinSpec` moved to `@cinelab/human`; `RigTube` was merged into the shared `TubeBetween`.
+- Package `exports` now list only modules used by other packages.
+- Tests: shared async timeout 5 s and test timeout 15 s, fixing cold-start flakes when packages run in parallel.
+
+### Added
+- `tools/check-structure.mjs` (`pnpm check:structure`): 200-line limit, metadata headers, package import boundaries and cycle detection; ESLint `max-lines: 200`.
+- `pnpm check` runs structure check, lint, typecheck and tests.
+- Root and per-package `AGENTS.md` (purpose, public API, dependencies, file map, test command); replaced the boilerplate README.
 
 ## 2026-10-03 - Workspace packages
 

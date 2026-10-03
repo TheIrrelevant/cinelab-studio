@@ -2,6 +2,7 @@
  * @file poses.ts
  * @description Joint rotations for the placeholder mannequin's preset poses.
  * @scope cinelab-studio
+ * @depends none
  */
 
 export const POSE_IDS = ["standing", "relaxed", "handsOnHips", "walking", "armsUp"] as const;

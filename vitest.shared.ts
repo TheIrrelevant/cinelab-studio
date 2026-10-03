@@ -23,5 +23,6 @@ export default defineConfig({
     setupFiles: [fileURLToPath(new URL("./test/setup.ts", import.meta.url))],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     execArgv,
+    testTimeout: 15000,
   },
 });

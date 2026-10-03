@@ -2,6 +2,7 @@
  * @file sanity.test.ts
  * @description Smoke test confirming vitest + jsdom environment is wired correctly.
  * @scope cinelab-studio
+ * @depends vitest
  */
 
 import { describe, it, expect } from "vitest";

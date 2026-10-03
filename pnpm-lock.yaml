@@ -140,6 +140,12 @@ importers:
       '@cinelab/core':
         specifier: workspace:*
         version: link:../core
+      '@react-three/fiber':
+        specifier: ^9.6.1
+        version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
       three:
         specifier: ^0.185.1
         version: 0.185.1
