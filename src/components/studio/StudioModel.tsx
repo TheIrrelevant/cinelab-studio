@@ -2,7 +2,7 @@
  * @file StudioModel.tsx
  * @description Placeholder mannequin for the active scene character and the character picker panel.
  * @scope cinelab-studio
- * @depends @react-three/drei, three, mannequin.ts, character schema
+ * @depends @react-three/drei, three, mannequin.ts, poses.ts, character schema
  */
 
 "use client";
@@ -12,7 +12,9 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Group } from "three";
 import type { Character } from "@/lib/character/schema";
+import { RIGHT_PANEL_CLASS } from "./panel-styles";
 import { mannequinSpec, type MannequinSpec } from "@/lib/studio/mannequin";
+import { POSE_IDS, POSES, poseAngles, type PoseId } from "@/lib/studio/poses";
 import type { StudioModel } from "@/lib/studio/scene-storage";
 
 type TransformMode = "translate" | "rotate";
@@ -77,37 +79,91 @@ function Hair({ spec, headY, headRadius }: { spec: MannequinSpec; headY: number;
   );
 }
 
-/** Simple standing figure scaled from the character's body, skin and hair settings. */
-function Mannequin({ spec, selected }: { spec: MannequinSpec; selected: boolean }) {
+const toRadians = (angles: [number, number, number]) =>
+  angles.map((value) => (value * Math.PI) / 180) as [number, number, number];
+
+/** Two-segment limb hanging along -y from its pivot, with a bend joint between the segments. */
+function JointedLimb({
+  pivot,
+  rotation,
+  bend,
+  upperLength,
+  lowerLength,
+  radius,
+  upperColor,
+  lowerColor,
+  end,
+}: {
+  pivot: [number, number, number];
+  rotation: [number, number, number];
+  bend: [number, number, number];
+  upperLength: number;
+  lowerLength: number;
+  radius: number;
+  upperColor: string;
+  lowerColor: string;
+  end: "hand" | "foot";
+}) {
+  return (
+    <group position={pivot} rotation={toRadians(rotation)}>
+      <Limb position={[0, -upperLength / 2, 0]} length={upperLength} radius={radius} color={upperColor} />
+      <group position={[0, -upperLength, 0]} rotation={toRadians(bend)}>
+        <Limb position={[0, -lowerLength / 2, 0]} length={lowerLength} radius={radius * 0.9} color={lowerColor} />
+        {end === "hand" ? (
+          <mesh position={[0, -lowerLength - radius * 0.6, 0]} castShadow>
+            <sphereGeometry args={[radius * 1.1, 12, 10]} />
+            <meshStandardMaterial color={lowerColor} roughness={0.55} />
+          </mesh>
+        ) : (
+          <mesh position={[0, -lowerLength - radius * 0.2, radius * 1.4]} castShadow>
+            <boxGeometry args={[radius * 1.8, radius * 1.1, radius * 4.2]} />
+            <meshStandardMaterial color="#141516" roughness={0.6} />
+          </mesh>
+        )}
+      </group>
+    </group>
+  );
+}
+
+/** Jointed figure scaled from the character's body, skin and hair settings, posed by preset. */
+function Mannequin({ spec, pose, selected }: { spec: MannequinSpec; pose: PoseId; selected: boolean }) {
+  const angles = poseAngles(pose);
   const unit = spec.height / 1.72;
-  const legLength = 0.86 * unit;
+  const thigh = 0.44 * unit;
+  const shin = 0.4 * unit;
+  const hipY = thigh + shin + 0.04 * unit;
   const torsoLength = 0.56 * unit;
-  const hipY = legLength;
-  const shoulderY = hipY + torsoLength;
+  const shoulderLocalY = torsoLength - 0.04 * unit;
   const headRadius = 0.11 * unit;
-  const headY = shoulderY + 0.07 * unit + headRadius;
   const hipHalf = 0.1 * spec.girth * unit;
   const shoulderHalf = 0.19 * spec.shoulderRatio * spec.girth * unit;
   const limb = 0.055 * spec.girth * unit;
-  const armLength = 0.66 * unit;
   const clothing = selected ? "#3a3326" : "#2b2d30";
 
   return (
     <group>
-      <Limb position={[-hipHalf, legLength / 2, 0]} length={legLength} radius={limb * 1.15} color={clothing} />
-      <Limb position={[hipHalf, legLength / 2, 0]} length={legLength} radius={limb * 1.15} color={clothing} />
-      <mesh position={[0, hipY + torsoLength / 2, 0]} scale={[shoulderHalf * 2, torsoLength, 0.22 * spec.girth * unit]} castShadow>
-        <capsuleGeometry args={[0.5, 0.3, 8, 16]} />
-        <meshStandardMaterial color={clothing} roughness={0.7} />
-      </mesh>
-      <Limb position={[-(shoulderHalf + limb), shoulderY - armLength / 2, 0]} length={armLength} radius={limb} color={spec.skin} />
-      <Limb position={[shoulderHalf + limb, shoulderY - armLength / 2, 0]} length={armLength} radius={limb} color={spec.skin} />
-      <Limb position={[0, shoulderY + 0.04 * unit, 0]} length={0.12 * unit} radius={0.045 * unit} color={spec.skin} />
-      <mesh position={[0, headY, 0]} scale={[0.92, 1.08, 1]} castShadow>
-        <sphereGeometry args={[headRadius, 24, 16]} />
-        <meshStandardMaterial color={spec.skin} roughness={0.55} />
-      </mesh>
-      <Hair spec={spec} headY={headY} headRadius={headRadius} />
+      <JointedLimb pivot={[-hipHalf, hipY, 0]} rotation={angles.leftHip} bend={angles.leftKnee} upperLength={thigh} lowerLength={shin} radius={limb * 1.15} upperColor={clothing} lowerColor={clothing} end="foot" />
+      <JointedLimb pivot={[hipHalf, hipY, 0]} rotation={angles.rightHip} bend={angles.rightKnee} upperLength={thigh} lowerLength={shin} radius={limb * 1.15} upperColor={clothing} lowerColor={clothing} end="foot" />
+      <group position={[0, hipY, 0]} rotation={toRadians(angles.spine)}>
+        <mesh position={[0, torsoLength / 2, 0]} scale={[shoulderHalf * 2, torsoLength, 0.22 * spec.girth * unit]} castShadow>
+          <capsuleGeometry args={[0.5, 0.3, 8, 16]} />
+          <meshStandardMaterial color={clothing} roughness={0.7} />
+        </mesh>
+        <JointedLimb pivot={[-(shoulderHalf + limb), shoulderLocalY, 0]} rotation={angles.leftShoulder} bend={angles.leftElbow} upperLength={0.31 * unit} lowerLength={0.28 * unit} radius={limb} upperColor={clothing} lowerColor={spec.skin} end="hand" />
+        <JointedLimb pivot={[shoulderHalf + limb, shoulderLocalY, 0]} rotation={angles.rightShoulder} bend={angles.rightElbow} upperLength={0.31 * unit} lowerLength={0.28 * unit} radius={limb} upperColor={clothing} lowerColor={spec.skin} end="hand" />
+        <group position={[0, torsoLength + 0.02 * unit, 0]} rotation={toRadians(angles.head)}>
+          <Limb position={[0, 0.04 * unit, 0]} length={0.12 * unit} radius={0.045 * unit} color={spec.skin} />
+          <mesh position={[0, 0.07 * unit + headRadius, 0]} scale={[0.92, 1.08, 1]} castShadow>
+            <sphereGeometry args={[headRadius, 24, 16]} />
+            <meshStandardMaterial color={spec.skin} roughness={0.55} />
+          </mesh>
+          <mesh position={[0, 0.07 * unit + headRadius * 0.9, headRadius * 0.95]} castShadow>
+            <coneGeometry args={[headRadius * 0.16, headRadius * 0.35, 8]} />
+            <meshStandardMaterial color={spec.skin} roughness={0.55} />
+          </mesh>
+          <Hair spec={spec} headY={0.07 * unit + headRadius} headRadius={headRadius} />
+        </group>
+      </group>
     </group>
   );
 }
@@ -145,7 +201,7 @@ export function StudioCharacter({
           onSelect();
         }}
       >
-        <Mannequin spec={spec} selected={selected} />
+        <Mannequin spec={spec} pose={model.pose} selected={selected} />
         {selected ? (
           <Html position={[0, spec.height + 0.3, 0]} center zIndexRange={[20, 0]}>
             <span className="whitespace-nowrap rounded-full border border-white/20 bg-[#171819]/95 px-3 py-1 text-xs text-white shadow-xl">
@@ -196,7 +252,7 @@ export function ModelPickerPanel({
   return (
     <aside
       aria-label="Choose a character"
-      className="absolute right-5 top-1/2 max-h-[calc(100dvh-2rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-[#151617]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-2xl"
+      className={RIGHT_PANEL_CLASS}
     >
       <div className="mb-5 flex items-center justify-between">
         <div>
@@ -244,6 +300,48 @@ export function ModelPickerPanel({
             Remove from scene
           </button>
         ) : null}
+      </div>
+    </aside>
+  );
+}
+
+export function PosePickerPanel({
+  pose,
+  characterName,
+  onPick,
+  onClose,
+}: {
+  pose: PoseId;
+  characterName: string;
+  onPick: (pose: PoseId) => void;
+  onClose: () => void;
+}) {
+  return (
+    <aside
+      aria-label="Choose a pose"
+      className={RIGHT_PANEL_CLASS}
+    >
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">{characterName}</p>
+          <h2 className="mt-1 text-sm font-medium">Pose</h2>
+        </div>
+        <button type="button" aria-label="Close pose picker" onClick={onClose} className="h-8 w-8 rounded-full text-white/50 hover:bg-white/10 hover:text-white">×</button>
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        {POSE_IDS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={pose === id}
+            onClick={() => onPick(id)}
+            className={`rounded-xl border px-3 py-2.5 text-left text-xs transition ${
+              pose === id ? "border-amber-300/60 bg-amber-300/10 text-white" : "border-white/10 text-white/65 hover:border-white/25"
+            }`}
+          >
+            {POSES[id].label}
+          </button>
+        ))}
       </div>
     </aside>
   );

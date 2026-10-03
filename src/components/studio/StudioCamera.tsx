@@ -17,10 +17,12 @@ import {
   Vector3,
 } from "three";
 import type { Group } from "three";
+import { RIGHT_PANEL_CLASS } from "./panel-styles";
 import { PreviewWindow } from "./PreviewWindow";
 import { CameraFeedRenderer, exposureMultiplier, verticalFieldOfView } from "@/lib/studio/camera-feed";
 
 import { CAMERA_LENSES, type CameraLensId } from "@/lib/studio/camera-lenses";
+import { FRAMINGS, type FramingId } from "@/lib/studio/framing";
 
 export type CameraBodyId = "proDslr";
 export type { CameraLensId } from "@/lib/studio/camera-lenses";
@@ -43,6 +45,7 @@ export type StudioCameraAsset = {
   bokeh: number;
   filter: CameraFilterId;
   previewVisible: boolean;
+  framing: FramingId | null;
 };
 
 export type CameraPatch = Partial<
@@ -50,6 +53,15 @@ export type CameraPatch = Partial<
 >;
 
 const CAMERA_RIG_SCALE = 1.8;
+
+/** Distance from the rig's vertical axis to the virtual lens origin along the view direction. */
+export function lensOriginOffset(body: CameraBodyId, lensId: CameraLensId, zoomMm: number) {
+  const lens = CAMERA_LENSES[lensId];
+  const zoomRange = lens.focalMax - lens.focalMin;
+  const zoomProgress = zoomRange === 0 ? 0 : (zoomMm - lens.focalMin) / zoomRange;
+  const lensLength = lens.lengthMin + (lens.lengthMax - lens.lengthMin) * zoomProgress;
+  return (CAMERA_BODIES[body].size[2] / 2 + lensLength) * CAMERA_RIG_SCALE + 0.04;
+}
 
 const CAMERA_BODIES: Record<CameraBodyId, { label: string; size: [number, number, number] }> = {
   proDslr: { label: "Professional full-frame DSLR", size: [0.26, 0.19, 0.15] },
@@ -113,15 +125,11 @@ export function CameraFeedCapture({
       ),
     );
     const worldRotation = rigRotation.clone().multiply(headRotation);
-    const lens = CAMERA_LENSES[camera.lens];
-    const zoomRange = lens.focalMax - lens.focalMin;
-    const zoomProgress = zoomRange === 0 ? 0 : (camera.zoomMm - lens.focalMin) / zoomRange;
-    const lensLength = lens.lengthMin + (lens.lengthMax - lens.lengthMin) * zoomProgress;
     const forward = new Vector3(0, 0, 1).applyQuaternion(worldRotation);
     const origin = new Vector3(0, camera.height, 0)
       .applyQuaternion(rigRotation)
       .add(new Vector3(...camera.position))
-      .add(forward.clone().multiplyScalar((CAMERA_BODIES[camera.body].size[2] / 2 + lensLength) * CAMERA_RIG_SCALE + 0.04));
+      .add(forward.clone().multiplyScalar(lensOriginOffset(camera.body, camera.lens, camera.zoomMm)));
     virtualCamera.position.copy(origin);
     virtualCamera.up.copy(new Vector3(0, 1, 0).applyQuaternion(worldRotation));
     virtualCamera.lookAt(origin.clone().add(forward));
@@ -425,11 +433,13 @@ export function CameraSettingsPanel({
   onChange,
   onClose,
   onReset,
+  onApplyFraming,
 }: {
   camera: StudioCameraAsset;
   onChange: (patch: CameraPatch) => void;
   onClose: () => void;
   onReset: () => void;
+  onApplyFraming?: (framing: FramingId) => void;
 }) {
   const setHeadAxis = (index: number, value: number) => {
     const rotation: [number, number, number] = [...camera.headRotation];
@@ -448,12 +458,33 @@ export function CameraSettingsPanel({
   };
 
   return (
-    <aside className="absolute right-5 top-1/2 max-h-[calc(100dvh-2rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-[#151617]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-2xl">
+    <aside className={RIGHT_PANEL_CLASS}>
       <div className="mb-5 flex items-center justify-between">
         <div><p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">Selected camera</p><h2 className="mt-1 text-sm font-medium">Camera settings</h2></div>
         <button type="button" aria-label="Close camera settings" onClick={onClose} className="h-8 w-8 rounded-full text-white/50 hover:bg-white/10 hover:text-white">×</button>
       </div>
       <div className="space-y-5">
+        {onApplyFraming ? (
+          <fieldset>
+            <legend className="mb-2 text-xs text-white/55">Framing</legend>
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-black/25 p-1">
+              {(Object.keys(FRAMINGS) as FramingId[]).map((framing) => (
+                <button
+                  key={framing}
+                  type="button"
+                  aria-pressed={camera.framing === framing}
+                  onClick={() => onApplyFraming(framing)}
+                  className={`rounded-lg px-1.5 py-2 text-[11px] font-medium transition ${
+                    camera.framing === framing ? "bg-white text-neutral-950" : "text-white/45 hover:text-white"
+                  }`}
+                >
+                  {FRAMINGS[framing].label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1.5 text-[10px] text-white/35">Moves the camera in front of the subject and sets lens, zoom and focus.</p>
+          </fieldset>
+        ) : null}
         <button type="button" onClick={onReset} className="flex w-full items-center justify-between rounded-xl border border-white/10 px-3 py-2.5 text-left text-xs text-white/65 hover:border-amber-300/40"><span><strong className="block text-white">Default pose</strong><small className="text-white/35">Reset rig and camera angle</small></span><span>↻</span></button>
         <label className="block text-xs text-white/55">Tripod height
           <div className="mt-2 flex items-center rounded-xl border border-white/10 bg-black/25 px-3"><input aria-label="Camera tripod height" type="number" min="0.8" max="3" step="0.05" value={camera.height} onChange={(event) => onChange({ height: Math.max(0.8, Math.min(3, Number(event.target.value) || 0.8)) })} className="h-10 w-full bg-transparent text-white outline-none" /><span className="text-white/35">m</span></div>

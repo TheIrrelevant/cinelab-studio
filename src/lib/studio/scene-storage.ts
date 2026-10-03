@@ -1,10 +1,11 @@
 /**
  * @file scene-storage.ts
  * @description Validated, versioned scene storage and collision-free restored asset counters.
- * @depends zod, camera-lenses.ts
+ * @depends zod, camera-lenses.ts, poses.ts
  */
 import { z } from "zod";
 import { CAMERA_LENSES } from "./camera-lenses";
+import { POSE_IDS } from "./poses";
 
 export const STUDIO_SCENE_STORAGE_KEY = "cinelab-studio-scene-v1";
 const vector = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
@@ -41,6 +42,7 @@ export const studioCameraSchema = z.object({
   bokeh: z.number().min(0).max(100),
   filter: z.enum(["neutral", "warm", "cool", "mono", "cinematic"]),
   previewVisible: z.boolean(),
+  framing: z.enum(["portrait", "halfBody", "fullBody"]).nullable().default(null),
 }).refine((camera) => {
   const lens = CAMERA_LENSES[camera.lens];
   return camera.zoomMm >= lens.focalMin && camera.zoomMm <= lens.focalMax
@@ -51,6 +53,7 @@ export const studioModelSchema = z.object({
   characterId: z.string().min(1),
   position: vector,
   rotation: vector,
+  pose: z.enum(POSE_IDS).default("standing"),
 });
 
 export const BACKDROP_COLORS = { white: "#e8e8e4", gray: "#777a7d", black: "#1c1d1f" } as const;

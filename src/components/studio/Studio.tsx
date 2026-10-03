@@ -34,11 +34,13 @@ import {
   CameraSettingsPanel,
   CameraFeedCapture,
   StudioCameraRig,
+  lensOriginOffset,
   type CameraPatch,
   type StudioCameraAsset,
 } from "./StudioCamera";
 
-import { ModelPickerPanel, StudioCharacter } from "./StudioModel";
+import { RIGHT_PANEL_CLASS } from "./panel-styles";
+import { ModelPickerPanel, PosePickerPanel, StudioCharacter } from "./StudioModel";
 import { StoreHydration } from "@/components/StoreHydration";
 import type { Character } from "@/lib/character/schema";
 import { useCharacterStore } from "@/store/character-store";
@@ -52,6 +54,9 @@ import {
   type StudioModel,
 } from "@/lib/studio/scene-storage";
 import { CAPTURE_INTENSITY_KEY, FLASH_COLOR, lightRenderParams } from "@/lib/studio/light-rendering";
+import { framingPlacement, type FramingId } from "@/lib/studio/framing";
+import { mannequinSpec } from "@/lib/studio/mannequin";
+import type { PoseId } from "@/lib/studio/poses";
 import {
   MAX_KELVIN,
   MIN_KELVIN,
@@ -73,6 +78,8 @@ const MIN_LIGHT_HEIGHT = 1.3;
 const MAX_LIGHT_HEIGHT = 10;
 const DEFAULT_MODEL_POSITION: [number, number, number] = [0, 0, -1];
 const DEFAULT_KELVIN = 5600;
+const DEFAULT_SUBJECT_HEIGHT = 1.72;
+const FRAMING_FIELDS = ["lens", "zoomMm", "height", "headRotation"] as const;
 const LIGHT_ROLE_LABELS: Record<LightRole, string> = { key: "Key", fill: "Fill", rim: "Rim" };
 /** Pointer travel (px) below which a press on the backdrop counts as a click, not an orbit drag. */
 const CLICK_TOLERANCE = 4;
@@ -260,7 +267,7 @@ export function BackdropSettingsPanel({
   return (
     <aside
       aria-label="Backdrop settings"
-      className="absolute right-5 top-1/2 max-h-[calc(100dvh-2rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-[#151617]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-2xl"
+      className={RIGHT_PANEL_CLASS}
     >
       <div className="mb-5 flex items-center justify-between">
         <div>
@@ -832,7 +839,7 @@ export function LightSettingsPanel({
   };
 
   return (
-    <aside className="absolute right-5 top-1/2 max-h-[calc(100dvh-2rem)] w-72 -translate-y-1/2 overflow-y-auto rounded-2xl border border-white/10 bg-[#151617]/95 p-4 shadow-2xl shadow-black/45 backdrop-blur-2xl">
+    <aside className={RIGHT_PANEL_CLASS}>
       <div className="mb-5 flex items-center justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/40">
@@ -1187,6 +1194,7 @@ export function Studio() {
   const [model, setModel] = useState<StudioModel | null>(null);
   const [modelSelected, setModelSelected] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [posePickerOpen, setPosePickerOpen] = useState(false);
   const [backdrop, setBackdrop] = useState<StudioBackdrop>({ color: "gray" });
   const [backdropSelected, setBackdropSelected] = useState(false);
   const [backdropSettingsOpen, setBackdropSettingsOpen] = useState(false);
@@ -1211,6 +1219,7 @@ export function Studio() {
             characterId: requested,
             position: restored?.position ?? DEFAULT_MODEL_POSITION,
             rotation: restored?.rotation ?? [0, 0, 0],
+            pose: restored?.pose ?? "standing",
           });
           setModelSelected(true);
         } else {
@@ -1308,6 +1317,7 @@ export function Studio() {
         bokeh: 50,
         filter: "neutral",
         previewVisible: true,
+        framing: null,
       },
     ]);
     setSelectedCameraId(id);
@@ -1367,21 +1377,46 @@ export function Studio() {
   };
 
   const updateCamera = (id: string, patch: CameraPatch) => {
+    // Manual changes to what the frame shows invalidate the framing preset label.
+    const reframes = FRAMING_FIELDS.some((field) => field in patch);
     setCameras((current) =>
-      current.map((camera) => (camera.id === id ? { ...camera, ...patch } : camera)),
+      current.map((camera) =>
+        camera.id === id ? { ...camera, ...(reframes ? { framing: null } : {}), ...patch } : camera,
+      ),
     );
   };
 
   const moveCamera = (id: string, position: [number, number, number]) => {
     setCameras((current) =>
-      current.map((camera) => (camera.id === id ? { ...camera, position } : camera)),
+      current.map((camera) => (camera.id === id ? { ...camera, position, framing: null } : camera)),
     );
   };
 
   const rotateCamera = (id: string, rotation: [number, number, number]) => {
     setCameras((current) =>
-      current.map((camera) => (camera.id === id ? { ...camera, rotation } : camera)),
+      current.map((camera) => (camera.id === id ? { ...camera, rotation, framing: null } : camera)),
     );
+  };
+
+  const applyFraming = (id: string, framing: FramingId) => {
+    const subject = model ?? { position: DEFAULT_MODEL_POSITION, rotation: [0, 0, 0] as [number, number, number] };
+    const subjectHeight = modelCharacter ? mannequinSpec(modelCharacter).height : DEFAULT_SUBJECT_HEIGHT;
+    setCameras((current) =>
+      current.map((camera) =>
+        camera.id === id
+          ? {
+              ...camera,
+              ...framingPlacement(framing, subject, subjectHeight, camera.aperture, (lens, zoomMm) =>
+                lensOriginOffset(camera.body, lens, zoomMm),
+              ),
+            }
+          : camera,
+      ),
+    );
+  };
+
+  const setPose = (pose: PoseId) => {
+    setModel((current) => (current ? { ...current, pose } : current));
   };
 
   const resetCamera = (id: string) => {
@@ -1394,6 +1429,7 @@ export function Studio() {
               rotation: [0, Math.PI, 0] as [number, number, number],
               headRotation: [0, 0, 0] as [number, number, number],
               height: 1.55,
+              framing: null,
             }
           : camera,
       ),
@@ -1439,8 +1475,18 @@ export function Studio() {
     setSettingsCameraId(null);
   };
 
+  const openPosePicker = () => {
+    if (storageStatus === "loading" || !modelCharacter) return;
+    setPosePickerOpen(true);
+    setPickerOpen(false);
+    setBackdropSettingsOpen(false);
+    setSettingsLightId(null);
+    setSettingsCameraId(null);
+  };
+
   const openModelPicker = () => {
     if (storageStatus === "loading") return;
+    setPosePickerOpen(false);
     setPickerOpen(true);
     setBackdropSettingsOpen(false);
     setSettingsLightId(null);
@@ -1452,6 +1498,7 @@ export function Studio() {
       characterId,
       position: current?.position ?? DEFAULT_MODEL_POSITION,
       rotation: current?.rotation ?? [0, 0, 0],
+      pose: current?.pose ?? "standing",
     }));
     selectModel();
     setTransformMode("translate");
@@ -1459,6 +1506,7 @@ export function Studio() {
   };
 
   const removeModel = () => {
+    setPosePickerOpen(false);
     setModel(null);
     setModelSelected(false);
     setBackdropSelected(false);
@@ -1474,7 +1522,10 @@ export function Studio() {
     if (selectedCameraId !== null) {
       setCameras((current) => current.filter((camera) => camera.id !== selectedCameraId));
     }
-    if (modelSelected) setModel(null);
+    if (modelSelected) {
+      setModel(null);
+      setPosePickerOpen(false);
+    }
     setModelSelected(false);
     setBackdropSelected(false);
     setBackdropSettingsOpen(false);
@@ -1497,16 +1548,19 @@ export function Studio() {
       tool.id === "light" ||
       tool.id === "camera" ||
       tool.id === "model" ||
+      (tool.id === "pose" && modelCharacter !== undefined) ||
       ((isTransform || tool.id === "delete") &&
         (selectedId !== null || selectedCameraId !== null || modelSelected)));
     const active =
       (tool.id === "move" && transformMode === "translate") ||
       (tool.id === "rotate" && transformMode === "rotate") ||
-      (tool.id === "model" && pickerOpen);
+      (tool.id === "model" && pickerOpen) ||
+      (tool.id === "pose" && posePickerOpen);
     const handleClick = () => {
       if (tool.id === "light") addLight();
       if (tool.id === "camera") addCamera();
       if (tool.id === "model") openModelPicker();
+      if (tool.id === "pose") openPosePicker();
       if (tool.id === "move") setTransformMode("translate");
       if (tool.id === "rotate") setTransformMode("rotate");
       if (tool.id === "delete") deleteSelectedAsset();
@@ -1517,7 +1571,7 @@ export function Studio() {
         key={tool.id}
         type="button"
         disabled={!enabled}
-        aria-pressed={isTransform || tool.id === "model" ? active : undefined}
+        aria-pressed={isTransform || tool.id === "model" || tool.id === "pose" ? active : undefined}
         onClick={enabled ? handleClick : undefined}
         title={enabled ? tool.label : `${tool.label} unavailable`}
         className={`group flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 transition sm:min-w-14 sm:flex-none sm:px-3 disabled:cursor-not-allowed disabled:opacity-35 ${
@@ -1559,10 +1613,12 @@ export function Studio() {
           onRotateCamera={rotateCamera}
           onOpenLightSettings={(id) => {
             setPickerOpen(false);
+            setPosePickerOpen(false);
             setSettingsLightId(id);
           }}
           onOpenCameraSettings={(id) => {
             setPickerOpen(false);
+            setPosePickerOpen(false);
             setSettingsCameraId(id);
           }}
           transformMode={transformMode}
@@ -1577,6 +1633,7 @@ export function Studio() {
           onSelectBackdrop={selectBackdrop}
           onOpenBackdropSettings={() => {
             setPickerOpen(false);
+            setPosePickerOpen(false);
             setBackdropSettingsOpen(true);
           }}
         />
@@ -1609,6 +1666,15 @@ export function Studio() {
         />
       ) : null}
 
+      {posePickerOpen && model && modelCharacter ? (
+        <PosePickerPanel
+          pose={model.pose}
+          characterName={modelCharacter.name}
+          onPick={setPose}
+          onClose={() => setPosePickerOpen(false)}
+        />
+      ) : null}
+
       {pickerOpen ? (
         <ModelPickerPanel
           characters={characters}
@@ -1625,6 +1691,7 @@ export function Studio() {
           onChange={(patch) => updateCamera(settingsCamera.id, patch)}
           onClose={() => setSettingsCameraId(null)}
           onReset={() => resetCamera(settingsCamera.id)}
+          onApplyFraming={(framing) => applyFraming(settingsCamera.id, framing)}
         />
       ) : null}
 

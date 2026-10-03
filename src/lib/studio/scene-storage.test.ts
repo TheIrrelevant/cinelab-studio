@@ -12,7 +12,7 @@ const light = {
 const camera = {
   id: "camera-4", position: [0,0,0], homePosition: [0,0,0], rotation: [0,0,0], headRotation: [0,0,0],
   height: 1.55, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12,
-  focusDistance: 2, zoomMm: 50, bokeh: 50, filter: "neutral", previewVisible: true,
+  focusDistance: 2, zoomMm: 50, bokeh: 50, filter: "neutral", previewVisible: true, framing: null,
 };
 const saved = { version: 1, lights: [light], cameras: [camera] };
 
@@ -24,7 +24,9 @@ describe("scene storage", () => {
   it("round trips a placed character model and rejects malformed ones", () => {
     const model = { characterId: "char-1", position: [1, 0, -1], rotation: [0, 0.5, 0] };
     const scene = readScene({ getItem: () => JSON.stringify({ ...saved, model }) });
-    expect(scene.model).toEqual(model);
+    expect(scene.model).toEqual({ ...model, pose: "standing" });
+    expect(readScene({ getItem: () => JSON.stringify({ ...saved, model: { ...model, pose: "walking" } }) }).model?.pose).toBe("walking");
+    expect(studioSceneSchema.safeParse({ ...saved, model: { ...model, pose: "dancing" } }).success).toBe(false);
     expect(studioSceneSchema.safeParse({ ...saved, model: { ...model, characterId: "" } }).success).toBe(false);
     expect(studioSceneSchema.safeParse({ ...saved, model: { characterId: "char-1" } }).success).toBe(false);
   });

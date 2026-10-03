@@ -5,13 +5,23 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: backdrop colours, key/fill/rim roles, colour temperature
+last-change: framing presets, posable mannequin with pose presets
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Framing and pose presets
+
+### Added
+- Camera framing presets (Portrait 85 mm, Half body 50 mm, Full body 35 mm) in the camera panel. They place a level camera in front of the subject at the distance that fits the frame height in the 16:9 viewfinder, scaled to the character's height, and set lens, zoom, aperture limits and focus (`src/lib/studio/framing.ts`). Stored as `framing`; moving, rotating, zooming or changing lens/height clears it.
+- Jointed placeholder mannequin (shoulders, elbows, hips, knees, spine, head) and pose presets: Standing, Relaxed, Hands on hips, Walking, Arms up (`src/lib/studio/poses.ts`). The Pose tool is enabled when a character is in the scene; the pose is stored on the scene model.
+
+### Changed
+- Right-hand settings panels share one class and leave room for the header chips and toolbar (no longer overlap the asset count).
+- `lensOriginOffset` is shared between the camera feed and framing.
 
 ## 2026-10-03 - Backdrop, light roles and colour temperature
 
