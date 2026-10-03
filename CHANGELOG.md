@@ -5,13 +5,22 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: framing presets, posable mannequin with pose presets
+last-change: backdrop click no longer steals selection from lights, cameras and the model
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Backdrop selection fix
+
+### Fixed
+- A single click on a light, camera or the model selected it and then immediately handed the selection to the backdrop behind it, so objects could only be picked by press-and-hold. The backdrop now only reacts when it is the nearest object under the pointer.
+- Clicking the backdrop while something is selected now just clears the selection; with nothing selected it toggles the backdrop hotspot, so the hotspot no longer stays open.
+
+### Changed
+- Camera body sizes, rig scale, lens origin offset and shutter speeds moved to `src/lib/studio/camera-rig.ts` so non-UI code can use them.
 
 ## 2026-10-03 - Framing and pose presets
 

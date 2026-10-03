@@ -34,7 +34,6 @@ import {
   CameraSettingsPanel,
   CameraFeedCapture,
   StudioCameraRig,
-  lensOriginOffset,
   type CameraPatch,
   type StudioCameraAsset,
 } from "./StudioCamera";
@@ -54,6 +53,7 @@ import {
   type StudioModel,
 } from "@/lib/studio/scene-storage";
 import { CAPTURE_INTENSITY_KEY, FLASH_COLOR, lightRenderParams } from "@/lib/studio/light-rendering";
+import { lensOriginOffset } from "@/lib/studio/camera-rig";
 import { framingPlacement, type FramingId } from "@/lib/studio/framing";
 import { mannequinSpec } from "@/lib/studio/mannequin";
 import type { PoseId } from "@/lib/studio/poses";
@@ -230,6 +230,9 @@ function Cyclorama({
         receiveShadow
         onClick={(event) => {
           if (event.delta > CLICK_TOLERANCE) return;
+          // Clicks on lights, cameras or the model also reach the backdrop behind them;
+          // only react when the backdrop is the nearest thing under the pointer.
+          if (event.intersections[0]?.eventObject !== event.eventObject) return;
           event.stopPropagation();
           onSelect();
         }}
@@ -1447,7 +1450,18 @@ export function Studio() {
     if (id !== settingsCameraId) setSettingsCameraId(null);
   };
 
-  const selectBackdrop = () => {
+  /** Backdrop click: clears any selection first; with nothing selected it toggles the backdrop. */
+  const handleBackdropClick = () => {
+    if (selectedId !== null || selectedCameraId !== null || modelSelected || backdropSelected) {
+      setSelectedId(null);
+      setSelectedCameraId(null);
+      setModelSelected(false);
+      setBackdropSelected(false);
+      setBackdropSettingsOpen(false);
+      setSettingsLightId(null);
+      setSettingsCameraId(null);
+      return;
+    }
     setBackdropSelected(true);
     setSelectedId(null);
     setSelectedCameraId(null);
@@ -1630,7 +1644,7 @@ export function Studio() {
           onRotateModel={(rotation) => setModel((current) => (current ? { ...current, rotation } : current))}
           backdrop={backdrop}
           backdropSelected={backdropSelected}
-          onSelectBackdrop={selectBackdrop}
+          onSelectBackdrop={handleBackdropClick}
           onOpenBackdropSettings={() => {
             setPickerOpen(false);
             setPosePickerOpen(false);

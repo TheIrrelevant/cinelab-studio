@@ -23,8 +23,16 @@ import { CameraFeedRenderer, exposureMultiplier, verticalFieldOfView } from "@/l
 
 import { CAMERA_LENSES, type CameraLensId } from "@/lib/studio/camera-lenses";
 import { FRAMINGS, type FramingId } from "@/lib/studio/framing";
+import {
+  CAMERA_BODIES,
+  CAMERA_RIG_SCALE,
+  SHUTTER_SPEEDS,
+  lensOriginOffset,
+  shutterSeconds,
+  type CameraBodyId,
+} from "@/lib/studio/camera-rig";
 
-export type CameraBodyId = "proDslr";
+export type { CameraBodyId } from "@/lib/studio/camera-rig";
 export type { CameraLensId } from "@/lib/studio/camera-lenses";
 export type CameraFilterId = "neutral" | "warm" | "cool" | "mono" | "cinematic";
 
@@ -52,26 +60,10 @@ export type CameraPatch = Partial<
   Omit<StudioCameraAsset, "id" | "position" | "homePosition" | "rotation">
 >;
 
-const CAMERA_RIG_SCALE = 1.8;
-
-/** Distance from the rig's vertical axis to the virtual lens origin along the view direction. */
-export function lensOriginOffset(body: CameraBodyId, lensId: CameraLensId, zoomMm: number) {
-  const lens = CAMERA_LENSES[lensId];
-  const zoomRange = lens.focalMax - lens.focalMin;
-  const zoomProgress = zoomRange === 0 ? 0 : (zoomMm - lens.focalMin) / zoomRange;
-  const lensLength = lens.lengthMin + (lens.lengthMax - lens.lengthMin) * zoomProgress;
-  return (CAMERA_BODIES[body].size[2] / 2 + lensLength) * CAMERA_RIG_SCALE + 0.04;
-}
-
-const CAMERA_BODIES: Record<CameraBodyId, { label: string; size: [number, number, number] }> = {
-  proDslr: { label: "Professional full-frame DSLR", size: [0.26, 0.19, 0.15] },
-};
 
 
-const SHUTTER_SPEEDS = [
-  "30s", "15s", "8s", "4s", "2s", "1s", "1/2", "1/4", "1/8", "1/15", "1/30",
-  "1/60", "1/125", "1/250", "1/500", "1/1000", "1/2000", "1/4000", "1/8000",
-];
+
+
 const ISO_VALUES = [64, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600];
 
 const FILTERS: Array<{ id: CameraFilterId; label: string; color: string }> = [
@@ -84,12 +76,6 @@ const FILTERS: Array<{ id: CameraFilterId; label: string; color: string }> = [
 
 const HEAD_AXES = ["X", "Y", "Z"] as const;
 
-function shutterSeconds(index: number) {
-  const value = SHUTTER_SPEEDS[index] ?? "1/125";
-  if (value.endsWith("s")) return Number.parseFloat(value);
-  const denominator = Number.parseFloat(value.split("/")[1] ?? "125");
-  return 1 / denominator;
-}
 
 export function CameraFeedCapture({
   camera,
