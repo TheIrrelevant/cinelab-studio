@@ -8,6 +8,11 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 
+// Node 25+ ships a native localStorage global that shadows jsdom's and is
+// undefined without --localstorage-file. Disable it where the flag exists.
+const WEBSTORAGE_FLAG = "--no-experimental-webstorage";
+const execArgv = process.allowedNodeEnvironmentFlags.has(WEBSTORAGE_FLAG) ? [WEBSTORAGE_FLAG] : [];
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -20,5 +25,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    execArgv,
   },
 });

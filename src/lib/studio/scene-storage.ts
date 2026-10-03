@@ -16,6 +16,7 @@ export const studioLightSchema = z.object({
   ...transform,
   id: assetId("light"),
   height: z.number().min(1.3).max(10),
+  lightType: z.enum(["bare", "flash"]).default("bare"),
   modifier: z.enum(["none", "softbox"]),
   softboxWidth: z.number().min(20).max(200),
   softboxHeight: z.number().min(20).max(200),

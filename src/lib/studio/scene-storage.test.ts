@@ -17,6 +17,17 @@ const camera = {
 const saved = { version: 1, lights: [light], cameras: [camera] };
 
 describe("scene storage", () => {
+  it("restores older lights as bare lights without changing their color or modifier", () => {
+    const scene = readScene({ getItem: () => JSON.stringify({ ...saved, lights: [{ ...light, modifier: "softbox", color: "#ef5350" }] }) });
+    expect(scene.lights[0]).toMatchObject({ lightType: "bare", modifier: "softbox", color: "#ef5350" });
+  });
+  it("restores a flash with its independent modifier and keeps the stored bare color", () => {
+    const scene = readScene({ getItem: () => JSON.stringify({ ...saved, lights: [{ ...light, lightType: "flash", modifier: "softbox", color: "#ef5350" }] }) });
+    expect(scene.lights[0]).toMatchObject({ lightType: "flash", modifier: "softbox", color: "#ef5350" });
+    let raw = "";
+    writeScene({ setItem: (_key, value) => { raw = value; } }, scene);
+    expect(readScene({ getItem: () => raw }).lights[0]).toEqual(scene.lights[0]);
+  });
   it("round trips a valid scene and allocates IDs beyond sparse saved IDs", () => {
     const storage = { getItem: () => JSON.stringify(saved), setItem: vi.fn() };
     const scene = readScene(storage);

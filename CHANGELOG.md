@@ -3,15 +3,34 @@ type: changelog
 category: release-notes
 scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
-last-updated: 2026-09-07T00:00:00Z
-last-model: codex-gpt-6
-last-change: completed studio camera rendering and persistence repairs
+last-updated: 2026-10-03T00:00:00Z
+last-model: claude-opus-5-5
+last-change: flash strobe rendering, delete tool, preview window, Ready Player Me removal, Node 25+ test fix
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Studio lights, delete tool and cleanup
+
+### Added
+- Bare/Flash light type. Flash renders as a 5600K daylight strobe: harder, narrower beam, a dim modeling light in the viewport, and 2.5x peak output while the camera feed captures (`src/lib/studio/light-rendering.ts`).
+- Delete tool for the selected light or camera, persisted across reloads.
+- Draggable, keyboard-movable and minimizable camera preview window (`PreviewWindow.tsx`).
+- Larger, more detailed DSLR rig model.
+
+### Changed
+- Light settings: "Light modifier" is now a "Softbox" with/without toggle that is independent of the light type.
+- Switching a flash back to bare light restores the stored color; flash no longer overwrites it.
+- `scripts/check-studio.mjs` defaults to `http://localhost:3000` (Next dev blocks `127.0.0.1` dev resources).
+
+### Removed
+- Retired Ready Player Me placeholder (`RpmCreator`) and unused RPM configuration; the avatar provider replacement remains an open product decision.
+
+### Fixed
+- Unit tests failed on Node 25+ because the native `localStorage` global shadowed jsdom's; Vitest workers now run with `--no-experimental-webstorage` where supported.
 
 ## 2026-09-07 - Studio camera and scene persistence
 

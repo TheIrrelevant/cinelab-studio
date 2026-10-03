@@ -1,13 +1,14 @@
 /**
  * @file camera-feed.ts
  * @description HDR camera preview with depth-aware thin-lens defocus and explicit display conversion.
- * @depends three
+ * @depends three, ./light-rendering
  */
 import {
   DepthTexture, HalfFloatType, Mesh, OrthographicCamera, PlaneGeometry,
   Scene, ShaderMaterial, Vector2, WebGLRenderTarget,
   type PerspectiveCamera, type WebGLRenderer, type Object3D,
 } from "three";
+import { applyCaptureIntensities } from "./light-rendering";
 
 export const FEED_WIDTH = 480;
 export const FEED_HEIGHT = 270;
@@ -116,6 +117,7 @@ export class CameraFeedRenderer {
         object.visible = false;
       }
     });
+    const restoreIntensities = applyCaptureIntensities(scene);
     try {
       gl.setRenderTarget(this.colorTarget);
       gl.clear();
@@ -126,6 +128,7 @@ export class CameraFeedRenderer {
       gl.readRenderTargetPixels(this.outputTarget, 0, 0, FEED_WIDTH, FEED_HEIGHT, pixels);
     } finally {
       hidden.forEach((object) => { object.visible = true; });
+      restoreIntensities();
       gl.setRenderTarget(previousTarget, previousFace, previousMip);
     }
   }

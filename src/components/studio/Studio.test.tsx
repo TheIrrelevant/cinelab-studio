@@ -7,6 +7,8 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
+import type { StudioLight } from "@/lib/studio/scene-storage";
 import { LightSettingsPanel, Studio } from "./Studio";
 import { CameraPreview, CameraSettingsPanel, type StudioCameraAsset } from "./StudioCamera";
 
@@ -38,6 +40,44 @@ describe("Studio", () => {
     expect(screen.getByRole("button", { name: "Object" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Move" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Rotate" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+  });
+
+  it("deletes only the selected light and keeps it deleted after reload", async () => {
+    const view = render(<Studio />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Light" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Camera" }));
+    fireEvent.click(screen.getByRole("button", { name: "Light" }));
+    fireEvent.click(screen.getByRole("button", { name: "Light" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(screen.getByLabelText("Scene asset count")).toHaveTextContent("1 light · 1 camera");
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Move" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Rotate" })).toBeDisabled();
+    await waitFor(() => {
+      const saved = JSON.parse(window.localStorage.getItem("cinelab-studio-scene-v1")!);
+      expect(saved.lights.map((light: { id: string }) => light.id)).toEqual(["light-0"]);
+      expect(saved.cameras).toHaveLength(1);
+    });
+    view.unmount();
+    render(<Studio />);
+    await waitFor(() => expect(screen.getByLabelText("Scene asset count")).toHaveTextContent("1 light · 1 camera"));
+  });
+
+  it("deletes a camera and closes its preview while preserving the light", async () => {
+    render(<Studio />);
+    await waitFor(() => expect(screen.getByRole("button", { name: "Light" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "Light" }));
+    fireEvent.click(screen.getByRole("button", { name: "Camera" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(screen.queryByRole("region", { name: "Camera preview" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Scene asset count")).toHaveTextContent("1 light · 0 cameras");
+    expect(screen.getByRole("button", { name: "Delete" })).toBeDisabled();
+    await waitFor(() => {
+      const saved = JSON.parse(window.localStorage.getItem("cinelab-studio-scene-v1")!);
+      expect(saved.cameras).toEqual([]);
+      expect(saved.lights).toHaveLength(1);
+    });
   });
 
   it("adds a light from the toolbar", async () => {
@@ -128,6 +168,7 @@ describe("LightSettingsPanel", () => {
     rotation: [0, 0, 0] as [number, number, number],
     headRotation: [0, 0, 0] as [number, number, number],
     height: 2.4,
+    lightType: "bare" as const,
     modifier: "none" as const,
     softboxWidth: 90,
     softboxHeight: 60,
@@ -135,6 +176,35 @@ describe("LightSettingsPanel", () => {
     spread: 0.62,
     color: "#fff0d2",
   };
+
+  it("locks flash to daylight, preserves softbox settings, and restores the bare color", () => {
+    function Settings() {
+      const [value, setValue] = useState<StudioLight>({ ...light, modifier: "softbox", color: "#ffb36b" });
+      return <LightSettingsPanel light={value} onChange={(patch) => setValue((current) => ({ ...current, ...patch }))} onClose={vi.fn()} onResetTransform={vi.fn()} />;
+    }
+    render(<Settings />);
+    fireEvent.click(screen.getByRole("button", { name: "Flash" }));
+    expect(screen.getByRole("button", { name: "Flash" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "With softbox" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("textbox", { name: "Light color hex code" })).toHaveValue("#FFEEE3");
+    expect(screen.getByLabelText("Light color picker")).toBeDisabled();
+    for (const [channel, value] of [["R", 255], ["G", 238], ["B", 227]] as const) {
+      expect(screen.getByLabelText(`${channel} color channel`)).toBeDisabled();
+      expect(screen.getByLabelText(`${channel} color channel`)).toHaveValue(value);
+    }
+    expect(screen.getByRole("button", { name: "Set light color #ef5350" })).toBeDisabled();
+    fireEvent.change(screen.getByRole("textbox", { name: "Light color hex code" }), { target: { value: "#ff0000" } });
+    expect(screen.getByRole("textbox", { name: "Light color hex code" })).toHaveValue("#FFEEE3");
+    fireEvent.click(screen.getByRole("button", { name: "Without softbox" }));
+    expect(screen.queryByRole("slider", { name: "Softbox width" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Bare Light" }));
+    expect(screen.getByLabelText("Light color picker")).toBeEnabled();
+    expect(screen.getByRole("textbox", { name: "Light color hex code" })).toHaveValue("#FFB36B");
+    fireEvent.click(screen.getByRole("button", { name: "Set light color #ef5350" }));
+    expect(screen.getByRole("textbox", { name: "Light color hex code" })).toHaveValue("#EF5350");
+    fireEvent.click(screen.getByRole("button", { name: "With softbox" }));
+    expect(screen.getByRole("slider", { name: "Softbox width" })).toHaveValue("90");
+  });
 
   it("updates the modifier and light power", () => {
     const onChange = vi.fn();
@@ -147,7 +217,7 @@ describe("LightSettingsPanel", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Softbox" }));
+    fireEvent.click(screen.getByRole("button", { name: "With softbox" }));
     expect(onChange).toHaveBeenCalledWith({ modifier: "softbox" });
 
     fireEvent.change(screen.getByRole("slider", { name: "Light power" }), {

@@ -38,8 +38,9 @@ import {
 } from "./StudioCamera";
 
 import { readScene, writeScene, nextAssetCounter, type StudioLight } from "@/lib/studio/scene-storage";
+import { CAPTURE_INTENSITY_KEY, FLASH_COLOR, lightRenderParams } from "@/lib/studio/light-rendering";
 
-type ToolId = "light" | "camera" | "model" | "pose" | "object" | "move" | "rotate";
+type ToolId = "light" | "camera" | "model" | "pose" | "object" | "move" | "rotate" | "delete";
 
 type TransformMode = "translate" | "rotate";
 type LightPatch = Partial<Omit<StudioLight, "id" | "position" | "homePosition" | "rotation">>;
@@ -117,6 +118,7 @@ function ToolIcon({ tool }: { tool: ToolId }) {
     ),
     move: <path d="M12 3v18M3 12h18M12 3 9 6M12 3l3 3M21 12l-3-3M21 12l-3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3" />,
     rotate: <path d="M20 11a8 8 0 1 0-2.35 5.65M20 5v6h-6" />,
+    delete: <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7" />,
   };
 
   return (
@@ -290,6 +292,7 @@ function ProfessionalLightHead({
     Math.min(0.9, Math.max(light.softboxWidth, light.softboxHeight) * 0.0065),
   );
   const softboxFrontZ = 0.4 + softboxDepth;
+  const params = lightRenderParams(light);
 
   return (
     <>
@@ -317,9 +320,9 @@ function ProfessionalLightHead({
       <mesh position={[0, 0, 0.43]}>
         <circleGeometry args={[0.17, 32]} />
         <meshStandardMaterial
-          color={light.color}
-          emissive={light.color}
-          emissiveIntensity={2.6}
+          color={params.color}
+          emissive={params.color}
+          emissiveIntensity={params.emissiveIntensity}
         />
       </mesh>
       <mesh position={[0, 0, 0.44]}>
@@ -328,7 +331,7 @@ function ProfessionalLightHead({
       </mesh>
       {hasSoftbox ? (
         <SoftboxModifier
-          color={light.color}
+          color={params.color}
           width={light.softboxWidth}
           height={light.softboxHeight}
         />
@@ -336,11 +339,12 @@ function ProfessionalLightHead({
       <spotLight
         position={[0, 0, hasSoftbox ? softboxFrontZ + 0.02 : 0.46]}
         target={lightTarget}
-        angle={hasSoftbox ? Math.max(light.spread, 0.7) : Math.min(light.spread, 0.48)}
-        penumbra={hasSoftbox ? 0.92 : 0.12}
-        intensity={light.intensity}
+        angle={params.angle}
+        penumbra={params.penumbra}
+        intensity={params.intensity}
+        userData={{ [CAPTURE_INTENSITY_KEY]: params.captureIntensity }}
         distance={24}
-        color={light.color}
+        color={params.color}
         castShadow
       />
       <primitive object={lightTarget} position={[0, 0, 6]} />
@@ -652,9 +656,12 @@ export function LightSettingsPanel({
   onResetTransform: () => void;
 }) {
   const [hexDraft, setHexDraft] = useState(light.color.toUpperCase());
-  const rgb = hexToRgb(light.color);
+  const isFlash = light.lightType === "flash";
+  const displayColor = isFlash ? FLASH_COLOR : light.color;
+  const rgb = hexToRgb(displayColor);
 
   const setColor = (color: string) => {
+    if (isFlash) return;
     setHexDraft(color.toUpperCase());
     onChange({ color });
   };
@@ -741,7 +748,28 @@ export function LightSettingsPanel({
         </label>
 
         <fieldset>
-          <legend className="mb-2 text-xs text-white/55">Light modifier</legend>
+          <legend className="mb-2 text-xs text-white/55">Light type</legend>
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-black/25 p-1">
+            {(["bare", "flash"] as const).map((lightType) => (
+              <button
+                key={lightType}
+                type="button"
+                aria-pressed={light.lightType === lightType}
+                onClick={() => onChange({ lightType })}
+                className={`rounded-lg px-3 py-2 text-xs font-medium transition ${
+                  light.lightType === lightType
+                    ? "bg-white text-neutral-950"
+                    : "text-white/45 hover:text-white"
+                }`}
+              >
+                {lightType === "bare" ? "Bare Light" : "Flash"}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend className="mb-2 text-xs text-white/55">Softbox</legend>
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-black/25 p-1">
             {(["none", "softbox"] as const).map((modifier) => (
               <button
@@ -755,7 +783,7 @@ export function LightSettingsPanel({
                     : "text-white/45 hover:text-white"
                 }`}
               >
-                {modifier === "none" ? "Bare light" : "Softbox"}
+                {modifier === "none" ? "Without softbox" : "With softbox"}
               </button>
             ))}
           </div>
@@ -875,18 +903,19 @@ export function LightSettingsPanel({
           />
         </label>
 
-        <fieldset>
+        <fieldset disabled={isFlash} className={isFlash ? "opacity-50" : undefined}>
           <legend className="mb-2 text-xs text-white/55">Color</legend>
+          {isFlash ? <p className="mb-3 text-[10px] text-white/65">Flash color is locked to 5600K daylight ({FLASH_COLOR.toUpperCase()}).</p> : null}
           <div className="mb-3 flex items-center gap-2">
             {LIGHT_COLORS.map((color) => (
               <button
                 key={color}
                 type="button"
                 aria-label={`Set light color ${color}`}
-                aria-pressed={light.color === color}
+                aria-pressed={displayColor === color}
                 onClick={() => setColor(color)}
                 className={`h-7 w-7 rounded-full border-2 transition hover:scale-110 ${
-                  light.color === color ? "border-white" : "border-white/10"
+                  displayColor === color ? "border-white" : "border-white/10"
                 }`}
                 style={{ backgroundColor: color }}
               />
@@ -894,7 +923,7 @@ export function LightSettingsPanel({
             <input
               aria-label="Light color picker"
               type="color"
-              value={light.color}
+              value={displayColor}
               onChange={(event) => setColor(event.target.value)}
               className="h-8 w-8 cursor-pointer rounded-full border-0 bg-transparent p-0"
             />
@@ -922,10 +951,11 @@ export function LightSettingsPanel({
             <input
               aria-label="Light color hex code"
               type="text"
-              value={hexDraft}
+              value={isFlash ? FLASH_COLOR.toUpperCase() : hexDraft}
               maxLength={7}
               spellCheck={false}
               onChange={(event) => {
+                if (isFlash) return;
                 const nextDraft = event.target.value;
                 setHexDraft(nextDraft.toUpperCase());
                 const normalized = normalizeHex(nextDraft);
@@ -1003,6 +1033,7 @@ export function Studio() {
         homePosition: [...position] as [number, number, number],
         headRotation: [0, 0, 0],
         height: DEFAULT_LIGHT_HEIGHT,
+        lightType: "bare",
         rotation: [0, 0, 0],
         modifier: "none",
         softboxWidth: 90,
@@ -1136,6 +1167,21 @@ export function Studio() {
     if (id !== settingsCameraId) setSettingsCameraId(null);
   };
 
+  const deleteSelectedAsset = () => {
+    if (storageStatus === "loading") return;
+    if (selectedId !== null) {
+      setLights((current) => current.filter((light) => light.id !== selectedId));
+    }
+    if (selectedCameraId !== null) {
+      setCameras((current) => current.filter((camera) => camera.id !== selectedCameraId));
+    }
+    setSelectedId(null);
+    setSelectedCameraId(null);
+    setSettingsLightId(null);
+    setSettingsCameraId(null);
+    setTransformMode("translate");
+  };
+
   const settingsLight = lights.find((light) => light.id === settingsLightId);
   const settingsCamera = cameras.find((camera) => camera.id === settingsCameraId);
   const previewCamera =
@@ -1147,7 +1193,7 @@ export function Studio() {
     const enabled = storageStatus !== "loading" && (
       tool.id === "light" ||
       tool.id === "camera" ||
-      (isTransform && (selectedId !== null || selectedCameraId !== null)));
+      ((isTransform || tool.id === "delete") && (selectedId !== null || selectedCameraId !== null)));
     const active =
       (tool.id === "move" && transformMode === "translate") ||
       (tool.id === "rotate" && transformMode === "rotate");
@@ -1156,6 +1202,7 @@ export function Studio() {
       if (tool.id === "camera") addCamera();
       if (tool.id === "move") setTransformMode("translate");
       if (tool.id === "rotate") setTransformMode("rotate");
+      if (tool.id === "delete") deleteSelectedAsset();
     };
 
     return (
@@ -1169,7 +1216,9 @@ export function Studio() {
         className={`group flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 transition sm:min-w-14 sm:flex-none sm:px-3 disabled:cursor-not-allowed disabled:opacity-35 ${
           active
             ? "bg-amber-300 text-neutral-950"
-            : "text-white/55 enabled:hover:bg-white/10 enabled:hover:text-white"
+            : tool.id === "delete"
+              ? "text-red-300 enabled:hover:bg-red-400/15 enabled:hover:text-red-200"
+              : "text-white/55 enabled:hover:bg-white/10 enabled:hover:text-white"
         }`}
       >
         <ToolIcon tool={tool.id} />
@@ -1216,6 +1265,7 @@ export function Studio() {
 
       {settingsLight ? (
         <LightSettingsPanel
+          key={settingsLight.id}
           light={settingsLight}
           onChange={(patch) => updateLight(settingsLight.id, patch)}
           onClose={() => setSettingsLightId(null)}
@@ -1258,6 +1308,7 @@ export function Studio() {
         {ASSET_TOOLS.map(renderToolButton)}
         <span aria-hidden="true" className="mx-1 h-8 w-px bg-white/10" />
         {TRANSFORM_TOOLS.map(renderToolButton)}
+        {renderToolButton({ id: "delete", label: "Delete" })}
       </nav>
     </main>
   );

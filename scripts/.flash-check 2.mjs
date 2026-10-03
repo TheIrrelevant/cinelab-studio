@@ -1,0 +1,21 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=metal'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+const base = 'http://localhost:3000';
+await page.goto(base);
+await page.getByRole('button', { name: 'Light', exact: true }).click();
+await page.getByRole('button', { name: 'Camera', exact: true }).click();
+const feedMean = async () => {
+  await page.waitForFunction(() => { const c = document.querySelector('canvas[aria-label="Live camera feed"]'); return c && c.getContext('2d').getImageData(240,135,1,1).data[3] > 0; });
+  await page.waitForTimeout(1500);
+  return page.evaluate(() => { const c = document.querySelector('canvas[aria-label="Live camera feed"]'); const d = c.getContext('2d').getImageData(0,0,c.width,c.height).data; let s=0; for (let i=0;i<d.length;i+=4) s+=(d[i]+d[i+1]+d[i+2])/3; return s/(d.length/4); });
+};
+const setType = async (t) => { await page.evaluate((t) => { const k='cinelab-studio-scene-v1'; const s=JSON.parse(localStorage.getItem(k)); s.lights.forEach(l=>{l.lightType=t; l.color='#ef5350';}); localStorage.setItem(k, JSON.stringify(s)); }, t); await page.reload(); };
+await page.waitForTimeout(1000);
+await setType('bare'); const bare = await feedMean();
+await page.screenshot({ path: process.argv[2] + '/bare.png' });
+await setType('flash'); const flash = await feedMean();
+await page.screenshot({ path: process.argv[2] + '/flash.png' });
+const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('cinelab-studio-scene-v1')).lights[0]);
+console.log(JSON.stringify({ bare, flash, storedType: stored.lightType, storedColor: stored.color }));
+await browser.close();

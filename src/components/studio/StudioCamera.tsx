@@ -7,7 +7,7 @@
 
 "use client";
 
-import { Html, TransformControls } from "@react-three/drei";
+import { Html, RoundedBox, TransformControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -17,6 +17,7 @@ import {
   Vector3,
 } from "three";
 import type { Group } from "three";
+import { PreviewWindow } from "./PreviewWindow";
 import { CameraFeedRenderer, exposureMultiplier, verticalFieldOfView } from "@/lib/studio/camera-feed";
 
 import { CAMERA_LENSES, type CameraLensId } from "@/lib/studio/camera-lenses";
@@ -47,6 +48,8 @@ export type StudioCameraAsset = {
 export type CameraPatch = Partial<
   Omit<StudioCameraAsset, "id" | "position" | "homePosition" | "rotation">
 >;
+
+const CAMERA_RIG_SCALE = 1.8;
 
 const CAMERA_BODIES: Record<CameraBodyId, { label: string; size: [number, number, number] }> = {
   proDslr: { label: "Professional full-frame DSLR", size: [0.26, 0.19, 0.15] },
@@ -118,7 +121,7 @@ export function CameraFeedCapture({
     const origin = new Vector3(0, camera.height, 0)
       .applyQuaternion(rigRotation)
       .add(new Vector3(...camera.position))
-      .add(forward.clone().multiplyScalar(CAMERA_BODIES[camera.body].size[2] / 2 + lensLength + 0.04));
+      .add(forward.clone().multiplyScalar((CAMERA_BODIES[camera.body].size[2] / 2 + lensLength) * CAMERA_RIG_SCALE + 0.04));
     virtualCamera.position.copy(origin);
     virtualCamera.up.copy(new Vector3(0, 1, 0).applyQuaternion(worldRotation));
     virtualCamera.lookAt(origin.clone().add(forward));
@@ -220,7 +223,7 @@ export function StudioCameraRig({
         }}
       >
         <mesh position={[0, poleStart + poleLength / 2, 0]} castShadow>
-          <cylinderGeometry args={[0.045, 0.062, poleLength, 16]} />
+          <cylinderGeometry args={[0.018, 0.024, poleLength, 16]} />
           <meshStandardMaterial color="#141517" metalness={0.88} roughness={0.2} />
         </mesh>
         {[0, (Math.PI * 2) / 3, (Math.PI * 4) / 3].map((angle) => {
@@ -241,42 +244,55 @@ export function StudioCameraRig({
         })}
         <group
           position={[0, camera.height, 0]}
+          scale={CAMERA_RIG_SCALE}
           rotation={camera.headRotation.map((value) => (value * Math.PI) / 180) as [number, number, number]}
         >
           <mesh position={[0, -0.12, 0]} castShadow>
-            <cylinderGeometry args={[0.12, 0.1, 0.24, 18]} />
+            <cylinderGeometry args={[0.055, 0.045, 0.12, 24]} />
             <meshStandardMaterial color="#202225" metalness={0.8} roughness={0.22} />
           </mesh>
-          <mesh castShadow>
-            <boxGeometry args={body.size} />
+          <RoundedBox args={body.size} radius={0.025} smoothness={4} castShadow>
             <meshStandardMaterial
-              color={selected ? "#514525" : "#34373b"}
-              metalness={0.46}
-              roughness={0.34}
+              color="#41464e"
+              metalness={0.12}
+              roughness={0.48}
             />
-          </mesh>
-          <mesh position={[body.size[0] * 0.48, -0.04, 0.02]} castShadow>
-            <boxGeometry args={[0.14, body.size[1] * 0.8, body.size[2] * 0.55]} />
-            <meshStandardMaterial color="#101113" roughness={0.55} />
-          </mesh>
+          </RoundedBox>
+          <RoundedBox position={[body.size[0] * 0.48, -0.015, 0.035]} args={[0.09, 0.2, 0.16]} radius={0.025} smoothness={4} castShadow>
+            <meshStandardMaterial color="#25292e" roughness={0.8} />
+          </RoundedBox>
           <mesh position={[0, body.size[1] * 0.62, -0.02]} castShadow>
-            <boxGeometry args={[0.2, 0.1, 0.18]} />
-            <meshStandardMaterial color="#242629" metalness={0.68} roughness={0.24} />
+            <cylinderGeometry args={[0.045, 0.085, 0.085, 4]} />
+            <meshStandardMaterial color="#454b52" metalness={0.15} roughness={0.4} />
           </mesh>
           <mesh position={[0, 0, -body.size[2] / 2 - 0.003]} rotation={[0, Math.PI, 0]}>
             <planeGeometry args={[body.size[0] * 0.58, body.size[1] * 0.48]} />
-            <meshStandardMaterial color="#173044" emissive="#0d2231" emissiveIntensity={0.35} />
+            <meshStandardMaterial color="#32617c" emissive="#32617c" emissiveIntensity={0.7} />
           </mesh>
           <mesh position={[-body.size[0] * 0.3, body.size[1] * 0.58, 0]} castShadow>
             <cylinderGeometry args={[0.027, 0.027, 0.022, 18]} />
             <meshStandardMaterial color="#777b80" metalness={0.85} roughness={0.18} />
           </mesh>
           <mesh position={[0, 0, body.size[2] / 2 + lensLength / 2]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[lens.radius * 0.9, lens.radius, lensLength, 32]} />
-            <meshStandardMaterial color="#111214" metalness={0.72} roughness={0.2} />
+            <cylinderGeometry args={[lens.radius * 1.45, lens.radius * 1.55, lensLength, 32]} />
+            <meshStandardMaterial color="#30363c" metalness={0.25} roughness={0.38} />
+          </mesh>
+          {[0.15, 0.4, 0.72, 0.96].map((fraction, index) => (
+            <mesh key={fraction} position={[0, 0, body.size[2] / 2 + lensLength * fraction]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+              <cylinderGeometry args={[lens.radius * 1.58, lens.radius * 1.58, index === 1 ? 0.028 : 0.007, 48]} />
+              <meshStandardMaterial color={index === 3 ? "#b8a274" : "#555c65"} metalness={0.35} roughness={0.45} />
+            </mesh>
+          ))}
+          <mesh position={[0, 0.1, -0.09]}>
+            <boxGeometry args={[0.065, 0.045, 0.035]} />
+            <meshStandardMaterial color="#737981" roughness={0.4} />
+          </mesh>
+          <mesh position={[0.12, 0.105, 0.055]}>
+            <cylinderGeometry args={[0.018, 0.02, 0.018, 24]} />
+            <meshStandardMaterial color="#b9bec4" metalness={0.6} roughness={0.3} />
           </mesh>
           <mesh position={[0, 0, body.size[2] / 2 + lensLength + 0.005]}>
-            <circleGeometry args={[lens.radius * 0.82, 32]} />
+            <circleGeometry args={[lens.radius * 1.3, 48]} />
             <meshPhysicalMaterial color="#193043" metalness={0.2} roughness={0.06} clearcoat={1} />
           </mesh>
         </group>
@@ -345,7 +361,7 @@ export function CameraPreview({
   };
 
   return (
-    <section aria-label="Camera preview" className="absolute left-1/2 top-20 sm:top-4 w-[min(25rem,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl border border-white/15 bg-[#090a0b]/95 shadow-2xl shadow-black/50 backdrop-blur-xl">
+    <PreviewWindow>
       <div className="relative aspect-video overflow-hidden bg-neutral-700" style={{ boxShadow: `inset 0 0 90px ${filter.color}55` }}>
         <canvas
           ref={canvasRef}
@@ -400,7 +416,7 @@ export function CameraPreview({
           <input aria-label="Zoom" type="range" min={lens.focalMin} max={lens.focalMax} step="1" value={camera.zoomMm} disabled={!isZoomLens} onChange={(event) => onChange({ zoomMm: Number(event.target.value) })} className="mt-1 w-full accent-amber-300 disabled:opacity-30" />
         </label>
       </div>
-    </section>
+    </PreviewWindow>
   );
 }
 

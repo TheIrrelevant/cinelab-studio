@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
-const base=process.env.STUDIO_URL ?? 'http://127.0.0.1:3000';
+const base=process.env.STUDIO_URL ?? 'http://localhost:3000';
 const output='screenshots/studio-verification';
 await mkdir(output,{recursive:true});
 const vite=await createServer({configFile:false,server:{host:'127.0.0.1',port:3101,strictPort:true}});
