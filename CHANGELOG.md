@@ -5,13 +5,22 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: backdrop click no longer steals selection from lights, cameras and the model
+last-change: Phase 6 render contract (SceneJSON, request/result, status, errors, history)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Phase 6: render contract
+
+### Added
+- Provider-neutral render contract (`src/lib/render/contract.ts`): SceneJSON, render request and result schemas, status lifecycle with allowed transitions, and an error model with retryable codes.
+- SceneJSON builder (`src/lib/render/scene-json.ts`): character, outfit (empty until Phase 5), subject pose, camera optics and placement, lights relative to the subject, and backdrop, in metres and degrees; lists missing pieces instead of building partial scenes. Render requests carry a SHA-256 hash of the canonical scene.
+- Render history repository (`src/lib/render/render-repository.ts`) linking every result to the exact scene JSON and provider parameters.
+- **Scene JSON** header button in the studio showing the current request, with copy and download.
+- `docs/render-contract.md`.
 
 ## 2026-10-03 - Backdrop selection fix
 

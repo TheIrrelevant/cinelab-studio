@@ -40,6 +40,7 @@ import {
 
 import { RIGHT_PANEL_CLASS } from "./panel-styles";
 import { ModelPickerPanel, PosePickerPanel, StudioCharacter } from "./StudioModel";
+import { SceneJsonPanel } from "./SceneJsonPanel";
 import { StoreHydration } from "@/components/StoreHydration";
 import type { Character } from "@/lib/character/schema";
 import { useCharacterStore } from "@/store/character-store";
@@ -51,6 +52,7 @@ import {
   type StudioBackdrop,
   type StudioLight,
   type StudioModel,
+  type StudioSceneData,
 } from "@/lib/studio/scene-storage";
 import { CAPTURE_INTENSITY_KEY, FLASH_COLOR, lightRenderParams } from "@/lib/studio/light-rendering";
 import { lensOriginOffset } from "@/lib/studio/camera-rig";
@@ -1198,11 +1200,16 @@ export function Studio() {
   const [modelSelected, setModelSelected] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [posePickerOpen, setPosePickerOpen] = useState(false);
+  const [sceneJsonOpen, setSceneJsonOpen] = useState(false);
   const [backdrop, setBackdrop] = useState<StudioBackdrop>({ color: "gray" });
   const [backdropSelected, setBackdropSelected] = useState(false);
   const [backdropSettingsOpen, setBackdropSettingsOpen] = useState(false);
   const characters = useCharacterStore((state) => state.characters);
   const modelCharacter = model ? characters.find((character) => character.id === model.characterId) : undefined;
+  const sceneData = useMemo<StudioSceneData>(
+    () => ({ version: 1, lights, cameras, model, backdrop }),
+    [backdrop, cameras, lights, model],
+  );
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -1491,6 +1498,7 @@ export function Studio() {
 
   const openPosePicker = () => {
     if (storageStatus === "loading" || !modelCharacter) return;
+    setSceneJsonOpen(false);
     setPosePickerOpen(true);
     setPickerOpen(false);
     setBackdropSettingsOpen(false);
@@ -1500,6 +1508,7 @@ export function Studio() {
 
   const openModelPicker = () => {
     if (storageStatus === "loading") return;
+    setSceneJsonOpen(false);
     setPosePickerOpen(false);
     setPickerOpen(true);
     setBackdropSettingsOpen(false);
@@ -1626,11 +1635,13 @@ export function Studio() {
           onMoveCamera={moveCamera}
           onRotateCamera={rotateCamera}
           onOpenLightSettings={(id) => {
+            setSceneJsonOpen(false);
             setPickerOpen(false);
             setPosePickerOpen(false);
             setSettingsLightId(id);
           }}
           onOpenCameraSettings={(id) => {
+            setSceneJsonOpen(false);
             setPickerOpen(false);
             setPosePickerOpen(false);
             setSettingsCameraId(id);
@@ -1646,6 +1657,7 @@ export function Studio() {
           backdropSelected={backdropSelected}
           onSelectBackdrop={handleBackdropClick}
           onOpenBackdropSettings={() => {
+            setSceneJsonOpen(false);
             setPickerOpen(false);
             setPosePickerOpen(false);
             setBackdropSettingsOpen(true);
@@ -1678,6 +1690,10 @@ export function Studio() {
           onChange={setBackdrop}
           onClose={() => setBackdropSettingsOpen(false)}
         />
+      ) : null}
+
+      {sceneJsonOpen ? (
+        <SceneJsonPanel scene={sceneData} characters={characters} onClose={() => setSceneJsonOpen(false)} />
       ) : null}
 
       {posePickerOpen && model && modelCharacter ? (
@@ -1715,12 +1731,30 @@ export function Studio() {
             Cinelab
           </p>
           <h1 className="mt-1 text-lg font-medium tracking-tight">Studio 01</h1>
-          <Link
-            href="/characters"
-            className="pointer-events-auto mt-2 inline-flex rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/60 backdrop-blur-xl hover:text-white"
-          >
-            Characters
-          </Link>
+          <div className="mt-2 flex gap-1.5">
+            <Link
+              href="/characters"
+              className="pointer-events-auto inline-flex rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/60 backdrop-blur-xl hover:text-white"
+            >
+              Characters
+            </Link>
+            <button
+              type="button"
+              aria-pressed={sceneJsonOpen}
+              disabled={storageStatus === "loading"}
+              onClick={() => {
+                setSceneJsonOpen((open) => !open);
+                setPickerOpen(false);
+                setPosePickerOpen(false);
+                setBackdropSettingsOpen(false);
+                setSettingsLightId(null);
+                setSettingsCameraId(null);
+              }}
+              className="pointer-events-auto inline-flex rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/60 backdrop-blur-xl hover:text-white disabled:opacity-40"
+            >
+              Scene JSON
+            </button>
+          </div>
         </div>
         <div aria-label="Scene asset count" className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/55 backdrop-blur-xl">
           {lights.length} {lights.length === 1 ? "light" : "lights"} · {cameras.length}{" "}
