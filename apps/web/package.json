@@ -1,0 +1,32 @@
+{
+  "name": "@cinelab/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Next.js application composing the Cinelab packages.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:studio:browser": "node scripts/check-studio.mjs",
+    "test:e2e": "node scripts/e2e-milestone.mjs"
+  },
+  "dependencies": {
+    "@cinelab/core": "workspace:*",
+    "@cinelab/human": "workspace:*",
+    "@cinelab/character": "workspace:*",
+    "@cinelab/studio": "workspace:*",
+    "@cinelab/render-contract": "workspace:*",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4"
+  }
+}

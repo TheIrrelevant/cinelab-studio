@@ -1,0 +1,31 @@
+{
+  "name": "@cinelab/character",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Character data, persistence, store, library and editor UI.",
+  "type": "module",
+  "exports": {
+    "./character-store": "./src/character-store.ts",
+    "./components/CharacterEditor": "./src/components/CharacterEditor.tsx",
+    "./components/CharacterLibrary": "./src/components/CharacterLibrary.tsx",
+    "./components/CharacterPreview": "./src/components/CharacterPreview.tsx",
+    "./components/StoreHydration": "./src/components/StoreHydration.tsx",
+    "./image-repository": "./src/image-repository.ts",
+    "./mannequin": "./src/mannequin.ts",
+    "./presets": "./src/presets.ts",
+    "./repository": "./src/repository.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@cinelab/core": "workspace:*",
+    "@cinelab/human": "workspace:*",
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
+  }
+}

@@ -7,35 +7,7 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@react-three/drei':
-        specifier: ^10.7.7
-        version: 10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1))(@types/react@19.2.17)(@types/three@0.185.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
-      '@react-three/fiber':
-        specifier: ^9.6.1
-        version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
-      next:
-        specifier: 16.2.10
-        version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      react:
-        specifier: 19.2.4
-        version: 19.2.4
-      react-dom:
-        specifier: 19.2.4
-        version: 19.2.4(react@19.2.4)
-      three:
-        specifier: ^0.185.1
-        version: 0.185.1
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
-      zustand:
-        specifier: ^5.0.14
-        version: 5.0.14(@types/react@19.2.17)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
     devDependencies:
-      '@tailwindcss/postcss':
-        specifier: ^4
-        version: 4.3.2
       '@testing-library/jest-dom':
         specifier: ^6.9.1
         version: 6.9.1
@@ -75,12 +47,18 @@ importers:
       jsdom:
         specifier: ^29.1.1
         version: 29.1.1
+      next:
+        specifier: 16.2.10
+        version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       playwright:
         specifier: ^1.61.1
         version: 1.61.1
-      tailwindcss:
-        specifier: ^4
-        version: 4.3.2
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -90,6 +68,132 @@ importers:
       vitest:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@20.19.43)(@vitest/coverage-v8@4.1.10)(@vitest/ui@4.1.10)(jsdom@29.1.1)(vite@8.1.4(@types/node@20.19.43)(jiti@2.7.0))
+
+  apps/web:
+    dependencies:
+      '@cinelab/character':
+        specifier: workspace:*
+        version: link:../../packages/character
+      '@cinelab/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@cinelab/human':
+        specifier: workspace:*
+        version: link:../../packages/human
+      '@cinelab/render-contract':
+        specifier: workspace:*
+        version: link:../../packages/render-contract
+      '@cinelab/studio':
+        specifier: workspace:*
+        version: link:../../packages/studio
+      '@react-three/drei':
+        specifier: ^10.7.7
+        version: 10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1))(@types/react@19.2.17)(@types/three@0.185.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
+      '@react-three/fiber':
+        specifier: ^9.6.1
+        version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
+      next:
+        specifier: 16.2.10
+        version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+      three:
+        specifier: ^0.185.1
+        version: 0.185.1
+    devDependencies:
+      '@tailwindcss/postcss':
+        specifier: ^4
+        version: 4.3.2
+      tailwindcss:
+        specifier: ^4
+        version: 4.3.2
+
+  packages/character:
+    dependencies:
+      '@cinelab/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cinelab/human':
+        specifier: workspace:*
+        version: link:../human
+      next:
+        specifier: 16.2.10
+        version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+      zustand:
+        specifier: ^5.0.14
+        version: 5.0.14(@types/react@19.2.17)(react@19.2.4)(use-sync-external-store@1.6.0(react@19.2.4))
+
+  packages/core: {}
+
+  packages/human:
+    dependencies:
+      '@cinelab/core':
+        specifier: workspace:*
+        version: link:../core
+      three:
+        specifier: ^0.185.1
+        version: 0.185.1
+
+  packages/render-contract:
+    dependencies:
+      '@cinelab/character':
+        specifier: workspace:*
+        version: link:../character
+      '@cinelab/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cinelab/human':
+        specifier: workspace:*
+        version: link:../human
+      '@cinelab/studio':
+        specifier: workspace:*
+        version: link:../studio
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
+  packages/studio:
+    dependencies:
+      '@cinelab/character':
+        specifier: workspace:*
+        version: link:../character
+      '@cinelab/core':
+        specifier: workspace:*
+        version: link:../core
+      '@cinelab/human':
+        specifier: workspace:*
+        version: link:../human
+      '@react-three/drei':
+        specifier: ^10.7.7
+        version: 10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1))(@types/react@19.2.17)(@types/three@0.185.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
+      '@react-three/fiber':
+        specifier: ^9.6.1
+        version: 9.6.1(@types/react@19.2.17)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.185.1)
+      next:
+        specifier: 16.2.10
+        version: 16.2.10(@babel/core@7.29.7)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      three:
+        specifier: ^0.185.1
+        version: 0.185.1
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
 
 packages:
 

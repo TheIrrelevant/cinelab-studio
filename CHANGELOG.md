@@ -5,13 +5,22 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: removed bokeh control; fixed late reference image reads
+last-change: moved to a pnpm workspace with feature packages
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Workspace packages
+
+### Changed
+- The repository is now a pnpm workspace. Code moved (history kept) into packages with one-way dependencies:
+  `@cinelab/core` <- `@cinelab/human` <- `@cinelab/character` <- `@cinelab/studio` <- `@cinelab/render-contract` <- `apps/web` (Next.js).
+- Each package has its own `package.json` exports, `tsconfig.json` and Vitest project; `pnpm test` runs all projects, `pnpm --filter @cinelab/<name> test` runs one.
+- The studio no longer imports the render contract: `Studio` takes an optional `scenePanel`, and `apps/web` composes it with `SceneJsonPanel` (`StudioScreen.tsx`).
+- Browser scripts moved to `apps/web/scripts`; root scripts `pnpm test:studio:browser` and `pnpm test:e2e` run them.
 
 ## 2026-10-03 - Physical defocus only; late image read fix
 

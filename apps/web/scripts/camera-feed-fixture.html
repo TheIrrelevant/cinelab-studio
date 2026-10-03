@@ -1,0 +1,40 @@
+<!doctype html>
+<!-- @file camera-feed-fixture.html @description GPU regression fixture with two depth-separated checkerboards. @depends @cinelab/studio/camera-feed -->
+<html lang="en"><meta charset="utf-8"><title>Camera feed depth fixture</title><link rel="icon" href="data:,">
+<body style="background:#222;color:white;font-family:system-ui"><p>Near checkerboard (2 m) / far checkerboard (5 m)</p>
+<script type="module">
+import { WebGLRenderer, Scene, PerspectiveCamera, DataTexture, NearestFilter, Mesh, MeshBasicMaterial, PlaneGeometry, WebGLRenderTarget, Object3D } from 'three';
+import { CameraFeedRenderer, verticalFieldOfView } from '@cinelab/studio/camera-feed';
+const gl = new WebGLRenderer();
+gl.setSize(480,270);
+const scene = new Scene();
+const camera = new PerspectiveCamera(verticalFieldOfView(50), 16/9, 0.05, 100);
+const data = new Uint8Array(32*32*4);
+for(let y=0;y<32;y++) for(let x=0;x<32;x++) {
+  const i=(y*32+x)*4, c=(x+y)%2 ? 255 : 0;
+  data.set([c,c,c,255],i);
+}
+const texture=new DataTexture(data,32,32);
+texture.minFilter=NearestFilter;texture.magFilter=NearestFilter;texture.needsUpdate=true;
+for(const [x,z,size] of [[-0.36,-2,0.5],[0.9,-5,1.25]]) {
+  const plane = new Mesh(new PlaneGeometry(size,size),new MeshBasicMaterial({map:texture}));
+  plane.position.set(x,0,z);scene.add(plane);
+}
+const helper=new Object3D();helper.isTransformControlsRoot=true;scene.add(helper);
+const feed=new CameraFeedRenderer();
+const canvas=document.createElement('canvas');canvas.width=480;canvas.height=270;document.body.append(canvas);
+window.capture=(options={})=>{
+  const pixels=new Uint8Array(480*270*4);
+  camera.fov=verticalFieldOfView(options.focalLengthMm ?? 50);camera.updateProjectionMatrix();
+  const previousTarget=new WebGLRenderTarget(8,8);
+  gl.setRenderTarget(previousTarget);
+  feed.render(gl,scene,camera,{exposure:1,aperture:1.4,focalLengthMm:50,focusDistance:2,...options},pixels);
+  if(gl.getRenderTarget()!==previousTarget || !helper.visible) throw new Error('Renderer state leaked');
+  gl.setRenderTarget(null);previousTarget.dispose();
+  const image=canvas.getContext('2d').createImageData(480,270);
+  for(let y=0;y<270;y++)image.data.set(pixels.subarray((269-y)*480*4,(270-y)*480*4),y*480*4);
+  canvas.getContext('2d').putImageData(image,0,0);
+  return Array.from(pixels);
+};
+window.capture();
+</script></body></html>
