@@ -11,12 +11,23 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useCharacterStore } from "@/store/character-store";
 import { getBaseModel, getHairStyle, getSkinTone } from "@/lib/character/presets";
 
 export function CharacterLibrary() {
   const characters = useCharacterStore((s) => s.characters);
   const remove = useCharacterStore((s) => s.remove);
+  const [error, setError] = useState<string | null>(null);
+
+  function handleDelete(id: string): void {
+    setError(null);
+    try {
+      remove(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to delete character");
+    }
+  }
 
   if (characters.length === 0) {
     return (
@@ -44,6 +55,10 @@ export function CharacterLibrary() {
           New character
         </Link>
       </div>
+
+      {error && (
+        <p role="alert" className="mb-4 text-sm text-red-400">{error}</p>
+      )}
 
       <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {characters.map((c) => {
@@ -82,7 +97,7 @@ export function CharacterLibrary() {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => remove(c.id)}
+                  onClick={() => handleDelete(c.id)}
                   aria-label={`Delete ${c.name}`}
                   className="inline-flex h-9 items-center justify-center rounded-full border border-neutral-700 px-4 text-sm text-neutral-300 hover:bg-neutral-800 hover:text-red-300"
                 >

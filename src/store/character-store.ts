@@ -6,12 +6,13 @@
  *   through the repository (persistence) and return immutable new state slices.
  *   Exposes a factory for test isolation and a singleton for app use.
  * @scope cinelab-studio
- * @depends repository.ts, schema.ts
+ * @depends repository.ts, image-repository.ts, schema.ts
  */
 
 import { create } from "zustand";
 import type { CharacterRepository } from "@/lib/character/repository";
 import { characterRepository } from "@/lib/character/repository";
+import { imageRepository } from "@/lib/character/image-repository";
 import {
   createCharacter,
   updateCharacter,
@@ -38,8 +39,11 @@ export interface CharacterState {
   reset: () => void;
 }
 
+type ImageCleanup = Pick<typeof imageRepository, "deleteMany">;
+
 export function createCharacterStore(
   repo: CharacterRepository = characterRepository,
+  images: ImageCleanup = imageRepository,
 ) {
   return create<CharacterState>()((set, get) => ({
     characters: [],
@@ -124,12 +128,18 @@ export function createCharacterStore(
     },
 
     remove: (id) => {
+      const imageIds = get().characters.find((c) => c.id === id)?.faceReferenceImageIds ?? [];
       repo.delete(id);
       set((state) => ({
         characters: state.characters.filter((c) => c.id !== id),
         activeCharacterId:
           state.activeCharacterId === id ? null : state.activeCharacterId,
       }));
+      try {
+        images.deleteMany(imageIds);
+      } catch {
+        // The character is already gone; leftover images only cost space.
+      }
     },
 
     reset: () => {

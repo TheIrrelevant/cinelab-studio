@@ -87,3 +87,21 @@ describe("CharacterLibrary", () => {
     expect(characterRepository.findAll()).toHaveLength(0);
   });
 });
+describe("CharacterLibrary delete failures", () => {
+  it("shows an error and keeps the character when deletion cannot be saved", async () => {
+    const user = userEvent.setup();
+    useCharacterStore.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
+    render(<CharacterLibrary />);
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    try {
+      await user.click(screen.getByRole("button", { name: "Delete Aria" }));
+    } finally {
+      setItem.mockRestore();
+    }
+    expect(screen.getByRole("alert")).toHaveTextContent(/storage is full/i);
+    expect(screen.getByText("Aria")).toBeInTheDocument();
+    expect(characterRepository.findAll()).toHaveLength(1);
+  });
+});

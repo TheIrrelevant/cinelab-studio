@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: flash strobe rendering, delete tool, preview window, Ready Player Me removal, Node 25+ test fix
+last-change: character data integrity (reference image lifecycle, storage write errors)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Character data integrity
+
+### Fixed
+- Removing a reference image and then cancelling no longer deletes the stored image; removed images are deleted only after the character is saved.
+- Images uploaded during a cancelled editing session are discarded instead of left orphaned.
+- Deleting a character also deletes its reference images.
+- Storage write failures (quota exceeded, storage disabled) now raise `StorageWriteError` instead of being swallowed. The editor and library show "Storage is full or unavailable. Changes were not saved.", keep the current state, and do not navigate away.
+- `imageRepository.clear()` tolerates unavailable storage.
+
+### Added
+- `imageRepository.deleteMany(ids)` for single-write bulk cleanup.
 
 ## 2026-10-03 - Studio lights, delete tool and cleanup
 

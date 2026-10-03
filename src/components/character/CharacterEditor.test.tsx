@@ -14,6 +14,7 @@ import { CharacterEditor } from "@/components/character/CharacterEditor";
 import { useCharacterStore } from "@/store/character-store";
 import { characterRepository } from "@/lib/character/repository";
 import { BASE_MODELS } from "@/lib/character/presets";
+import { imageRepository } from "@/lib/character/image-repository";
 
 const pushMock = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -142,5 +143,91 @@ describe("CharacterEditor (edit mode)", () => {
     render(<CharacterEditor mode="edit" characterId="does-not-exist" />);
     // no crash; save disabled because name is empty in the empty draft
     expect(screen.getByRole("button", { name: /save/i })).toBeDisabled();
+  });
+});
+
+describe("CharacterEditor reference image lifecycle", () => {
+  let uuid = 0;
+  beforeEach(() => {
+    vi.stubGlobal("crypto", { ...crypto, randomUUID: () => `uuid-${++uuid}` });
+  });
+
+  function seedWithImage() {
+    const imageId = imageRepository.save("data:image/png;base64,SAVED");
+    const created = useCharacterStore.getState().createNew({
+      name: "Aria",
+      baseModelId: BASE_MODELS[0].id,
+      faceReferenceImageIds: [imageId],
+    });
+    return { created, imageId };
+  }
+
+  it("keeps a saved image when its removal is cancelled", async () => {
+    const user = userEvent.setup();
+    const { created, imageId } = seedWithImage();
+    render(<CharacterEditor mode="edit" characterId={created.id} />);
+    await user.click(screen.getByRole("button", { name: /remove reference image/i }));
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+    expect(imageRepository.get(imageId)).toBe("data:image/png;base64,SAVED");
+    expect(characterRepository.findById(created.id)?.faceReferenceImageIds).toEqual([imageId]);
+  });
+
+  it("deletes a removed saved image only after save", async () => {
+    const user = userEvent.setup();
+    const { created, imageId } = seedWithImage();
+    render(<CharacterEditor mode="edit" characterId={created.id} />);
+    await user.click(screen.getByRole("button", { name: /remove reference image/i }));
+    expect(imageRepository.get(imageId)).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: /save/i }));
+    expect(imageRepository.get(imageId)).toBeNull();
+    expect(characterRepository.findById(created.id)?.faceReferenceImageIds).toEqual([]);
+  });
+
+  it("discards images uploaded in a cancelled session", async () => {
+    const user = userEvent.setup();
+    const { created, imageId } = seedWithImage();
+    render(<CharacterEditor mode="edit" characterId={created.id} />);
+    await user.upload(
+      screen.getByLabelText(/reference images/i),
+      new File(["pixel"], "face.png", { type: "image/png" }),
+    );
+    expect(imageRepository.list()).toHaveLength(2);
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+    expect(imageRepository.list()).toEqual([imageId]);
+  });
+
+  it("discards an image uploaded and removed before saving", async () => {
+    const user = userEvent.setup();
+    render(<CharacterEditor mode="create" />);
+    await user.type(screen.getByLabelText(/name/i), "Aria");
+    await user.upload(
+      screen.getByLabelText(/reference images/i),
+      new File(["pixel"], "face.png", { type: "image/png" }),
+    );
+    await user.click(await screen.findByRole("button", { name: /remove reference image/i }));
+    await user.click(screen.getByRole("button", { name: /save/i }));
+    expect(imageRepository.list()).toEqual([]);
+  });
+
+  it("shows an error and stays on the page when storage is full", async () => {
+    const user = userEvent.setup();
+    render(<CharacterEditor mode="create" />);
+    await user.type(screen.getByLabelText(/name/i), "Aria");
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    try {
+      await user.upload(
+        screen.getByLabelText(/reference images/i),
+        new File(["pixel"], "face.png", { type: "image/png" }),
+      );
+      expect(await screen.findByRole("alert")).toHaveTextContent(/storage is full/i);
+      await user.click(screen.getByRole("button", { name: /save/i }));
+    } finally {
+      setItem.mockRestore();
+    }
+    expect(screen.getByRole("alert")).toHaveTextContent(/storage is full/i);
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(characterRepository.findAll()).toEqual([]);
   });
 });

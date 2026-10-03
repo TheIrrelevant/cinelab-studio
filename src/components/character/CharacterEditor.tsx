@@ -68,6 +68,8 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
   });
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Images stored during this editing session; discarded on cancel.
+  const sessionImageIds = useRef<Set<string>>(new Set());
 
   function patch<K extends keyof Draft>(key: K, value: Draft[K]): void {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -84,16 +86,25 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
 
   async function handleFiles(files: FileList | null): Promise<void> {
     if (!files || files.length === 0) return;
+    setError(null);
     const ids: string[] = [];
-    for (const file of Array.from(files)) {
-      const dataUrl = await readFileAsDataUrl(file);
-      ids.push(imageRepository.save(dataUrl));
+    try {
+      for (const file of Array.from(files)) {
+        const dataUrl = await readFileAsDataUrl(file);
+        const id = imageRepository.save(dataUrl);
+        sessionImageIds.current.add(id);
+        ids.push(id);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to add reference image");
     }
+    if (ids.length === 0) return;
     setDraft((d) => ({ ...d, faceReferenceImageIds: [...d.faceReferenceImageIds, ...ids] }));
   }
 
+  // Stored images are only deleted once the removal is saved (or on cancel for
+  // images added in this session), so cancelling never breaks a saved character.
   function removeReference(id: string): void {
-    imageRepository.delete(id);
     setDraft((d) => ({
       ...d,
       faceReferenceImageIds: d.faceReferenceImageIds.filter((x) => x !== id),
@@ -130,10 +141,21 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
         };
         store.updateCharacter(existing.id, patchData);
       }
+      const kept = new Set(draft.faceReferenceImageIds);
+      const removedSaved = (existing?.faceReferenceImageIds ?? []).filter((id) => !kept.has(id));
+      const removedNew = [...sessionImageIds.current].filter((id) => !kept.has(id));
+      sessionImageIds.current.clear();
+      discardImages([...removedSaved, ...removedNew]);
       router.push("/characters");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save character");
     }
+  }
+
+  function handleCancel(): void {
+    discardImages([...sessionImageIds.current]);
+    sessionImageIds.current.clear();
+    router.push("/characters");
   }
 
   const nameValid = draft.name.trim().length > 0;
@@ -325,7 +347,7 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
           </button>
           <button
             type="button"
-            onClick={() => router.push("/characters")}
+            onClick={handleCancel}
             className="inline-flex h-11 items-center justify-center rounded-full border border-neutral-700 px-6 font-medium hover:bg-neutral-900"
           >
             Cancel
@@ -413,4 +435,13 @@ function readFileAsDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(new Error("Failed to read image file"));
     reader.readAsDataURL(file);
   });
+}
+
+function discardImages(ids: readonly string[]): void {
+  if (ids.length === 0) return;
+  try {
+    imageRepository.deleteMany(ids);
+  } catch {
+    // Cleanup failure only leaves unused images behind; the save itself succeeded.
+  }
 }

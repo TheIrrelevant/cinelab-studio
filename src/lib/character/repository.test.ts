@@ -14,6 +14,7 @@ import {
 } from "@/lib/character/repository";
 import { createCharacter } from "@/lib/character/schema";
 import { BASE_MODELS } from "@/lib/character/presets";
+import { StorageWriteError } from "@/lib/character/storage-error";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -108,5 +109,23 @@ describe("characterRepository", () => {
     const [first] = characterRepository.findAll();
     first.name = "mutated";
     expect(characterRepository.findById(c.id)?.name).toBe("Aria");
+  });
+});
+
+describe("characterRepository write failures", () => {
+  it("throws StorageWriteError and keeps the previous data when a write fails", () => {
+    const first = createCharacter({ name: "Aria", baseModelId: BASE_MODELS[0].id });
+    characterRepository.create(first);
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    try {
+      const second = { ...first, id: "char-0002", name: "Leo" };
+      expect(() => characterRepository.create(second)).toThrow(StorageWriteError);
+      expect(() => characterRepository.delete(first.id)).toThrow(StorageWriteError);
+    } finally {
+      setItem.mockRestore();
+    }
+    expect(characterRepository.findAll().map((c) => c.name)).toEqual(["Aria"]);
   });
 });

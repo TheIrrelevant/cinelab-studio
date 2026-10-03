@@ -6,7 +6,10 @@
  *   Known limitation: localStorage ~5MB quota; fine for Phase 1 MVP, swap to
  *   IndexedDB or backend later.
  * @scope cinelab-studio
+ * @depends storage-error.ts
  */
+
+import { StorageWriteError } from "@/lib/character/storage-error";
 
 const STORAGE_KEY = "cinelab-studio:images:v1";
 
@@ -33,9 +36,8 @@ function writeMap(map: Record<string, string>): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-  } catch {
-    // Quota exceeded — swallow at storage layer; UI shows the image for the
-    // current session via object URL fallback in the component.
+  } catch (cause) {
+    throw new StorageWriteError({ cause });
   }
 }
 
@@ -53,11 +55,19 @@ export const imageRepository = {
   },
 
   delete(id: string): boolean {
+    return imageRepository.deleteMany([id]) === 1;
+  },
+
+  /** Deletes every listed image in one write; returns how many existed. */
+  deleteMany(ids: readonly string[]): number {
     const map = readMap();
-    if (!(id in map)) return false;
-    delete map[id];
+    const existing = ids.filter((id) => id in map);
+    if (existing.length === 0) return 0;
+    existing.forEach((id) => {
+      delete map[id];
+    });
     writeMap(map);
-    return true;
+    return existing.length;
   },
 
   list(): string[] {
@@ -66,6 +76,10 @@ export const imageRepository = {
 
   clear(): void {
     if (typeof window === "undefined") return;
-    window.localStorage.removeItem(STORAGE_KEY);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Storage unavailable; nothing to clear.
+    }
   },
 };

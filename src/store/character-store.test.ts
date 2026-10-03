@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createCharacterStore } from "@/store/character-store";
 import { characterRepository } from "@/lib/character/repository";
 import { BASE_MODELS } from "@/lib/character/presets";
+import { StorageWriteError } from "@/lib/character/storage-error";
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -158,5 +159,46 @@ describe("characterStore", () => {
     store.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
     const after = store.getState().characters;
     expect(after).not.toBe(before);
+  });
+});
+
+describe("characterStore image cleanup and write failures", () => {
+  it("remove deletes the character's reference images", () => {
+    const deleteMany = vi.fn(() => 2);
+    const store = createCharacterStore(characterRepository, { deleteMany });
+    const c = store.getState().createNew({
+      name: "Aria",
+      baseModelId: BASE_MODELS[0].id,
+      faceReferenceImageIds: ["img-a", "img-b"],
+    });
+    store.getState().remove(c.id);
+    expect(deleteMany).toHaveBeenCalledWith(["img-a", "img-b"]);
+    expect(store.getState().characters).toEqual([]);
+  });
+
+  it("remove still succeeds when image cleanup fails", () => {
+    const deleteMany = vi.fn(() => {
+      throw new StorageWriteError();
+    });
+    const store = createCharacterStore(characterRepository, { deleteMany });
+    const c = store.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
+    expect(() => store.getState().remove(c.id)).not.toThrow();
+    expect(characterRepository.findAll()).toEqual([]);
+  });
+
+  it("leaves state untouched when a write fails", () => {
+    const store = createCharacterStore();
+    const c = store.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
+    const before = store.getState().characters;
+    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("quota", "QuotaExceededError");
+    });
+    try {
+      expect(() => store.getState().updateCharacter(c.id, { name: "Aria II" })).toThrow(StorageWriteError);
+      expect(() => store.getState().remove(c.id)).toThrow(StorageWriteError);
+    } finally {
+      setItem.mockRestore();
+    }
+    expect(store.getState().characters).toBe(before);
   });
 });

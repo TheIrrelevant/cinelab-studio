@@ -7,11 +7,12 @@
  *   is treated as untrusted external input and corrupt entries are skipped, not thrown.
  *   Every public method returns fresh copies so callers cannot mutate internal state.
  * @scope cinelab-studio
- * @depends schema.ts
+ * @depends schema.ts, storage-error.ts
  */
 
 import type { Character } from "@/lib/character/schema";
 import { isValidCharacter, parseCharacter } from "@/lib/character/schema";
+import { StorageWriteError } from "@/lib/character/storage-error";
 
 export const STORAGE_KEY = "cinelab-studio:characters:v1";
 
@@ -40,9 +41,9 @@ class LocalStorageAdapter implements CharacterStorage {
     if (typeof window === "undefined") return;
     try {
       window.localStorage.setItem(STORAGE_KEY, value);
-    } catch {
-      // Quota exceeded or storage disabled — swallow at this layer; callers see
-      // an empty findAll on next read. Surfacing this to the UI is a future concern.
+    } catch (cause) {
+      // Quota exceeded or storage disabled: the previous value is untouched.
+      throw new StorageWriteError({ cause });
     }
   }
 
