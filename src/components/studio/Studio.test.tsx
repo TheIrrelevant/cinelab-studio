@@ -319,7 +319,6 @@ describe("Studio camera controls", () => {
     shutterIndex: 12,
     focusDistance: 2,
     zoomMm: 50,
-    bokeh: 50,
     filter: "neutral",
     previewVisible: true,
     framing: null,
@@ -609,7 +608,7 @@ describe("Pose and framing", () => {
     const camera: StudioCameraAsset = {
       id: "camera-0", position: [0, 0, 0], homePosition: [0, 0, 0], rotation: [0, Math.PI, 0], headRotation: [0, 0, 0],
       height: 1.55, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12,
-      focusDistance: 2, zoomMm: 50, bokeh: 50, filter: "neutral", previewVisible: true, framing: "halfBody",
+      focusDistance: 2, zoomMm: 50, filter: "neutral", previewVisible: true, framing: "halfBody",
     };
     render(<CameraSettingsPanel camera={camera} onChange={vi.fn()} onClose={vi.fn()} onReset={vi.fn()} onApplyFraming={onApplyFraming} />);
     expect(screen.getByRole("button", { name: "Half body" })).toHaveAttribute("aria-pressed", "true");
@@ -641,7 +640,7 @@ describe("Scene JSON panel", () => {
     window.localStorage.setItem(SCENE_KEY, JSON.stringify({
       version: 1,
       lights: [{ id: "light-0", position: [-1.8, 0, 0.6], homePosition: [-1.8, 0, 0.6], rotation: [0, 2.3, 0], headRotation: [25, 0, 0], height: 2.6, modifier: "softbox", softboxWidth: 120, softboxHeight: 90, intensity: 120, spread: 0.8, color: "#ffb87b", colorTemperature: 3200, role: "key" }],
-      cameras: [{ id: "camera-0", position: [0, 0, 2], homePosition: [0, 0, 2], rotation: [0, Math.PI, 0], headRotation: [0, 0, 0], height: 1.25, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12, focusDistance: 2.6, zoomMm: 50, bokeh: 50, filter: "neutral", previewVisible: true, framing: "halfBody" }],
+      cameras: [{ id: "camera-0", position: [0, 0, 2], homePosition: [0, 0, 2], rotation: [0, Math.PI, 0], headRotation: [0, 0, 0], height: 1.25, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12, focusDistance: 2.6, zoomMm: 50, filter: "neutral", previewVisible: true, framing: "halfBody" }],
       model: { characterId: aria.id, position: [0, 0, -1], rotation: [0, 0, 0], pose: "walking" },
       backdrop: { color: "black" },
     }));

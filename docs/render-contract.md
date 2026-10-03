@@ -19,7 +19,7 @@ Built by `buildSceneJson(scene, characters, { cameraId? })` from the saved studi
 | `character` | id, name, base model, gender presentation, body preset, height, skin tone (id/label/hex), hair (style/label/colour), face reference image ids, notes |
 | `outfit` | `items: []` until the clothing catalog (Phase 5) exists |
 | `subject` | position, yaw, pose preset and label |
-| `camera` | body, lens, focal length, aperture, ISO, shutter (label and seconds), focus distance, bokeh, filter, framing preset, 36 mm sensor and 16:9 aspect, vertical FOV, position, height, yaw/tilt/roll, distance from lens to subject |
+| `camera` | body, lens, focal length, aperture, ISO, shutter (label and seconds), focus distance, filter, framing preset, 36 mm sensor and 16:9 aspect, vertical FOV, position, height, yaw/tilt/roll, distance from lens to subject |
 | `lights[]` | role, continuous/flash, bare/softbox (cm), slider power and effective capture power, colour, colour temperature (flash is 5600 K), beam spread, position, height, aim, and placement relative to the subject (azimuth: 0 front, +90 subject's left, 180 behind; elevation; distance) |
 | `backdrop` | seamless paper colour and hex |
 

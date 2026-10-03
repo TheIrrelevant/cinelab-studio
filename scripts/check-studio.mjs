@@ -42,12 +42,13 @@ try {
   pass('focus switches sharpness between two scene depths',{nearSharp,nearBlur,farSharp,farBlur});
   const stopped=await capture({focusDistance:2,aperture:16});
   assert(sharpness(stopped,315)>farBlur*1.2);
-  const noBlurA=await capture({focusDistance:2,bokeh:0});
-  const noBlurB=await capture({focusDistance:5,bokeh:0});
-  assert.equal(difference(noBlurA,noBlurB),0);
-  pass('stopping down increases depth of field; bokeh zero disables defocus');
-  const dim=await capture({exposure:0.25,bokeh:0});
-  const bright=await capture({exposure:4,bokeh:0});
+  // 14 mm at f/22 is past its hyperfocal distance: both boards stay sharp wherever it focuses.
+  const deepA=await capture({focusDistance:2,focalLengthMm:14,aperture:22});
+  const deepB=await capture({focusDistance:5,focalLengthMm:14,aperture:22});
+  assert.equal(difference(deepA,deepB),0);
+  pass('stopping down increases depth of field; a wide lens at f/22 keeps both depths sharp');
+  const dim=await capture({exposure:0.25});
+  const bright=await capture({exposure:4});
   assert(mean(bright)>mean(dim)*1.3);
   pass('HDR preview exposure changes pixels',{dim:mean(dim),bright:mean(bright)});
   assert.equal(errors.length,0,errors.join('\n'));

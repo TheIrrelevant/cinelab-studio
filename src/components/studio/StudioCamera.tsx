@@ -50,7 +50,6 @@ export type StudioCameraAsset = {
   shutterIndex: number;
   focusDistance: number;
   zoomMm: number;
-  bokeh: number;
   filter: CameraFilterId;
   previewVisible: boolean;
   framing: FramingId | null;
@@ -128,7 +127,6 @@ export function CameraFeedCapture({
       aperture: camera.aperture,
       focalLengthMm: camera.zoomMm,
       focusDistance: camera.focusDistance,
-      bokeh: camera.bokeh,
     }, pixels);
 
     const context = canvas.getContext("2d");
@@ -400,10 +398,6 @@ export function CameraPreview({
         <label className="text-[10px] text-white/45">
           Focus Distance · {`${camera.focusDistance.toFixed(1)} m`}
           <input aria-label="Focus Distance" type="range" min={lens.minFocus} max="20" step="0.1" value={camera.focusDistance} onChange={(event) => onChange({ focusDistance: Number(event.target.value) })} className="mt-1 w-full accent-amber-300" />
-        </label>
-        <label className="text-[10px] text-white/45">
-          Bokeh · {camera.bokeh}%
-          <input aria-label="Bokeh" type="range" min="0" max="100" step="1" value={camera.bokeh} onChange={(event) => onChange({ bokeh: Number(event.target.value) })} className="mt-1 w-full accent-amber-300" />
         </label>
         <label className={`text-[10px] ${isZoomLens ? "text-white/45" : "text-white/20"}`}>
           Zoom · {camera.zoomMm} mm

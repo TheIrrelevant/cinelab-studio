@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { render, screen, within, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CharacterEditor } from "@/components/character/CharacterEditor";
 import { useCharacterStore } from "@/store/character-store";
@@ -191,6 +191,8 @@ describe("CharacterEditor reference image lifecycle", () => {
       screen.getByLabelText(/reference images/i),
       new File(["pixel"], "face.png", { type: "image/png" }),
     );
+    // File reading is async; wait until the new thumbnail is rendered.
+    await waitFor(() => expect(screen.getAllByAltText("reference")).toHaveLength(2));
     expect(imageRepository.list()).toHaveLength(2);
     await user.click(screen.getByRole("button", { name: /cancel/i }));
     expect(imageRepository.list()).toEqual([imageId]);
@@ -229,5 +231,26 @@ describe("CharacterEditor reference image lifecycle", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/storage is full/i);
     expect(pushMock).not.toHaveBeenCalled();
     expect(characterRepository.findAll()).toEqual([]);
+  });
+});
+
+describe("CharacterEditor late file reads", () => {
+  it("does not store an image whose read finishes after cancel", async () => {
+    let finishRead: (() => void) | undefined;
+    const originalReadAsDataURL = FileReader.prototype.readAsDataURL;
+    vi.spyOn(FileReader.prototype, "readAsDataURL").mockImplementation(function (this: FileReader, blob: Blob) {
+      finishRead = () => originalReadAsDataURL.call(this, blob);
+    });
+    const user = userEvent.setup();
+    render(<CharacterEditor mode="create" />);
+    await user.upload(
+      screen.getByLabelText(/reference images/i),
+      new File(["pixel"], "face.png", { type: "image/png" }),
+    );
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+    finishRead?.();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(imageRepository.list()).toEqual([]);
+    vi.restoreAllMocks();
   });
 });

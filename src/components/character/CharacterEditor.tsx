@@ -11,7 +11,7 @@
 
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCharacterStore } from "@/store/character-store";
 import {
@@ -70,6 +70,14 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // Images stored during this editing session; discarded on cancel.
   const sessionImageIds = useRef<Set<string>>(new Set());
+  // Set once the editor is left (save, cancel, unmount); late file reads must not store images.
+  const closed = useRef(false);
+  useEffect(() => {
+    closed.current = false;
+    return () => {
+      closed.current = true;
+    };
+  }, []);
 
   function patch<K extends keyof Draft>(key: K, value: Draft[K]): void {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -91,6 +99,7 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
     try {
       for (const file of Array.from(files)) {
         const dataUrl = await readFileAsDataUrl(file);
+        if (closed.current) return;
         const id = imageRepository.save(dataUrl);
         sessionImageIds.current.add(id);
         ids.push(id);
@@ -144,6 +153,7 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
       const kept = new Set(draft.faceReferenceImageIds);
       const removedSaved = (existing?.faceReferenceImageIds ?? []).filter((id) => !kept.has(id));
       const removedNew = [...sessionImageIds.current].filter((id) => !kept.has(id));
+      closed.current = true;
       sessionImageIds.current.clear();
       discardImages([...removedSaved, ...removedNew]);
       router.push("/characters");
@@ -153,6 +163,7 @@ export function CharacterEditor({ mode, characterId }: CharacterEditorProps) {
   }
 
   function handleCancel(): void {
+    closed.current = true;
     discardImages([...sessionImageIds.current]);
     sessionImageIds.current.clear();
     router.push("/characters");

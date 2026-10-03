@@ -28,7 +28,7 @@ window.capture=(options={})=>{
   camera.fov=verticalFieldOfView(options.focalLengthMm ?? 50);camera.updateProjectionMatrix();
   const previousTarget=new WebGLRenderTarget(8,8);
   gl.setRenderTarget(previousTarget);
-  feed.render(gl,scene,camera,{exposure:1,aperture:1.4,focalLengthMm:50,focusDistance:2,bokeh:100,...options},pixels);
+  feed.render(gl,scene,camera,{exposure:1,aperture:1.4,focalLengthMm:50,focusDistance:2,...options},pixels);
   if(gl.getRenderTarget()!==previousTarget || !helper.visible) throw new Error('Renderer state leaked');
   gl.setRenderTarget(null);previousTarget.dispose();
   const image=canvas.getContext('2d').createImageData(480,270);

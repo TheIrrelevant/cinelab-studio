@@ -1324,7 +1324,6 @@ export function Studio() {
         shutterIndex: 12,
         focusDistance: 2,
         zoomMm: 50,
-        bokeh: 50,
         filter: "neutral",
         previewVisible: true,
         framing: null,

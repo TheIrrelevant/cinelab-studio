@@ -56,7 +56,7 @@ describe("framingPlacement", () => {
     for (const id of ["portrait", "halfBody", "fullBody"] as const) {
       const placement = framingPlacement(id, subject, 1.72, 2.8, () => 0.4);
       const result = studioCameraSchema.safeParse({
-        id: "camera-0", body: "proDslr", iso: 400, shutterIndex: 12, bokeh: 50, filter: "neutral", previewVisible: true,
+        id: "camera-0", body: "proDslr", iso: 400, shutterIndex: 12, filter: "neutral", previewVisible: true,
         ...placement,
       });
       expect(result.success).toBe(true);

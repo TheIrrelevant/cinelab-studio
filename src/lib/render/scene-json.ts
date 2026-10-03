@@ -123,7 +123,6 @@ export function buildSceneJson(
       iso: camera.iso,
       shutter: { label: SHUTTER_SPEEDS[camera.shutterIndex] ?? "1/125", seconds: shutterSeconds(camera.shutterIndex) },
       focusDistanceM: camera.focusDistance,
-      bokeh: camera.bokeh,
       filter: camera.filter,
       framing: camera.framing,
       sensor: { widthMm: 36, aspectRatio: "16:9" },

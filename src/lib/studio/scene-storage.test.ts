@@ -12,7 +12,7 @@ const light = {
 const camera = {
   id: "camera-4", position: [0,0,0], homePosition: [0,0,0], rotation: [0,0,0], headRotation: [0,0,0],
   height: 1.55, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12,
-  focusDistance: 2, zoomMm: 50, bokeh: 50, filter: "neutral", previewVisible: true, framing: null,
+  focusDistance: 2, zoomMm: 50, filter: "neutral", previewVisible: true, framing: null,
 };
 const saved = { version: 1, lights: [light], cameras: [camera] };
 

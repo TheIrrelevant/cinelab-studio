@@ -35,7 +35,7 @@ function light(id: string, role: "key" | "fill" | "rim", extra: Partial<StudioSc
 
 function scene(overrides: Partial<StudioSceneData> = {}): StudioSceneData {
   const camera = {
-    id: "camera-0", body: "proDslr", iso: 400, shutterIndex: 12, bokeh: 50, filter: "neutral", previewVisible: true,
+    id: "camera-0", body: "proDslr", iso: 400, shutterIndex: 12, filter: "neutral", previewVisible: true,
     ...framingPlacement("halfBody", subject, 1.72, 2.8, (lens, zoom) => lensOriginOffset("proDslr", lens, zoom)),
   };
   return studioSceneSchema.parse({

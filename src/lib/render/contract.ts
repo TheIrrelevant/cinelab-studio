@@ -50,7 +50,6 @@ export const sceneCameraSchema = z.object({
   iso: z.number().positive(),
   shutter: z.object({ label: z.string(), seconds: z.number().positive() }),
   focusDistanceM: z.number().positive(),
-  bokeh: z.number().min(0).max(100),
   filter: z.string(),
   framing: z.enum(["portrait", "halfBody", "fullBody"]).nullable(),
   sensor: z.object({ widthMm: z.literal(36), aspectRatio: z.literal("16:9") }),

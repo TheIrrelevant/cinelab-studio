@@ -10,7 +10,7 @@ depends_on: [../scripts/check-studio.mjs, ../src/lib/studio/camera-feed.ts, ../s
 
 The camera feed renders the actual scene through the selected DSLR pose and focal length. The previous implementation wrote directly to an offscreen target; ISO changes produced identical pixels because tone mapping is not applied to ordinary WebGL render targets. The replacement renders linear HDR first and applies exposure, ACES tone mapping and sRGB conversion explicitly. Vertical field of view uses the cropped sensor height derived from a 36 mm sensor width and the 16:9 preview.
 
-Focus uses the scene depth texture and the thin-lens circle of confusion. Changing focus distance switches the sharp plane; stopping down reduces blur; Bokeh at zero disables defocus. This is a bounded real-time approximation (32 aperture samples, maximum 12 pixel blur radius), not a path-traced lens simulation. The feed remains 480 x 270 at up to 12 frames per second. Shutter and ISO affect exposure; motion blur and sensor noise are not simulated. Editor transform helpers are hidden during capture, and render targets and visibility are restored afterward.
+Focus uses the scene depth texture and the thin-lens circle of confusion. Changing focus distance switches the sharp plane; stopping down reduces blur. There is no separate bokeh control: defocus follows only from focal length, f-number and focus distance. This is a bounded real-time approximation (32 aperture samples, maximum 12 pixel blur radius), not a path-traced lens simulation. The feed remains 480 x 270 at up to 12 frames per second. Shutter and ISO affect exposure; motion blur and sensor noise are not simulated. Editor transform helpers are hidden during capture, and render targets and visibility are restored afterward.
 
 Scene storage validates version 1, complete transforms, hardware limits, and unique IDs. Editing is disabled until the initial read completes. New IDs start beyond the highest restored ID. Corrupt or inaccessible storage is never removed or overwritten; the UI explicitly describes a temporary session. Save failures preserve the previous stored value and display a notice.
 
@@ -18,7 +18,7 @@ Flash lights render as a 5600K daylight strobe with a harder, narrower beam. In 
 
 # Verification
 
-- `pnpm test`: 153 tests pass. On Node 25+ Vitest workers run with `--no-experimental-webstorage` (see `vitest.config.ts`) so jsdom's `localStorage` is used.
+- `pnpm test`: 154 tests pass. On Node 25+ Vitest workers run with `--no-experimental-webstorage` (see `vitest.config.ts`) so jsdom's `localStorage` is used.
 - `pnpm typecheck`, `pnpm lint`, and `pnpm build` pass.
 - Start `pnpm dev --port 3000`, then run `pnpm test:studio:browser` (default `STUDIO_URL` is `http://localhost:3000`; Next dev blocks `127.0.0.1` dev resources, which leaves the page unhydrated).
 - `node scripts/e2e-milestone.mjs` (same dev server) verifies the first milestone end to end: studio to library, create, save, reopen, open in studio, reload.

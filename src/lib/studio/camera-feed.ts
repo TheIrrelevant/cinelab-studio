@@ -26,7 +26,6 @@ export type FeedOptics = {
   aperture: number;
   focalLengthMm: number;
   focusDistance: number;
-  bokeh: number;
 };
 
 /** Render in linear HDR, gather a depth-dependent aperture disk, then encode display pixels. */
@@ -46,7 +45,7 @@ export class CameraFeedRenderer {
       resolution: { value: new Vector2(FEED_WIDTH, FEED_HEIGHT) },
       nearPlane: { value: 0.05 }, farPlane: { value: 100 },
       focalLength: { value: 0.05 }, focusDistance: { value: 2 },
-      fNumber: { value: 2.8 }, bokehStrength: { value: 0.5 },
+      fNumber: { value: 2.8 },
       toneMappingExposure: { value: 1 },
     },
     vertexShader: `varying vec2 vUv;
@@ -56,7 +55,7 @@ export class CameraFeedRenderer {
       uniform sampler2D tColor;
       uniform sampler2D tDepth;
       uniform vec2 resolution;
-      uniform float nearPlane, farPlane, focalLength, focusDistance, fNumber, bokehStrength;
+      uniform float nearPlane, farPlane, focalLength, focusDistance, fNumber;
       varying vec2 vUv;
       float distanceAt(vec2 uv) {
         float z = texture2D(tDepth, uv).r;
@@ -64,9 +63,10 @@ export class CameraFeedRenderer {
       }
       float radiusAt(float distance) {
         // Thin-lens circle of confusion in sensor metres, converted to pixel radius.
+        // Defocus follows only from focal length, f-number and focus distance.
         float diameter = focalLength * focalLength * abs(distance - focusDistance)
           / (fNumber * distance * max(focusDistance - focalLength, 0.001));
-        return min(12.0, diameter / 0.036 * resolution.x * 0.5 * bokehStrength);
+        return min(12.0, diameter / 0.036 * resolution.x * 0.5);
       }
       void main() {
         float centerDepth = distanceAt(vUv);
@@ -105,7 +105,6 @@ export class CameraFeedRenderer {
     uniforms.focalLength.value = optics.focalLengthMm / 1000;
     uniforms.focusDistance.value = optics.focusDistance;
     uniforms.fNumber.value = optics.aperture;
-    uniforms.bokehStrength.value = optics.bokeh / 100;
     uniforms.toneMappingExposure.value = optics.exposure;
     const previousTarget = gl.getRenderTarget();
     const previousFace = gl.getActiveCubeFace();

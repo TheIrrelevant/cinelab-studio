@@ -20,7 +20,7 @@ async function request(id: string, createdAt: string, backdrop: "gray" | "black"
   const scene = studioSceneSchema.parse({
     version: 1,
     lights: [{ id: "light-0", position: [0, 0, 1], homePosition: [0, 0, 1], rotation: [0, 0, 0], headRotation: [0, 0, 0], height: 2.4, modifier: "none", softboxWidth: 90, softboxHeight: 60, intensity: 95, spread: 0.62, color: "#ffffff" }],
-    cameras: [{ id: "camera-0", position: [0, 0, 2], homePosition: [0, 0, 2], rotation: [0, Math.PI, 0], headRotation: [0, 0, 0], height: 1.55, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12, focusDistance: 2, zoomMm: 50, bokeh: 50, filter: "neutral", previewVisible: true }],
+    cameras: [{ id: "camera-0", position: [0, 0, 2], homePosition: [0, 0, 2], rotation: [0, Math.PI, 0], headRotation: [0, 0, 0], height: 1.55, body: "proDslr", lens: "standardZoom", iso: 400, aperture: 2.8, shutterIndex: 12, focusDistance: 2, zoomMm: 50, filter: "neutral", previewVisible: true }],
     model: { characterId: character.id, position: [0, 0, -1], rotation: [0, 0, 0] },
     backdrop: { color: backdrop },
   });

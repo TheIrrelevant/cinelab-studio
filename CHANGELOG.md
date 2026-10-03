@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: Phase 6 render contract (SceneJSON, request/result, status, errors, history)
+last-change: removed bokeh control; fixed late reference image reads
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - Physical defocus only; late image read fix
+
+### Removed
+- Camera "Bokeh" slider and its stored value. Background blur is a result of focal length, f-number and focus distance (thin-lens circle of confusion), not a separate setting; the shader now always applies the physical amount (the old 50 % default showed half of it). Older saves with a `bokeh` field still load. The render contract no longer has `camera.bokeh`.
+
+### Fixed
+- A reference image whose file read finished after Cancel or Save was still stored and left orphaned; late reads are now discarded.
+- Two editor tests were flaky because they asserted before the async file read finished and leaked a late write into the next test; they now wait for the thumbnail.
+
+### Changed
+- Browser check replaces "bokeh zero disables defocus" with "a 14 mm lens at f/22 keeps both depths sharp" (beyond hyperfocal distance).
 
 ## 2026-10-03 - Phase 6: render contract
 

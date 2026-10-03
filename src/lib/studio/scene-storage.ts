@@ -39,7 +39,6 @@ export const studioCameraSchema = z.object({
   shutterIndex: z.number().int().min(0).max(18),
   focusDistance: z.number().positive().max(20),
   zoomMm: z.number().min(14).max(200),
-  bokeh: z.number().min(0).max(100),
   filter: z.enum(["neutral", "warm", "cool", "mono", "cinematic"]),
   previewVisible: z.boolean(),
   framing: z.enum(["portrait", "halfBody", "fullBody"]).nullable().default(null),
