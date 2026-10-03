@@ -44,21 +44,30 @@ export const studioCameraSchema = z.object({
     && camera.aperture >= lens.maxAperture && camera.focusDistance >= lens.minFocus;
 }, { message: "Camera settings are outside the selected lens limits" });
 
+export const studioModelSchema = z.object({
+  characterId: z.string().min(1),
+  position: vector,
+  rotation: vector,
+});
+
 export const studioSceneSchema = z.object({
   version: z.literal(1),
   lights: z.array(studioLightSchema),
   cameras: z.array(studioCameraSchema),
+  // Optional for saves made before characters could be placed in the studio.
+  model: studioModelSchema.nullable().default(null),
 }).refine((scene) => {
   const ids = [...scene.lights, ...scene.cameras].map((asset) => asset.id);
   return new Set(ids).size === ids.length;
 }, { message: "Scene asset IDs must be unique" });
 
 export type StudioLight = z.infer<typeof studioLightSchema>;
+export type StudioModel = z.infer<typeof studioModelSchema>;
 export type StudioSceneData = z.infer<typeof studioSceneSchema>;
 
 export function readScene(storage: Pick<Storage, "getItem">): StudioSceneData {
   const raw = storage.getItem(STUDIO_SCENE_STORAGE_KEY);
-  return raw === null ? { version: 1, lights: [], cameras: [] } : studioSceneSchema.parse(JSON.parse(raw));
+  return raw === null ? { version: 1, lights: [], cameras: [], model: null } : studioSceneSchema.parse(JSON.parse(raw));
 }
 
 export function writeScene(storage: Pick<Storage, "setItem">, scene: StudioSceneData) {

@@ -2,13 +2,14 @@
  * @file Studio.tsx
  * @description Interactive Three.js photo studio with a cyclorama, asset toolbar, and movable tripod lights.
  * @scope cinelab-studio
- * @depends @react-three/fiber, @react-three/drei, three
+ * @depends @react-three/fiber, @react-three/drei, three, StudioModel, character-store
  */
 
 "use client";
 
 import { Html, OrbitControls, TransformControls } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import Link from "next/link";
 import {
   useEffect,
   useMemo,
@@ -37,7 +38,17 @@ import {
   type StudioCameraAsset,
 } from "./StudioCamera";
 
-import { readScene, writeScene, nextAssetCounter, type StudioLight } from "@/lib/studio/scene-storage";
+import { ModelPickerPanel, StudioCharacter } from "./StudioModel";
+import { StoreHydration } from "@/components/StoreHydration";
+import type { Character } from "@/lib/character/schema";
+import { useCharacterStore } from "@/store/character-store";
+import {
+  readScene,
+  writeScene,
+  nextAssetCounter,
+  type StudioLight,
+  type StudioModel,
+} from "@/lib/studio/scene-storage";
 import { CAPTURE_INTENSITY_KEY, FLASH_COLOR, lightRenderParams } from "@/lib/studio/light-rendering";
 
 type ToolId = "light" | "camera" | "model" | "pose" | "object" | "move" | "rotate" | "delete";
@@ -51,6 +62,9 @@ const RGB_CHANNELS = ["R", "G", "B"] as const;
 const DEFAULT_LIGHT_HEIGHT = 2.4;
 const MIN_LIGHT_HEIGHT = 1.3;
 const MAX_LIGHT_HEIGHT = 10;
+const DEFAULT_MODEL_POSITION: [number, number, number] = [0, 0, -1];
+/** Query parameter used by the character library to open a character in the studio. */
+export const STUDIO_CHARACTER_PARAM = "character";
 
 function normalizeHex(value: string) {
   const candidate = value.startsWith("#") ? value : `#${value}`;
@@ -580,7 +594,19 @@ function StudioScene({
   onOpenLightSettings,
   onOpenCameraSettings,
   transformMode,
+  model,
+  modelCharacter,
+  modelSelected,
+  onSelectModel,
+  onMoveModel,
+  onRotateModel,
 }: {
+  model: StudioModel | null;
+  modelCharacter: Character | undefined;
+  modelSelected: boolean;
+  onSelectModel: () => void;
+  onMoveModel: (position: [number, number, number]) => void;
+  onRotateModel: (rotation: [number, number, number]) => void;
   lights: StudioLight[];
   cameras: StudioCameraAsset[];
   previewCamera: StudioCameraAsset | undefined;
@@ -638,6 +664,18 @@ function StudioScene({
           onRotateEnd={(rotation) => onRotateCamera(camera.id, rotation)}
         />
       ))}
+      {model && modelCharacter ? (
+        <StudioCharacter
+          character={modelCharacter}
+          model={model}
+          selected={modelSelected}
+          transformMode={transformMode}
+          onSelect={onSelectModel}
+          onTransforming={setTransforming}
+          onMoveEnd={onMoveModel}
+          onRotateEnd={onRotateModel}
+        />
+      ) : null}
       {previewCamera ? <CameraFeedCapture camera={previewCamera} canvas={previewCanvas} /> : null}
       <StudioNavigation enabled={!transforming} />
     </>
@@ -984,6 +1022,11 @@ export function Studio() {
   const [transformMode, setTransformMode] = useState<TransformMode>("translate");
   const [storageStatus, setStorageStatus] = useState<"loading" | "ready" | "blocked">("loading");
   const [storageNotice, setStorageNotice] = useState("");
+  const [model, setModel] = useState<StudioModel | null>(null);
+  const [modelSelected, setModelSelected] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const characters = useCharacterStore((state) => state.characters);
+  const modelCharacter = model ? characters.find((character) => character.id === model.characterId) : undefined;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -993,6 +1036,25 @@ export function Studio() {
         cameraIdCounter.current = nextAssetCounter(scene.cameras);
         setLights(scene.lights);
         setCameras(scene.cameras);
+        // Character store is hydrated by <StoreHydration/> before this deferred read.
+        const known = new Set(useCharacterStore.getState().characters.map((character) => character.id));
+        const requested = new URLSearchParams(window.location.search).get(STUDIO_CHARACTER_PARAM);
+        const restored = scene.model && known.has(scene.model.characterId) ? scene.model : null;
+        if (requested && known.has(requested)) {
+          setModel({
+            characterId: requested,
+            position: restored?.position ?? DEFAULT_MODEL_POSITION,
+            rotation: restored?.rotation ?? [0, 0, 0],
+          });
+          setModelSelected(true);
+        } else {
+          setModel(restored);
+        }
+        if (requested) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete(STUDIO_CHARACTER_PARAM);
+          window.history.replaceState(null, "", url);
+        }
         setStorageStatus("ready");
       } catch {
         setStorageStatus("blocked");
@@ -1005,7 +1067,7 @@ export function Studio() {
   useEffect(() => {
     if (storageStatus !== "ready") return;
     try {
-      writeScene(window.localStorage, { version: 1, lights, cameras });
+      writeScene(window.localStorage, { version: 1, lights, cameras, model });
     } catch {
       // Defer the status update to keep the effect free of synchronous state changes.
       const timer = window.setTimeout(() => {
@@ -1014,7 +1076,7 @@ export function Studio() {
       }, 0);
       return () => window.clearTimeout(timer);
     }
-  }, [cameras, lights, storageStatus]);
+  }, [cameras, lights, model, storageStatus]);
 
   const addLight = () => {
     if (storageStatus === "loading") return;
@@ -1047,6 +1109,8 @@ export function Studio() {
     setSelectedCameraId(null);
     setSettingsLightId(null);
     setSettingsCameraId(null);
+    setModelSelected(false);
+    setPickerOpen(false);
     setTransformMode("translate");
   };
 
@@ -1080,6 +1144,8 @@ export function Studio() {
     setSelectedId(null);
     setSettingsLightId(null);
     setSettingsCameraId(null);
+    setModelSelected(false);
+    setPickerOpen(false);
     setTransformMode("translate");
   };
 
@@ -1122,6 +1188,7 @@ export function Studio() {
     setSelectedId(id);
     setSelectedCameraId(null);
     setSettingsCameraId(null);
+    setModelSelected(false);
     if (id === null || id !== settingsLightId) setSettingsLightId(null);
   };
 
@@ -1164,7 +1231,41 @@ export function Studio() {
     setSelectedCameraId(id);
     setSelectedId(null);
     setSettingsLightId(null);
+    setModelSelected(false);
     if (id !== settingsCameraId) setSettingsCameraId(null);
+  };
+
+  const selectModel = () => {
+    if (!modelSelected) setTransformMode("translate");
+    setModelSelected(true);
+    setSelectedId(null);
+    setSelectedCameraId(null);
+    setSettingsLightId(null);
+    setSettingsCameraId(null);
+  };
+
+  const openModelPicker = () => {
+    if (storageStatus === "loading") return;
+    setPickerOpen(true);
+    setSettingsLightId(null);
+    setSettingsCameraId(null);
+  };
+
+  const pickModel = (characterId: string) => {
+    setModel((current) => ({
+      characterId,
+      position: current?.position ?? DEFAULT_MODEL_POSITION,
+      rotation: current?.rotation ?? [0, 0, 0],
+    }));
+    selectModel();
+    setTransformMode("translate");
+    setPickerOpen(false);
+  };
+
+  const removeModel = () => {
+    setModel(null);
+    setModelSelected(false);
+    setPickerOpen(false);
   };
 
   const deleteSelectedAsset = () => {
@@ -1175,6 +1276,8 @@ export function Studio() {
     if (selectedCameraId !== null) {
       setCameras((current) => current.filter((camera) => camera.id !== selectedCameraId));
     }
+    if (modelSelected) setModel(null);
+    setModelSelected(false);
     setSelectedId(null);
     setSelectedCameraId(null);
     setSettingsLightId(null);
@@ -1193,13 +1296,17 @@ export function Studio() {
     const enabled = storageStatus !== "loading" && (
       tool.id === "light" ||
       tool.id === "camera" ||
-      ((isTransform || tool.id === "delete") && (selectedId !== null || selectedCameraId !== null)));
+      tool.id === "model" ||
+      ((isTransform || tool.id === "delete") &&
+        (selectedId !== null || selectedCameraId !== null || modelSelected)));
     const active =
       (tool.id === "move" && transformMode === "translate") ||
-      (tool.id === "rotate" && transformMode === "rotate");
+      (tool.id === "rotate" && transformMode === "rotate") ||
+      (tool.id === "model" && pickerOpen);
     const handleClick = () => {
       if (tool.id === "light") addLight();
       if (tool.id === "camera") addCamera();
+      if (tool.id === "model") openModelPicker();
       if (tool.id === "move") setTransformMode("translate");
       if (tool.id === "rotate") setTransformMode("rotate");
       if (tool.id === "delete") deleteSelectedAsset();
@@ -1210,7 +1317,7 @@ export function Studio() {
         key={tool.id}
         type="button"
         disabled={!enabled}
-        aria-pressed={isTransform ? active : undefined}
+        aria-pressed={isTransform || tool.id === "model" ? active : undefined}
         onClick={enabled ? handleClick : undefined}
         title={enabled ? tool.label : `${tool.label} unavailable`}
         className={`group flex h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 transition sm:min-w-14 sm:flex-none sm:px-3 disabled:cursor-not-allowed disabled:opacity-35 ${
@@ -1229,6 +1336,7 @@ export function Studio() {
 
   return (
     <main className="relative h-dvh w-full overflow-hidden bg-[#292b2d] text-white">
+      <StoreHydration />
       {storageNotice ? <p role="alert" className="absolute inset-x-4 bottom-28 z-20 mx-auto max-w-xl rounded-xl border border-amber-300/30 bg-neutral-950/95 p-3 text-sm text-amber-100">{storageNotice}</p> : null}
       <Canvas
         shadows
@@ -1249,9 +1357,21 @@ export function Studio() {
           onRotateLight={rotateLight}
           onMoveCamera={moveCamera}
           onRotateCamera={rotateCamera}
-          onOpenLightSettings={setSettingsLightId}
-          onOpenCameraSettings={setSettingsCameraId}
+          onOpenLightSettings={(id) => {
+            setPickerOpen(false);
+            setSettingsLightId(id);
+          }}
+          onOpenCameraSettings={(id) => {
+            setPickerOpen(false);
+            setSettingsCameraId(id);
+          }}
           transformMode={transformMode}
+          model={model}
+          modelCharacter={modelCharacter}
+          modelSelected={modelSelected}
+          onSelectModel={selectModel}
+          onMoveModel={(position) => setModel((current) => (current ? { ...current, position } : current))}
+          onRotateModel={(rotation) => setModel((current) => (current ? { ...current, rotation } : current))}
         />
       </Canvas>
 
@@ -1273,6 +1393,16 @@ export function Studio() {
         />
       ) : null}
 
+      {pickerOpen ? (
+        <ModelPickerPanel
+          characters={characters}
+          activeCharacterId={modelCharacter?.id ?? null}
+          onPick={pickModel}
+          onRemove={removeModel}
+          onClose={() => setPickerOpen(false)}
+        />
+      ) : null}
+
       {settingsCamera ? (
         <CameraSettingsPanel
           camera={settingsCamera}
@@ -1288,10 +1418,17 @@ export function Studio() {
             Cinelab
           </p>
           <h1 className="mt-1 text-lg font-medium tracking-tight">Studio 01</h1>
+          <Link
+            href="/characters"
+            className="pointer-events-auto mt-2 inline-flex rounded-full border border-white/10 bg-black/25 px-3 py-1 text-xs text-white/60 backdrop-blur-xl hover:text-white"
+          >
+            Characters
+          </Link>
         </div>
         <div aria-label="Scene asset count" className="rounded-full border border-white/10 bg-black/25 px-3 py-1.5 text-xs text-white/55 backdrop-blur-xl">
           {lights.length} {lights.length === 1 ? "light" : "lights"} · {cameras.length}{" "}
           {cameras.length === 1 ? "camera" : "cameras"}
+          {modelCharacter ? ` · ${modelCharacter.name}` : null}
         </div>
       </div>
 

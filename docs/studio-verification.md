@@ -18,9 +18,10 @@ Flash lights render as a 5600K daylight strobe with a harder, narrower beam. In 
 
 # Verification
 
-- `pnpm test`: 84 tests pass. On Node 25+ Vitest workers run with `--no-experimental-webstorage` (see `vitest.config.ts`) so jsdom's `localStorage` is used.
+- `pnpm test`: 109 tests pass. On Node 25+ Vitest workers run with `--no-experimental-webstorage` (see `vitest.config.ts`) so jsdom's `localStorage` is used.
 - `pnpm typecheck`, `pnpm lint`, and `pnpm build` pass.
 - Start `pnpm dev --port 3000`, then run `pnpm test:studio:browser` (default `STUDIO_URL` is `http://localhost:3000`; Next dev blocks `127.0.0.1` dev resources, which leaves the page unhydrated).
+- `node scripts/e2e-milestone.mjs` (same dev server) verifies the first milestone end to end: studio to library, create, save, reopen, open in studio, reload.
 - The browser script uses installed Chrome by default. Set `PLAYWRIGHT_CHANNEL` to another installed Playwright channel or `STUDIO_URL` to another local app URL. It starts and closes a Vite GPU fixture server on port 3101 and uses isolated browser storage.
 - Evidence is written under `screenshots/studio-verification/` (ignored by Git), including focus comparisons, 24/70 mm framing, a mobile capture, and `results.json` on success.
 - The GPU fixture compares independent checkerboards at 2 and 5 metres. Sharpness moves from one board to the other as focus changes; renderer target and editor-helper visibility are also checked.

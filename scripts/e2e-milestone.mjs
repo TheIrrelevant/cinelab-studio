@@ -1,16 +1,17 @@
 /**
  * @file e2e-milestone.mjs
- * @description End-to-end proof of the Phase 1 first milestone: create a named
- *   character, save it, reopen it from the library, and confirm it loads back
- *   into the editor prefilled. Captures screenshots as real artifacts. Run with
- *   the dev server already on http://localhost:3000.
+ * @description End-to-end proof of the first milestone: from the studio, create a
+ *   named character, save it, reopen it from the library (editor prefilled), then
+ *   open it in the studio and confirm it is loaded and persisted with the scene.
+ *   Captures screenshots as real artifacts. Run with the dev server already on
+ *   STUDIO_URL (default http://localhost:3000).
  * @scope cinelab-studio
  */
 
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.STUDIO_URL ?? "http://localhost:3000";
 const SHOTS_DIR = "screenshots";
 mkdirSync(SHOTS_DIR, { recursive: true });
 
@@ -20,16 +21,19 @@ function step(name, ok, detail = "") {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);
 }
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL ?? "chrome" });
 const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 const page = await context.newPage();
 
 try {
-  // 1. Home loads.
+  // 1. Studio (home) loads and links to the character library.
   await page.goto(BASE, { waitUntil: "networkidle" });
-  await page.waitForSelector("text=Cinelab Studio");
-  step("home renders", true);
+  await page.waitForSelector("h1:has-text('Studio 01')");
+  step("studio renders", true);
   await page.screenshot({ path: `${SHOTS_DIR}/01-home.png` });
+  await page.click("a:has-text('Characters')");
+  await page.waitForSelector("text=Character library");
+  step("studio links to character library", true);
 
   // 2. Navigate to new character editor.
   await page.click("a:has-text('New character')");
@@ -85,6 +89,25 @@ try {
   await page.waitForSelector("text=Aria Test II");
   step("edit round-trips and updates library", true);
   await page.screenshot({ path: `${SHOTS_DIR}/05-edited-library.png` });
+
+  // 10. Open the saved character in the studio.
+  await page.click(`a[aria-label="Open Aria Test II in studio"]`);
+  await page.waitForFunction(() =>
+    document.querySelector('[aria-label="Scene asset count"]')?.textContent?.includes("Aria Test II"),
+  );
+  step("character loads into the studio", true);
+  step("character query parameter is cleared", !new URL(page.url()).searchParams.has("character"), page.url());
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: `${SHOTS_DIR}/06-studio-character.png` });
+
+  // 11. The scene remembers the character across reloads.
+  const scene = await page.evaluate(() => JSON.parse(window.localStorage.getItem("cinelab-studio-scene-v1") || "{}"));
+  step("scene stores the active character", scene.model?.characterId === charId, String(scene.model?.characterId));
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() =>
+    document.querySelector('[aria-label="Scene asset count"]')?.textContent?.includes("Aria Test II"),
+  );
+  step("studio character survives reload", true);
 } catch (err) {
   step("unhandled error", false, err.message);
   await page.screenshot({ path: `${SHOTS_DIR}/error.png` }).catch(() => {});

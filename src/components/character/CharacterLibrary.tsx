@@ -5,7 +5,7 @@
  *   character and continue editing. Pure/presentational over the store — reads
  *   characters from useCharacterStore, deletes via store.remove.
  * @scope cinelab-studio
- * @depends character-store.ts, presets.ts
+ * @depends character-store.ts, presets.ts, Studio.tsx (character query parameter)
  */
 
 "use client";
@@ -87,7 +87,15 @@ export function CharacterLibrary() {
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-2">
+              <Link
+                href={`/?character=${encodeURIComponent(c.id)}`}
+                aria-label={`Open ${c.name} in studio`}
+                className="mt-4 inline-flex h-9 items-center justify-center rounded-full border border-amber-300/40 px-4 text-sm font-medium text-amber-200 hover:bg-amber-300/10"
+              >
+                Open in studio
+              </Link>
+
+              <div className="mt-2 flex gap-2">
                 <Link
                   href={`/characters/${c.id}/edit`}
                   aria-label={`Edit ${c.name}`}

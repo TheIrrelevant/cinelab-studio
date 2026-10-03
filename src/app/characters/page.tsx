@@ -31,7 +31,7 @@ export default function CharactersPage() {
           href="/"
           className="text-sm text-neutral-400 hover:text-neutral-200"
         >
-          ← Back to home
+          ← Back to studio
         </Link>
       </div>
     </>

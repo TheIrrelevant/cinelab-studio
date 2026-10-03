@@ -17,6 +17,18 @@ const camera = {
 const saved = { version: 1, lights: [light], cameras: [camera] };
 
 describe("scene storage", () => {
+  it("restores saves made before characters could be placed with no model", () => {
+    expect(readScene({ getItem: () => JSON.stringify(saved) }).model).toBeNull();
+  });
+
+  it("round trips a placed character model and rejects malformed ones", () => {
+    const model = { characterId: "char-1", position: [1, 0, -1], rotation: [0, 0.5, 0] };
+    const scene = readScene({ getItem: () => JSON.stringify({ ...saved, model }) });
+    expect(scene.model).toEqual(model);
+    expect(studioSceneSchema.safeParse({ ...saved, model: { ...model, characterId: "" } }).success).toBe(false);
+    expect(studioSceneSchema.safeParse({ ...saved, model: { characterId: "char-1" } }).success).toBe(false);
+  });
+
   it("restores older lights as bare lights without changing their color or modifier", () => {
     const scene = readScene({ getItem: () => JSON.stringify({ ...saved, lights: [{ ...light, modifier: "softbox", color: "#ef5350" }] }) });
     expect(scene.lights[0]).toMatchObject({ lightType: "bare", modifier: "softbox", color: "#ef5350" });

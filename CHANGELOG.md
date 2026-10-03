@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-03T00:00:00Z
 last-model: claude-opus-5-5
-last-change: character data integrity (reference image lifecycle, storage write errors)
+last-change: first milestone closed (character in studio, navigation, e2e)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-03 - First milestone: characters in the studio
+
+### Added
+- Model tool opens a character picker; the picked character appears in the studio as a placeholder mannequin built from its body preset, gender presentation, skin tone, hair style and hair colour (`StudioModel.tsx`, `src/lib/studio/mannequin.ts`).
+- The mannequin can be selected, moved on the floor (X/Z only), turned around its vertical axis, swapped for another character (placement kept) and deleted.
+- Scene JSON stores the active character as `model: { characterId, position, rotation }`; older saves load with `model: null`, and models whose character was deleted are dropped on load.
+- Studio header links to the character library; library cards have "Open in studio" (`/?character=<id>`, parameter cleared after load).
+
+### Changed
+- Character library back link now reads "Back to studio".
+- `scripts/e2e-milestone.mjs` starts from the studio and verifies the full milestone (create, save, reopen, open in studio, reload) - 16/16 steps.
 
 ## 2026-10-03 - Character data integrity
 

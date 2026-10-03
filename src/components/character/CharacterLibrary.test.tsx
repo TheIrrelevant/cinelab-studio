@@ -105,3 +105,14 @@ describe("CharacterLibrary delete failures", () => {
     expect(characterRepository.findAll()).toHaveLength(1);
   });
 });
+
+describe("CharacterLibrary studio link", () => {
+  it("links each character to the studio", () => {
+    const aria = useCharacterStore.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
+    render(<CharacterLibrary />);
+    expect(screen.getByRole("link", { name: "Open Aria in studio" })).toHaveAttribute(
+      "href",
+      `/?character=${encodeURIComponent(aria.id)}`,
+    );
+  });
+});
