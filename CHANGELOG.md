@@ -3,15 +3,22 @@ type: changelog
 category: release-notes
 scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
-last-updated: 2026-10-03T00:00:00Z
+last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: 200-line split, selection/panel model, structure checks, AGENTS.md
+last-change: vendored MakeHuman CC0 assets into @cinelab/human
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - MakeHuman CC0 assets
+
+### Added
+- `packages/human/assets/makehuman/`: one-time snapshot of MakeHuman CC0 data from mpfb2 commit `d0a32e5` - hm08 base mesh, 288 adult macro targets (ethnicity, gender, age, muscle, weight, height, proportions; no baby targets), `macro.json`, default rig (163 bones) and weights, CC0 license and `SOURCE.md`. Data only; no mpfb2 code.
+- `tools/vendor-makehuman.mjs`: reproduces the snapshot from the pinned commit.
+- `@cinelab/human` `src/makehuman/target-file.ts`: `.target` parser with tests, plus asset integrity tests (license, vertex count, adult-only set, index bounds, rig/weights consistency).
 
 ## 2026-10-03 - Agent-friendly structure
 

@@ -1,7 +1,7 @@
 ---
 type: agent-guide
 description: "@cinelab/human - 3D human figure, its proportions and pose presets."
-last-updated: 2026-10-03
+last-updated: 2026-10-04
 depends_on: [../core/AGENTS.md]
 ---
 
@@ -23,5 +23,13 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/components/Mannequin.tsx` | Limbs, hair and the jointed figure |
 | `src/poses.ts` | Pose presets |
 | `src/three-jsx.d.ts` | r3f JSX element types |
+| `src/makehuman/target-file.ts` | Parses MakeHuman `.target` text into sparse offsets |
+| `src/makehuman/assets.test.ts` | Integrity checks for the vendored assets |
+| `assets/makehuman/` | MakeHuman CC0 data (see `SOURCE.md`); not bundled, input for the GLB converter |
+
+**MakeHuman assets:** vendored once by `node tools/vendor-makehuman.mjs` (pinned mpfb2 commit).
+Data only - mpfb2 code is GPL and must never be copied. Adult targets only (child/young/old,
+no baby); the body is 18+, child targets exist only to interpolate ages 18-25. Six
+`universal-*-averagemuscle-averageweight` targets are empty upstream (neutral body).
 
 **Tests:** `pnpm --filter @cinelab/human test`
