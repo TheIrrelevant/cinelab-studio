@@ -5,13 +5,20 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: body age range 18-35, child targets removed
+last-change: vendored MakeHuman system assets (skins, eyes, hair)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - MakeHuman system assets
+
+### Added
+- `packages/human/assets/makehuman-system/` (17 MB): subset of the CC0 MakeHuman system asset pack - six young skins (African/Asian/Caucasian x female/male, 1024 JPEG), low-poly eyes with nine eye colours, 12 eyebrows, 4 eyelashes, 10 hairstyles (mesh, .mhclo fitting, greyscale diffuse for tinting, normal maps), CC0 license and `SOURCE.md` with the zip checksum.
+- `tools/vendor-makehuman-system.mjs` (downloads and verifies the pack, resizes with sharp); `sharp` added as a root dev dependency.
+- Integrity test: every proxy has one .mhclo fitting row per mesh vertex.
 
 ## 2026-10-04 - Body age 18-35
 

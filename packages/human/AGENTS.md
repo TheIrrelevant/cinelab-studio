@@ -44,12 +44,19 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/convert/binary-builder.ts` | 4-byte aligned binary sections |
 | `src/makehuman/convert/build.ts` | Pipeline: GLB + morph pack + manifest |
 | `scripts/build-assets.ts` | CLI for the pipeline (`pnpm human:build`) |
+| `assets/makehuman-system/` | MakeHuman system asset pack subset (CC0): skins, eyes, eyebrows, eyelashes, hair (see `SOURCE.md`) |
+| `src/makehuman/system-assets.test.ts` | Integrity checks for the system assets |
 | `assets/makehuman/` | MakeHuman CC0 data (see `SOURCE.md`); not bundled, input for the GLB converter |
 
 **MakeHuman assets:** vendored once by `node tools/vendor-makehuman.mjs` (pinned mpfb2 commit).
 Data only - mpfb2 code is GPL and must never be copied. Adult targets only (young/old, 192
 files; no baby or child targets). Four `universal-*-averagemuscle-averageweight` targets are
 empty upstream (neutral body).
+
+**System assets:** vendored once by `node tools/vendor-makehuman-system.mjs` (checksum-pinned
+CC0 asset pack, resized with sharp). Young skins only (18-35 product range). Hair and eyebrow
+textures are greyscale + alpha so the runtime tints them. Proxies keep their `.mhclo` fitting
+files (rows are `v1 v2 v3 w1 w2 w3 dx dy dz` or a single vertex index).
 
 **Converter:** `pnpm human:build` writes `makehuman-base.glb` (skinned base body, metres,
 grounded, 163 bones, identity bone rotations), `makehuman-morphs.bin` and `.json` to
