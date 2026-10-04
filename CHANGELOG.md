@@ -5,13 +5,18 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: skin, eyes, hair, eyebrows and eyelashes in the MakeHuman body
+last-change: human creator plan
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - Human creator plan
+
+### Added
+- `docs/human-creator-plan.md`: phased plan (skeleton and gizmo foundation, detailed body and face creation, expressions and hands, studio integration) with acceptance criteria, source licenses (MakeHuman CC0, Anny Apache 2.0 as reference, AGPL sources excluded) and open decisions.
 
 ## 2026-10-04 - Skin, eyes and hair
 

@@ -1,0 +1,160 @@
+---
+type: plan
+description: Step-by-step plan for the Cinelab human creator - skeleton and gizmo foundation, detailed body and face creation, expressions and hands, studio integration.
+last-updated: 2026-10-04
+last-model: claude-opus-5-5
+depends_on: [../packages/human/AGENTS.md, ../AGENTS.md, ./render-contract.md]
+---
+
+# Human creator plan
+
+## 1. Goal
+
+Build a human creation screen in the spirit of *HAELE 3D - Pose Studio Max* (Steam app 4048520): a very
+detailed human on a high-quality skeleton driven by gizmos, where every detail of the body and face can
+be changed. We build something similar, not a copy.
+
+**Now:** skeleton + gizmo foundation, detailed body and face creation, expressions and hands.
+**Later (out of scope for this plan):** Preset / Scene / Environment tabs, HDRI backgrounds, props,
+multiple characters, pose libraries, anatomy (muscle) view.
+**Not wanted now:** wooden mannequins.
+
+## 2. Current state (branch `feat/makehuman-assets`)
+
+- MakeHuman CC0 base mesh hm08 (13,380 body vertices), 163-bone default rig with fingers, toes, jaw,
+  eyes, tongue and facial muscle bones; 192 adult macro targets; converter to GLB + morph pack.
+- Runtime: macro weighting (gender, age 18-35, muscle, weight, height, proportions, ethnicity), CPU
+  morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
+  4 eyelashes as fitted `.mhclo` proxies.
+- Lab page `/lab/human`; unit, browser and e2e checks.
+- Known gaps: bones have identity rotations (no roll, no joint limits); UI is raw 0-100 % sliders.
+
+## 3. Sources and licenses
+
+| Source | Use | License | Rule |
+|---|---|---|---|
+| MakeHuman / MPFB2 data (`src/mpfb/data`) | mesh, targets, rig, weights | CC0 | vendor data only |
+| MakeHuman system asset pack | skins, eyes, hair, eyebrows, eyelashes | CC0 | vendored, checksum-pinned |
+| Face Units 01 asset pack | ARKit-style facial actions (52) | CC0 | vendor in Phase 3 |
+| Visemes 01/02 asset packs | lip-sync shapes | CC0 | optional |
+| [naver/anny](https://github.com/naver/anny) | reference for phenotype blendshapes, anthropometry (height, mass = volume x 980 kg/m3, waist, BMI), facial actions, parameter inversion | Apache 2.0 | adapt with attribution in `NOTICE` |
+| MPFB2 code | - | GPL | never copy |
+| MB-Lab, CharMorph models | - | AGPL (propagates to output) | do not use |
+| Anny `smplx` topology | - | non-commercial | do not use |
+| HAELE 3D | UX reference only | proprietary | no code or assets |
+
+## 4. Working rules
+
+- One step at a time; each step ends with tests, browser screenshots, CHANGELOG, commit and push,
+  and waits for approval before the next step.
+- Every source file at most 200 lines; packages keep one-way dependencies (`core <- human <- character
+  <- studio`). Character UI lives in `@cinelab/character`, the body in `@cinelab/human`.
+- In-app three.js only; no Blender or external pipelines at runtime.
+- Each step lists acceptance criteria (AC); a step is done only when all AC pass.
+
+## 5. Phase 0 - Preparation
+
+**0.1 Branch strategy.** Decide how `refactor/packages` and `feat/makehuman-assets` reach `main`
+(open decision D1). AC: `main` builds and all checks pass after the merge.
+
+**0.2 Anny study and attribution.** Read `phenotype.py`, `anthropometry.py`, `anny_inverter.py`,
+`facial_actions.py`, `rigged_model.py`; write `docs/anny-notes.md` (what we adapt and why); add `NOTICE`.
+AC: notes list every adapted algorithm with file references.
+
+## 6. Phase 1 - Skeleton and gizmo foundation
+
+**1.1 Bone orientation.** Build real bone frames from head, tail and roll (local Y along the bone,
+roll around it), re-derived after every morph. AC: local Y points at the tail within 1 degree for all
+163 bones on five body shapes; rest-pose skinning error below 0.1 mm.
+
+**1.2 Joint limits.** Anatomical rotation limits per joint (elbow and knee hinge, neck, spine, wrist,
+fingers, toes, jaw) as data plus a clamp function. AC: table covers every posable bone; clamped poses
+never exceed limits; tests per joint group.
+
+**1.3 Joint handles.** On-body handles: centre line white, right red, left blue, one colour per
+finger; IK end effectors as triangles; hover highlight; toggle all handles and finger handles.
+AC: every posable bone has a handle that follows morphs and poses; handles stay clickable through the
+mesh.
+
+**1.4 Selection and gizmo.** Click to select, Shift+click to add; rotate gizmo (and move for root and
+IK targets); local/world switch; numeric X/Y/Z bar; undo/redo; reset selected / reset all.
+AC: gizmo rotation respects limits; numeric edits round-trip; undo restores exact pose.
+
+**1.5 IK.** Two-bone IK for arms and legs with pole targets; feet keep floor contact; FK/IK switch per
+limb. AC: dragging a hand target reaches any point inside arm reach without joint-limit violations.
+
+**1.6 Deformation quality.** Fixed QA pose set (arms up, elbow 140, deep squat, fist, head turn, jaw
+open); screenshots; weight smoothing or corrective fixes where needed. AC: QA sheet in
+`docs/deformation-qa.md` with before/after images and no collapsing joints.
+
+## 7. Phase 2 - Detailed human creation
+
+**2.1 Modifier data.** Vendor body and face modifier targets (about 70 body, about 134 face, breast
+cup size and firmness macros); converter builds a modifier catalogue (group, label, decr/incr targets,
+left/right pairs) from `target.json`. AC: catalogue tests; morph pack budget documented.
+
+**2.2 Shape model v2.** Phenotype (gender, age, muscle, weight, height, proportions, cup size,
+firmness, ethnicity) plus local modifiers, following Anny's phenotype logic. AC: same results as the
+current macro model for shared parameters; every modifier resolves to packed targets.
+
+**2.3 Anthropometry and solvers.** Measure height, mass (volume x 980), waist and BMI on the mesh;
+solve typed height (cm) and weight (kg) into parameters; report the feasible range for the current
+gender and body type. AC: solved body within 0.5 cm and 0.5 kg; out-of-range input is clamped and shown.
+
+**2.4 Body types.** Named types (list is open decision D2) mapped to muscle, proportions and fat
+distribution while height and weight stay as typed. AC: switching type keeps cm and kg.
+
+**2.5 Character tab - body.** Gender toggle; ethnicity selection (D3); height and weight inputs; body
+type cards; region sliders for breast size and firmness, buttocks and further regions (D4).
+AC: every control changes the body as labelled; browser check with screenshots.
+
+**2.6 Character tab - head.** Collapsible groups: head shape, forehead, eyebrows, eyes, nose, cheeks,
+mouth, chin, ears, neck; symmetric left/right; per-group reset; face-shape presets.
+AC: all face modifiers reachable; portrait screenshots per group.
+
+**2.7 Appearance polish.** Eye whites, skin detail, hair materials; look for CC0 beard and mustache
+assets. AC: before/after portraits.
+
+**2.8 Mesh quality gate.** Evaluate subdivision or a denser topology for close-ups using the 2.6
+portraits (decision D5). AC: written comparison with images and cost.
+
+**2.9 Character data v2.** Schema for phenotype, modifiers, appearance and pose; migration from the
+current character store; save, load, deep link. AC: old characters migrate; round-trip tests.
+
+## 8. Phase 3 - Face and hands
+
+**3.1 Facial actions.** Vendor Face Units 01 (52 ARKit-style actions); eye look and blink controls
+(override eyes); jaw open. AC: each action moves only its region; combined actions stay stable.
+
+**3.2 Expression presets.** Preset grid with large hover preview; thumbnails rendered in-app.
+AC: at least 20 expressions; applying one is undoable.
+
+**3.3 Hands.** Hand pose presets with hover preview, left/right selection, finger handles, mirror
+hand pose. AC: 15 presets; mirrored pose matches within 1 degree.
+
+**3.4 Visemes (optional).** AC: decided in Phase 3 review.
+
+## 9. Phase 4 - Studio integration
+
+**4.1** Replace the studio mannequin with the MakeHuman body loaded from the character store.
+**4.2** Persist pose and expression in the scene; extend SceneJSON with body, appearance and pose.
+**4.3** Remove mannequin entry points from the UI.
+AC: studio e2e passes with the new body; render contract tests updated.
+
+## 10. Open decisions
+
+| ID | Decision | Needed before |
+|---|---|---|
+| D1 | Merge order of `refactor/packages` and `feat/makehuman-assets` into `main` | 0.1 |
+| D2 | Body type list (e.g. Skinny, Slim, Normal, Athletic, Muscular, Curvy) | 2.4 |
+| D3 | Ethnicity: single choice only, or also Mixed | 2.5 |
+| D4 | Extra body regions: waist/hips, shoulders, stomach, arms/legs | 2.5 |
+| D5 | Close-up mesh quality: keep hm08, subdivide, or denser topology | 2.8 |
+
+## 11. Risks
+
+- **Download size:** morph pack 17.6 MB today; face modifiers and facial actions add more. Mitigate
+  with lazy loading per section and compressed transfer.
+- **Skinning quality** at shoulders, hips and hands with MakeHuman weights; Phase 1.6 measures it.
+- **Mesh resolution** for close-up portraits; Phase 2.8 decides.
+- **License drift:** every new asset needs a source note and license check before vendoring.

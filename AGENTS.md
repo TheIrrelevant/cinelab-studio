@@ -49,4 +49,5 @@ core <- human <- character <- studio <- render-contract <- apps/web
 | `pnpm build` | production build |
 | `pnpm human:build` | MakeHuman assets -> `apps/web/public/human/` (GLB + morph pack) |
 
-Docs: `docs/studio-verification.md`, `docs/render-contract.md`.
+Docs: `docs/human-creator-plan.md` (roadmap for the human creator), `docs/studio-verification.md`,
+`docs/render-contract.md`.
