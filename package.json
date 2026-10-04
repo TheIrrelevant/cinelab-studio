@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm --filter @cinelab/web dev",
-    "build": "pnpm --filter @cinelab/web build",
+    "dev": "pnpm human:build && pnpm --filter @cinelab/web dev",
+    "build": "pnpm human:build && pnpm --filter @cinelab/web build",
     "start": "pnpm --filter @cinelab/web start",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -14,7 +14,8 @@
     "human:build": "node packages/human/scripts/build-assets.ts apps/web/public/human",
     "check": "pnpm check:structure && pnpm lint && pnpm typecheck && pnpm test",
     "test:studio:browser": "pnpm --filter @cinelab/web test:studio:browser",
-    "test:e2e": "pnpm --filter @cinelab/web test:e2e"
+    "test:e2e": "pnpm --filter @cinelab/web test:e2e",
+    "test:human:browser": "pnpm --filter @cinelab/web test:human:browser"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

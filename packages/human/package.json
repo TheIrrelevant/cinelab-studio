@@ -5,7 +5,9 @@
   "description": "3D human model: mannequin spec, jointed figure and pose presets.",
   "type": "module",
   "exports": {
+    "./components/MakeHumanBody": "./src/components/MakeHumanBody.tsx",
     "./components/Mannequin": "./src/components/Mannequin.tsx",
+    "./makehuman/macro": "./src/makehuman/macro.ts",
     "./mannequin-spec": "./src/mannequin-spec.ts",
     "./poses": "./src/poses.ts"
   },

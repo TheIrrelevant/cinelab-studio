@@ -6,12 +6,13 @@
  *   The source set is every OBJ vertex used by the body, the rig or the ground marker.
  * @scope cinelab-studio
  * @depends ./obj-mesh.ts, ./rig-refs.ts, ./skin-weights.ts, ./morph-pack.ts, ./glb-writer.ts,
- *   ./binary-builder.ts, ../normals.ts
+ *   ./binary-builder.ts, ../normals.ts, ../morph-manifest.ts
  */
 
 import { BinaryBuilder } from "./binary-builder.ts";
 import { writeGlb } from "./glb-writer.ts";
-import { packMorphs, type NamedTarget, type PackedTarget } from "./morph-pack.ts";
+import { packMorphs, type NamedTarget } from "./morph-pack.ts";
+import type { MorphManifest } from "../morph-manifest.ts";
 import { buildGroupMesh, groupVertices, parseObj } from "./obj-mesh.ts";
 import { meanPosition, resolveRig, type RigJson } from "./rig-refs.ts";
 import { buildSkin, type WeightsJson } from "./skin-weights.ts";
@@ -22,24 +23,6 @@ export const UNIT_TO_METRES = 0.1;
 const SKIN_TONE: [number, number, number, number] = [0.78, 0.6, 0.5, 1];
 
 export type ConvertInput = { obj: string; rig: RigJson; weights: WeightsJson; targets: NamedTarget[] };
-
-type Section = { offset: number; length: number };
-
-export type MorphManifest = {
-  version: 1;
-  units: "m";
-  sourceCount: number;
-  vertexCount: number;
-  /** Float32 xyz per source vertex (grounded base body). */
-  sourcePositions: Section;
-  /** Uint16 source index per GLB vertex, in GLB vertex order. */
-  vertexSource: Section;
-  /** Source vertices whose mean is the floor contact point. */
-  ground: number[];
-  bones: Array<{ name: string; parent: number; head: number[]; tail: number[] }>;
-  scale: number;
-  targets: PackedTarget[];
-};
 
 export function convertMakeHuman(input: ConvertInput) {
   const obj = parseObj(input.obj);

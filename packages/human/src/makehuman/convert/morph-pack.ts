@@ -4,22 +4,14 @@
  *   target a Uint16 list of source-vertex indices and Int16 xyz deltas sharing one global scale.
  *   Entries for vertices outside the source set (unused helpers) are dropped.
  * @scope cinelab-studio
- * @depends ./binary-builder.ts, ../target-file.ts
+ * @depends ./binary-builder.ts, ../target-file.ts, ../morph-manifest.ts
  */
 
 import type { BinaryBuilder } from "./binary-builder.ts";
 import type { TargetOffsets } from "../target-file.ts";
+import type { PackedTarget } from "../morph-manifest.ts";
 
 export type NamedTarget = { name: string; target: TargetOffsets };
-
-export type PackedTarget = {
-  name: string;
-  count: number;
-  /** Byte offset of `count` Uint16 source indices. */
-  indexOffset: number;
-  /** Byte offset of `count * 3` Int16 deltas; metres = value * scale. */
-  deltaOffset: number;
-};
 
 /**
  * @param compact Source index per OBJ vertex, or -1 when the vertex is not in the source set.

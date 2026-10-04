@@ -14,7 +14,11 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./mannequin-spec` - `MannequinSpec`, `HairShape` (height, girth, shoulders, skin, hair).
   - `./components/Mannequin` - jointed react-three-fiber figure for a spec and pose.
   - `./poses` - `POSE_IDS`, `POSES`, `poseAngles(pose)` (joint Euler angles in degrees).
+  - `./components/MakeHumanBody` - r3f morphable MakeHuman body for `BodyParams` (`baseUrl` = converter output folder).
+  - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS`, `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber.
+- **Age:** 18-90 years. MakeHuman blends ages below 25 with the 11-year child targets
+  (18 years = 50 % child), so 18-year-old bodies are noticeably smaller (male about 154 cm).
 - **Must not know:** characters, studio or rendering.
 
 | File | Purpose |
@@ -25,6 +29,12 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/three-jsx.d.ts` | r3f JSX element types |
 | `src/makehuman/target-file.ts` | Parses MakeHuman `.target` text into sparse offsets |
 | `src/makehuman/assets.test.ts` | Integrity checks for the vendored assets |
+| `src/makehuman/macro.ts` | Body params -> macro target weights (own implementation of macro.json ranges) |
+| `src/makehuman/morph-manifest.ts` | Morph pack manifest types (converter + runtime) |
+| `src/makehuman/morph-data.ts` | Reads the pack; CPU morph + regrounding |
+| `src/makehuman/body-shape.ts` | Applies params to the skinned mesh; refits skeleton, keeps bone rotations |
+| `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |
+| `src/components/MakeHumanBody.tsx` | r3f component |
 | `src/makehuman/normals.ts` | Seam-free smooth normals (converter and runtime) |
 | `src/makehuman/convert/obj-mesh.ts` | OBJ parse, triangulation, UV-seam split |
 | `src/makehuman/convert/rig-refs.ts` | Rig JSON -> parent-first bones with joint vertex lists |

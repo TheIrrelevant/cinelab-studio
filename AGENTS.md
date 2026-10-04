@@ -22,7 +22,7 @@ core <- human <- character <- studio <- render-contract <- apps/web
 | Package | Owns |
 |---|---|
 | `packages/core` | Shared primitives (storage errors) |
-| `packages/human` | 3D human figure: mannequin spec, jointed mannequin, poses |
+| `packages/human` | 3D human figure: MakeHuman body (assets, converter, morphing), mannequin, poses |
 | `packages/character` | Character data, persistence, store, library and editor UI |
 | `packages/studio` | Scene storage, cameras, lights, framing, studio UI |
 | `packages/render-contract` | SceneJSON, render request/result, status, errors, history |
@@ -45,6 +45,7 @@ core <- human <- character <- studio <- render-contract <- apps/web
 | `pnpm test` / `pnpm --filter @cinelab/<pkg> test` | all / one package's tests |
 | `pnpm test:studio:browser` | GPU and studio pixel checks (needs dev server) |
 | `pnpm test:e2e` | first-milestone end-to-end flow (needs dev server) |
+| `pnpm test:human:browser` | MakeHuman lab browser check + screenshots (needs dev server) |
 | `pnpm build` | production build |
 | `pnpm human:build` | MakeHuman assets -> `apps/web/public/human/` (GLB + morph pack) |
 

@@ -1,0 +1,79 @@
+/**
+ * @file check-human.mjs
+ * @description Browser check for the MakeHuman lab (/lab/human): the body loads without errors,
+ *   ethnicity presets and gender change the rendered pixels, the height slider changes the
+ *   measured height, and screenshots of the three ethnic presets (female and male) are saved.
+ * @depends playwright; running Next dev server on STUDIO_URL or http://localhost:3000
+ */
+import assert from "node:assert/strict";
+import { mkdir } from "node:fs/promises";
+import { chromium } from "playwright";
+
+const base = process.env.STUDIO_URL ?? "http://localhost:3000";
+const output = "screenshots/human-lab";
+await mkdir(output, { recursive: true });
+const browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL ?? "chrome" });
+
+/** Sets a React-controlled range input and fires the input event React listens to. */
+async function setSlider(page, key, value) {
+  await page.evaluate(
+    ([testId, next]) => {
+      const input = document.querySelector(`[data-testid="${testId}"]`);
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
+      setter.call(input, String(next));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    },
+    [`slider-${key}`, value],
+  );
+}
+
+const heightCm = async (page) => Number((await page.getByTestId("body-height").textContent()).match(/(\d+) cm/)?.[1]);
+const settle = (page) => page.waitForTimeout(400);
+const viewport = (page) => page.getByTestId("human-viewport").screenshot();
+const differs = (a, b) => {
+  let changed = 0;
+  for (let i = 0; i < Math.min(a.length, b.length); i += 1) if (a[i] !== b[i]) changed += 1;
+  return changed / a.length;
+};
+
+try {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => message.type() === "error" && errors.push(message.text()));
+  await page.goto(`${base}/lab/human`);
+  await page.getByTestId("body-height").filter({ hasText: "cm" }).waitFor({ timeout: 60_000 });
+  await settle(page);
+  const average = await heightCm(page);
+  assert.ok(average >= 155 && average <= 180, `average height ${average} cm`);
+  console.log("PASS body loads", { average });
+
+  for (const gender of [0, 1]) {
+    await setSlider(page, "gender", gender);
+    let previous = null;
+    for (const preset of ["african", "asian", "caucasian"]) {
+      await page.getByTestId(`preset-${preset}`).click();
+      await settle(page);
+      const shot = await viewport(page);
+      const name = `${preset}-${gender ? "male" : "female"}.png`;
+      await page.getByTestId("human-viewport").screenshot({ path: `${output}/${name}` });
+      if (previous) assert.ok(differs(previous, shot) > 0.001, `${name} differs from previous preset`);
+      previous = shot;
+      console.log("PASS screenshot", name, `${await heightCm(page)} cm`);
+    }
+  }
+
+  await setSlider(page, "height", 0);
+  await settle(page);
+  const short = await heightCm(page);
+  await setSlider(page, "height", 1);
+  await settle(page);
+  const tall = await heightCm(page);
+  assert.ok(tall - short > 40, `height slider range ${short}-${tall} cm`);
+  console.log("PASS height slider", { short, tall });
+
+  assert.deepEqual(errors, [], "no page or console errors");
+  console.log("PASS no errors");
+} finally {
+  await browser.close();
+}

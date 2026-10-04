@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: MakeHuman GLB converter and morph pack
+last-change: MakeHuman runtime body shaping and /lab/human
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - MakeHuman body shaping
+
+### Added
+- `@cinelab/human` runtime: `BodyParams` (gender, age 18-90, muscle, weight, height, proportions, African/Asian/Caucasian mix) mapped to macro target weights (`makehuman/macro.ts`); CPU morphing with regrounding (`morph-data.ts`); skeleton refit to the morphed joints with preserved bone rotations (`body-shape.ts`); loader and `MakeHumanBody` r3f component.
+- `/lab/human` test page: large viewport, right slider panel, ethnicity presets, measured height.
+- `pnpm test:human:browser` (`apps/web/scripts/check-human.mjs`): load, preset/gender pixel changes, height slider range, no console errors, six screenshots.
+- Tests: macro weighting (partitions of unity, adult clamp, one-sided modifiers) and shaping of the real body (all weighted targets exist, grounded, height range, skinned rest pose equals morphed mesh, bones follow, rotations preserved).
+
+### Changed
+- `pnpm dev` and `pnpm build` run `pnpm human:build` first.
+- Morph manifest types moved to `makehuman/morph-manifest.ts`, shared by converter and runtime.
 
 ## 2026-10-04 - MakeHuman converter
 
