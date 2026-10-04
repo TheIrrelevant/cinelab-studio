@@ -52,9 +52,9 @@ describe("MakeHuman GLB", () => {
 });
 
 describe("MakeHuman morph pack", () => {
-  it("has consistent sections and all 288 targets", () => {
+  it("has consistent sections and all 192 targets", () => {
     const { manifest, morphBin } = result;
-    expect(manifest.targets).toHaveLength(288);
+    expect(manifest.targets).toHaveLength(192);
     expect(manifest.sourcePositions.length).toBe(manifest.sourceCount * 12);
     expect(manifest.vertexSource.length).toBe(manifest.vertexCount * 2);
     for (const target of manifest.targets) {

@@ -27,7 +27,7 @@ const shape = (params: Partial<BodyParams>) => applyBodyShape(body.mesh, body.da
 describe("applyBodyShape", () => {
   it("finds every weighted target in the pack across the parameter range", () => {
     for (const gender of [0, 1]) {
-      for (const ageYears of [18, 30, 90]) {
+      for (const ageYears of [18, 30, 35]) {
         for (const level of [0, 0.3, 0.7, 1]) {
           const params = { ...DEFAULT_BODY, gender, ageYears, muscle: level, weight: 1 - level, height: level, proportions: level };
           for (const name of macroTargetWeights(params).keys()) expect(body.data.targets.has(name), name).toBe(true);

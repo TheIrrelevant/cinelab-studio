@@ -5,13 +5,19 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: MakeHuman runtime body shaping and /lab/human
+last-change: body age range 18-35, child targets removed
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - Body age 18-35
+
+### Changed
+- Body age range is 18-35 years. Ages 18-25 use the 25-year MakeHuman body (no child blending, which made 18-year-old bodies child-like, e.g. 154 cm male); 25-35 blends up to about 15 % towards the old targets.
+- Child targets removed from the vendored assets and the morph pack (288 -> 192 targets).
 
 ## 2026-10-04 - MakeHuman body shaping
 

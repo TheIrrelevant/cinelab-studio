@@ -1,6 +1,6 @@
 /**
  * @file vendor-makehuman.mjs
- * @description One-time copy of MakeHuman CC0 assets (base mesh, adult macro targets, default rig
+ * @description One-time copy of MakeHuman CC0 assets (base mesh, adult young/old macro targets, default rig
  *   and weights) from the mpfb2 repository into packages/human/assets/makehuman. Only data is
  *   copied; mpfb2 code is GPL and must never be vendored. Updates are intentionally not tracked.
  *   Usage: node tools/vendor-makehuman.mjs [path-to-existing-mpfb2-checkout]
@@ -27,9 +27,9 @@ const FILES = [
   "rigs/standard/rig.default.json",
   "rigs/standard/weights.default.json",
 ];
-/** Macro target folders; baby targets are excluded because the studio body is 18+ only. */
+/** Macro target folders; only young (25 y) and old (90 y) targets: the body covers ages 18-35. */
 const TARGET_DIRS = ["targets/macrodetails", "targets/macrodetails/height", "targets/macrodetails/proportions"];
-const isAdultTarget = (name) => name.endsWith(".target.gz") && !name.includes("-baby");
+const isAdultTarget = (name) => name.endsWith(".target.gz") && !/-(baby|child)[-.]/.test(name);
 
 function checkout() {
   const dir = mkdtempSync(join(tmpdir(), "mpfb2-"));
@@ -60,7 +60,7 @@ function sourceNote(count) {
     `- Source: ${REPO} (\`${DATA}\`), commit \`${COMMIT}\`.`,
     "- License: CC0 1.0 (see `LICENSE.ASSETS.md`). Copyright holders at release: Data Collection AB,",
     "  Joel Palmius, Jonas Hauquier.",
-    "- Copied: base mesh hm08, adult macro targets (child/young/old; no baby), default rig and weights.",
+    "- Copied: base mesh hm08, adult macro targets (young/old; no baby or child), default rig and weights.",
     `- Target files: ${count}. Regenerate with \`node tools/vendor-makehuman.mjs\`.`,
     "- Only data is copied. mpfb2 code is GPL/AGPL and must not be copied into this repository.",
     "- Updates are not tracked on purpose; this is a one-time snapshot.",

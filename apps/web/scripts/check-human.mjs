@@ -2,7 +2,8 @@
  * @file check-human.mjs
  * @description Browser check for the MakeHuman lab (/lab/human): the body loads without errors,
  *   ethnicity presets and gender change the rendered pixels, the height slider changes the
- *   measured height, and screenshots of the three ethnic presets (female and male) are saved.
+ *   measured height, ages 18-25 share the adult body, and screenshots of the three ethnic
+ *   presets (female and male) and three ages are saved.
  * @depends playwright; running Next dev server on STUDIO_URL or http://localhost:3000
  */
 import assert from "node:assert/strict";
@@ -71,6 +72,19 @@ try {
   const tall = await heightCm(page);
   assert.ok(tall - short > 40, `height slider range ${short}-${tall} cm`);
   console.log("PASS height slider", { short, tall });
+
+  await setSlider(page, "height", 0.5);
+  const ageShots = {};
+  for (const age of [18, 25, 35]) {
+    await setSlider(page, "ageYears", age);
+    await settle(page);
+    ageShots[age] = { cm: await heightCm(page), shot: await viewport(page) };
+    await page.getByTestId("human-viewport").screenshot({ path: `${output}/age-${age}.png` });
+  }
+  assert.equal(ageShots[18].cm, ageShots[25].cm, "18 and 25 years share the adult body");
+  assert.ok(differs(ageShots[18].shot, ageShots[25].shot) < 0.001, "18 and 25 years render the same");
+  assert.ok(Math.abs(ageShots[35].cm - ageShots[25].cm) <= 3, `35 years stays adult-sized (${ageShots[35].cm} cm)`);
+  console.log("PASS age range", Object.fromEntries(Object.entries(ageShots).map(([age, { cm }]) => [age, cm])));
 
   assert.deepEqual(errors, [], "no page or console errors");
   console.log("PASS no errors");

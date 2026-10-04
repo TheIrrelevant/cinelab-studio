@@ -3,7 +3,8 @@
  * @description Body parameters and their mapping to MakeHuman macro target weights. Each macro
  *   variable splits into two neighbouring categories with linear weights (per macro.json part
  *   ranges); a target's weight is the product of the weights of the categories in its name.
- *   Adults only: age is clamped to 18-90 years.
+ *   Adults only: age is 18-35 years. MakeHuman has no adult data below 25 (only 11-year child
+ *   targets), so 18-25 uses the 25-year body unchanged; 25-35 blends towards the 90-year targets.
  * @scope cinelab-studio
  * @depends none
  */
@@ -25,7 +26,7 @@ export type BodyParams = {
 };
 
 export const MIN_AGE_YEARS = 18;
-export const MAX_AGE_YEARS = 90;
+export const MAX_AGE_YEARS = 35;
 
 export const DEFAULT_BODY: BodyParams = {
   gender: 0.5,
@@ -42,10 +43,9 @@ export const DEFAULT_BODY: BodyParams = {
 type Weights = Record<string, number>;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** MakeHuman age value: 0.1875 = 11 years, 0.5 = 25 years, 1 = 90 years (adult range only). */
+/** MakeHuman age value (0.5 = 25 years, 1 = 90 years); never below 0.5, so no child shape. */
 export function ageToMacro(years: number): number {
-  const age = Math.min(MAX_AGE_YEARS, Math.max(MIN_AGE_YEARS, years));
-  if (age < 25) return 0.1875 + ((age - 11) / 14) * 0.3125;
+  const age = Math.min(MAX_AGE_YEARS, Math.max(25, years));
   return 0.5 + ((age - 25) / 65) * 0.5;
 }
 
@@ -55,10 +55,7 @@ function blend(value: number, from: number, to: number, low: string, high: strin
   return { [low]: 1 - t, [high]: t };
 }
 
-function ageWeights(years: number): Weights {
-  const age = ageToMacro(years);
-  return age < 0.5 ? blend(age, 0.1875, 0.5, "child", "young") : blend(age, 0.5, 1, "young", "old");
-}
+const ageWeights = (years: number): Weights => blend(ageToMacro(years), 0.5, 1, "young", "old");
 
 const twoSided = (value: number, min: string, average: string, max: string) =>
   value < 0.5 ? blend(value, 0, 0.5, min, average) : blend(value, 0.5, 1, average, max);

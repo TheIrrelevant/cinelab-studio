@@ -15,7 +15,7 @@ import { parseTarget } from "./target-file";
 const ASSETS = resolve(__dirname, "../../assets/makehuman");
 const MACRO = join(ASSETS, "targets/macrodetails");
 const BASE_VERTICES = 19158;
-const NEUTRAL = /^universal-(fe)?male-(child|young|old)-averagemuscle-averageweight\.target\.gz$/;
+const NEUTRAL = /^universal-(fe)?male-(young|old)-averagemuscle-averageweight\.target\.gz$/;
 const read = (rel: string) => readFileSync(join(ASSETS, rel), "utf8");
 const targets = (dir: string) => readdirSync(dir).filter((name) => name.endsWith(".target.gz"));
 
@@ -32,12 +32,12 @@ describe("vendored MakeHuman assets", () => {
     expect(obj).toMatch(/^g body$/m);
   });
 
-  it("contains adult macro targets only (child, young, old; no baby)", () => {
+  it("contains adult macro targets only (young, old; no baby or child)", () => {
     const all = [MACRO, join(MACRO, "height"), join(MACRO, "proportions")].flatMap(targets);
-    expect(all).toHaveLength(288);
-    expect(all.some((name) => name.includes("baby"))).toBe(false);
+    expect(all).toHaveLength(192);
+    expect(all.some((name) => /baby|child/.test(name))).toBe(false);
     for (const ethnicity of ["african", "asian", "caucasian"]) {
-      for (const age of ["child", "young", "old"]) {
+      for (const age of ["young", "old"]) {
         expect(existsSync(join(MACRO, `${ethnicity}-female-${age}.target.gz`))).toBe(true);
         expect(existsSync(join(MACRO, `${ethnicity}-male-${age}.target.gz`))).toBe(true);
       }

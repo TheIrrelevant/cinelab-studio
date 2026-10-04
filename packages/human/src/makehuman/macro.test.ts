@@ -15,12 +15,12 @@ const isUniversal = (name: string) => name.startsWith("universal-");
 const isEthnic = (name: string) => /^(african|asian|caucasian)-/.test(name);
 
 describe("ageToMacro", () => {
-  it("maps adult years onto the MakeHuman age scale and clamps to 18-90", () => {
+  it("uses the 25-year body for 18-25 and clamps above 35", () => {
+    expect(ageToMacro(18)).toBe(0.5);
     expect(ageToMacro(25)).toBe(0.5);
-    expect(ageToMacro(90)).toBe(1);
-    expect(ageToMacro(18)).toBeCloseTo(0.34375);
-    expect(ageToMacro(5)).toBe(ageToMacro(18));
-    expect(ageToMacro(120)).toBe(1);
+    expect(ageToMacro(35)).toBeCloseTo(0.5 + (10 / 65) * 0.5);
+    expect(ageToMacro(5)).toBe(0.5);
+    expect(ageToMacro(90)).toBe(ageToMacro(35));
   });
 });
 
@@ -36,7 +36,7 @@ describe("macroTargetWeights", () => {
   it("keeps universal and ethnic weights a partition of unity for any body", () => {
     const bodies: BodyParams[] = [
       { ...DEFAULT_BODY, gender: 0.2, ageYears: 19, muscle: 0.9, weight: 0.1 },
-      { ...DEFAULT_BODY, gender: 1, ageYears: 70, muscle: 0.3, weight: 0.75, african: 1, asian: 0, caucasian: 0 },
+      { ...DEFAULT_BODY, gender: 1, ageYears: 33, muscle: 0.3, weight: 0.75, african: 1, asian: 0, caucasian: 0 },
     ];
     for (const body of bodies) {
       const weights = macroTargetWeights(body);
@@ -45,12 +45,15 @@ describe("macroTargetWeights", () => {
     }
   });
 
-  it("never uses baby targets and uses child targets only below 25", () => {
-    const young = macroTargetWeights({ ...DEFAULT_BODY, ageYears: 18 });
-    expect([...young.keys()].some((name) => name.includes("baby"))).toBe(false);
-    expect(young.get("universal-female-child-averagemuscle-averageweight")).toBeCloseTo(0.5 * 0.5);
-    const older = macroTargetWeights({ ...DEFAULT_BODY, ageYears: 40 });
-    expect([...older.keys()].some((name) => name.includes("child"))).toBe(false);
+  it("never uses child or baby targets and blends slightly towards old at 35", () => {
+    for (const ageYears of [0, 18, 25, 35]) {
+      const names = [...macroTargetWeights({ ...DEFAULT_BODY, ageYears }).keys()];
+      expect(names.some((name) => /baby|child/.test(name)), `${ageYears}`).toBe(false);
+    }
+    const eighteen = macroTargetWeights({ ...DEFAULT_BODY, ageYears: 18 });
+    expect(eighteen).toEqual(macroTargetWeights(DEFAULT_BODY));
+    const older = macroTargetWeights({ ...DEFAULT_BODY, gender: 0, ageYears: 35 });
+    expect(older.get("universal-female-old-averagemuscle-averageweight")).toBeCloseTo(10 / 65);
   });
 
   it("scales one-sided height and proportions by distance from 0.5", () => {

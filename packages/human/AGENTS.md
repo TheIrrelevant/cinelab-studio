@@ -15,10 +15,10 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./components/Mannequin` - jointed react-three-fiber figure for a spec and pose.
   - `./poses` - `POSE_IDS`, `POSES`, `poseAngles(pose)` (joint Euler angles in degrees).
   - `./components/MakeHumanBody` - r3f morphable MakeHuman body for `BodyParams` (`baseUrl` = converter output folder).
-  - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS`, `macroTargetWeights`, `ageToMacro`.
+  - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber.
-- **Age:** 18-90 years. MakeHuman blends ages below 25 with the 11-year child targets
-  (18 years = 50 % child), so 18-year-old bodies are noticeably smaller (male about 154 cm).
+- **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
+  18-25 uses the 25-year body unchanged; 25-35 blends up to about 15 % towards the 90-year targets.
 - **Must not know:** characters, studio or rendering.
 
 | File | Purpose |
@@ -47,9 +47,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `assets/makehuman/` | MakeHuman CC0 data (see `SOURCE.md`); not bundled, input for the GLB converter |
 
 **MakeHuman assets:** vendored once by `node tools/vendor-makehuman.mjs` (pinned mpfb2 commit).
-Data only - mpfb2 code is GPL and must never be copied. Adult targets only (child/young/old,
-no baby); the body is 18+, child targets exist only to interpolate ages 18-25. Six
-`universal-*-averagemuscle-averageweight` targets are empty upstream (neutral body).
+Data only - mpfb2 code is GPL and must never be copied. Adult targets only (young/old, 192
+files; no baby or child targets). Four `universal-*-averagemuscle-averageweight` targets are
+empty upstream (neutral body).
 
 **Converter:** `pnpm human:build` writes `makehuman-base.glb` (skinned base body, metres,
 grounded, 163 bones, identity bone rotations), `makehuman-morphs.bin` and `.json` to
