@@ -3,7 +3,8 @@
  * @description Browser check for the MakeHuman lab (/lab/human): the body loads without errors,
  *   ethnicity presets and gender change the rendered pixels, the height slider changes the
  *   measured height, ages 18-25 share the adult body, and screenshots of the three ethnic
- *   presets (female and male) and three ages are saved.
+ *   presets (female and male) and three ages are saved; hairstyle, hair colour, eye colour and
+ *   skin tone change the portrait, and three portraits are saved.
  * @depends playwright; running Next dev server on STUDIO_URL or http://localhost:3000
  */
 import assert from "node:assert/strict";
@@ -30,12 +31,20 @@ async function setSlider(page, key, value) {
 
 const heightCm = async (page) => Number((await page.getByTestId("body-height").textContent()).match(/(\d+) cm/)?.[1]);
 const settle = (page) => page.waitForTimeout(400);
-const viewport = (page) => page.getByTestId("human-viewport").screenshot();
-const differs = (a, b) => {
-  let changed = 0;
-  for (let i = 0; i < Math.min(a.length, b.length); i += 1) if (a[i] !== b[i]) changed += 1;
-  return changed / a.length;
-};
+/** Downsampled greyscale pixels read back from the WebGL canvas (preserveDrawingBuffer). */
+const viewport = (page) =>
+  page.evaluate(() => {
+    const source = document.querySelector('[data-testid="human-viewport"] canvas');
+    const copy = document.createElement("canvas");
+    copy.width = 200;
+    copy.height = 180;
+    const context = copy.getContext("2d");
+    context.drawImage(source, 0, 0, copy.width, copy.height);
+    const { data } = context.getImageData(0, 0, copy.width, copy.height);
+    return Array.from({ length: data.length / 4 }, (_, i) => Math.round((data[i * 4] + data[i * 4 + 1] + data[i * 4 + 2]) / 3));
+  });
+/** Share of sampled pixels whose grey value changed by more than 6 levels. */
+const differs = (a, b) => a.reduce((count, value, i) => count + (Math.abs(value - b[i]) > 6 ? 1 : 0), 0) / a.length;
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -85,6 +94,45 @@ try {
   assert.ok(differs(ageShots[18].shot, ageShots[25].shot) < 0.001, "18 and 25 years render the same");
   assert.ok(Math.abs(ageShots[35].cm - ageShots[25].cm) <= 3, `35 years stays adult-sized (${ageShots[35].cm} cm)`);
   console.log("PASS age range", Object.fromEntries(Object.entries(ageShots).map(([age, { cm }]) => [age, cm])));
+
+  // Appearance, framed on the head.
+  await setSlider(page, "ageYears", 25);
+  await page.getByTestId("view-portrait").click();
+  await settle(page);
+  const still = differs(await viewport(page), (await page.waitForTimeout(800), await viewport(page)));
+  assert.ok(still < 0.0001, `render is stable without changes (${still.toFixed(4)})`);
+  console.log("PASS stable render", still.toFixed(4));
+  const changes = async (label, action) => {
+    const before = await viewport(page);
+    await action();
+    await page.waitForTimeout(1200);
+    const ratio = differs(before, await viewport(page));
+    assert.ok(ratio > 0.0002, `${label} changes the render (${ratio.toFixed(4)})`);
+    console.log("PASS", label, ratio.toFixed(4));
+  };
+  await changes("hairstyle", () => page.getByTestId("select-hair").selectOption("long01"));
+  await changes("hair colour", () => page.getByTestId("hair-colour-blonde").click());
+  await changes("no hair", () => page.getByTestId("select-hair").selectOption(""));
+  await page.getByTestId("select-hair").selectOption("short02");
+  await page.waitForTimeout(1500);
+  await changes("eye colour", () => page.getByTestId("select-eyeColour").selectOption("blue"));
+  await changes("skin tone", () => setSlider(page, "skinTone", 0.1));
+  await setSlider(page, "skinTone", 0.5);
+  const looks = [
+    ["caucasian", 0, "long01", "blonde", "blue"],
+    ["african", 1, "afro01", "black", "brown"],
+    ["asian", 0, "bob02", "dark-brown", "brownlight"],
+  ];
+  for (const [ethnicity, gender, hair, colour, eye] of looks) {
+    await setSlider(page, "gender", gender);
+    await page.getByTestId(`preset-${ethnicity}`).click();
+    await page.getByTestId("select-hair").selectOption(hair);
+    await page.getByTestId(`hair-colour-${colour}`).click();
+    await page.getByTestId("select-eyeColour").selectOption(eye);
+    await page.waitForTimeout(1500);
+    await page.getByTestId("human-viewport").screenshot({ path: `${output}/portrait-${ethnicity}.png` });
+  }
+  console.log("PASS portraits saved");
 
   assert.deepEqual(errors, [], "no page or console errors");
   console.log("PASS no errors");

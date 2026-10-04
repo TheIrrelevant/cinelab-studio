@@ -1,53 +1,74 @@
 /**
  * @file MakeHumanBody.tsx
- * @description react-three-fiber MakeHuman body: loads the generated GLB + morph pack once per
- *   URL and re-shapes the mesh and skeleton whenever the body parameters change.
+ * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
+ *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
+ *   eyebrows and eyelashes when `appearance` changes.
  * @scope cinelab-studio
- * @depends react, three, ../makehuman/load-body, ../makehuman/body-shape, ../makehuman/macro
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/macro,
+ *   ../makehuman/appearance
  */
 
 "use client";
 
 import { useEffect, useState } from "react";
-import { applyBodyShape, type BodyShapeResult } from "../makehuman/body-shape";
+import { appearanceCatalog, DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "../makehuman/appearance";
+import { BodyController } from "../makehuman/body-controller";
+import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { BodyParams } from "../makehuman/macro";
 
 type Props = {
   params: BodyParams;
+  appearance?: Appearance;
   /** Folder with the converter output, ending with "/". */
   baseUrl?: string;
   onShape?: (result: BodyShapeResult) => void;
+  /** Called once the assets are loaded, with the available hair, eyebrow, eyelash and eye choices. */
+  onCatalog?: (catalog: AppearanceCatalog) => void;
   onError?: (error: Error) => void;
 };
 
-export function MakeHumanBody({ params, baseUrl = "/human/", onShape, onError }: Props) {
-  const [body, setBody] = useState<LoadedBody | null>(null);
+type Ready = { body: LoadedBody; controller: BodyController };
+
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError }: Props) {
+  const [ready, setReady] = useState<Ready | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    loadBody(baseUrl).then(
-      (loaded) => {
+    let controller: BodyController | null = null;
+    loadBody(baseUrl)
+      .then(async (body) => {
         if (cancelled) return;
-        loaded.mesh.castShadow = true;
-        loaded.mesh.receiveShadow = true;
-        setBody(loaded);
-      },
-      (error: Error) => !cancelled && onError?.(error),
-    );
+        body.mesh.castShadow = true;
+        body.mesh.receiveShadow = true;
+        controller = new BodyController(body, baseUrl);
+        await controller.init();
+        if (cancelled) return;
+        setReady({ body, controller });
+        onCatalog?.(appearanceCatalog(body.proxyManifest));
+      })
+      .catch((error: Error) => !cancelled && onError?.(error));
     return () => {
       cancelled = true;
+      controller?.dispose();
     };
-    // onError is a notification only; reloading on its identity change is not wanted.
+    // onCatalog/onError are notifications only; reloading on their identity change is not wanted.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseUrl]);
 
   useEffect(() => {
-    if (!body) return;
-    onShape?.(applyBodyShape(body.mesh, body.data, params));
+    if (!ready) return;
+    onShape?.(ready.controller.setShape(params));
     // onShape is a notification only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [body, params]);
+  }, [ready, params]);
 
-  return body ? <primitive object={body.scene} /> : null;
+  useEffect(() => {
+    if (!ready) return;
+    ready.controller.setAppearance(appearance).catch((error: Error) => onError?.(error));
+    // onError is a notification only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, appearance]);
+
+  return ready ? <primitive object={ready.body.scene} /> : null;
 }

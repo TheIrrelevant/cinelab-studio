@@ -14,12 +14,15 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./mannequin-spec` - `MannequinSpec`, `HairShape` (height, girth, shoulders, skin, hair).
   - `./components/Mannequin` - jointed react-three-fiber figure for a spec and pose.
   - `./poses` - `POSE_IDS`, `POSES`, `poseAngles(pose)` (joint Euler angles in degrees).
-  - `./components/MakeHumanBody` - r3f morphable MakeHuman body for `BodyParams` (`baseUrl` = converter output folder).
+  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices).
+  - `./makehuman/appearance` - `Appearance`, `DEFAULT_APPEARANCE`, `HAIR_COLOURS`, `AppearanceCatalog`, `skinWeights`.
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber.
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
   18-25 uses the 25-year body unchanged; 25-35 blends up to about 15 % towards the 90-year targets.
 - **Must not know:** characters, studio or rendering.
+- **Known asset limits:** MakeHuman stock skins have a lighter painted patch around mouth/chin
+  that shows as a soft band on one cheek; eye whites read slightly dark under studio lights.
 
 | File | Purpose |
 |---|---|
@@ -35,6 +38,10 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/body-shape.ts` | Applies params to the skinned mesh; refits skeleton, keeps bone rotations |
 | `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |
 | `src/components/MakeHumanBody.tsx` | r3f component |
+| `src/makehuman/appearance.ts` | Appearance model, hair colours, skin blend weights, tone |
+| `src/makehuman/body-controller.ts` | Browser driver: shape, skin, eyes, hair/eyebrow/eyelash proxies |
+| `src/makehuman/materials.ts` | Skin canvas compositor, eye/hair/eyebrow/eyelash materials, texture cache |
+| `src/makehuman/proxy-data.ts` | Reads proxy pack; creates and re-fits proxy SkinnedMeshes |
 | `src/makehuman/normals.ts` | Seam-free smooth normals (converter and runtime) |
 | `src/makehuman/convert/obj-mesh.ts` | OBJ parse, triangulation, UV-seam split |
 | `src/makehuman/convert/rig-refs.ts` | Rig JSON -> parent-first bones with joint vertex lists |

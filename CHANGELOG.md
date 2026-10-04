@@ -5,13 +5,26 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: converter packs hair, eyes, eyebrows and eyelashes as fitted proxies
+last-change: skin, eyes, hair, eyebrows and eyelashes in the MakeHuman body
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - Skin, eyes and hair
+
+### Added
+- `Appearance` (skin tone, eye colour, hairstyle, hair colour, eyebrows, eyelashes) for `MakeHumanBody`. The skin texture blends the six young skins on a canvas with the same ethnicity and gender weights as the body shape; tone scales it darker or lighter.
+- Proxies (eyes, hair, eyebrows, eyelashes) are created on demand as SkinnedMeshes sharing the body skeleton and re-fitted on every shape change (`body-controller.ts`, `proxy-data.ts`, `materials.ts`).
+- Hair and eyebrows are tinted at runtime: seven hair colour presets plus a colour picker; eyebrows follow the hair colour, darker.
+- `/lab/human`: appearance panel and Full body / Portrait camera views.
+- Tests: skin blend weights, tone, catalog, hair fitted and skinned on a re-shaped body. Browser check: appearance changes measured on canvas pixels, three portraits.
+
+### Changed
+- Vendored hair textures are greyscale normalised to one brightness so every colour tints evenly; eyebrow textures are white with the shape in alpha.
+- `check-human.mjs` compares canvas pixels instead of PNG bytes (PNG bytes made any change look like a large one) and asserts a stable render first.
 
 ## 2026-10-04 - Proxy pack
 

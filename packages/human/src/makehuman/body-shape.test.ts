@@ -19,7 +19,13 @@ const buffer = (bytes: Uint8Array) => bytes.buffer.slice(bytes.byteOffset, bytes
 
 beforeAll(async () => {
   const built = buildAssets();
-  body = await parseBody(buffer(built.glb), built.manifest, buffer(built.morphBin));
+  body = await parseBody({
+    glb: buffer(built.glb),
+    manifest: built.manifest,
+    morphs: buffer(built.morphBin),
+    proxyManifest: built.proxyManifest,
+    proxies: buffer(built.proxyBin),
+  });
 }, 60_000);
 
 const shape = (params: Partial<BodyParams>) => applyBodyShape(body.mesh, body.data, { ...DEFAULT_BODY, ...params });

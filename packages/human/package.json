@@ -7,6 +7,7 @@
   "exports": {
     "./components/MakeHumanBody": "./src/components/MakeHumanBody.tsx",
     "./components/Mannequin": "./src/components/Mannequin.tsx",
+    "./makehuman/appearance": "./src/makehuman/appearance.ts",
     "./makehuman/macro": "./src/makehuman/macro.ts",
     "./mannequin-spec": "./src/mannequin-spec.ts",
     "./poses": "./src/poses.ts"

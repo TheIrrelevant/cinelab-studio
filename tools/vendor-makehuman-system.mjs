@@ -3,7 +3,7 @@
  * @description One-time copy of selected MakeHuman system assets (CC0 asset pack) into
  *   packages/human/assets/makehuman-system: young skins (3 ethnicities x 2 genders, 1024 JPEG),
  *   low-poly eyes and eye colours, eyebrows, eyelashes and hair (meshes, .mhclo fitting files,
- *   textures resized to 1024; hair/eyebrow colour removed so it can be tinted at runtime).
+ *   textures resized to 1024; hair/eyebrow colour normalised so it can be tinted at runtime).
  *   Usage: node tools/vendor-makehuman-system.mjs [path-to-downloaded-zip]
  * @scope cinelab-studio
  * @depends node:child_process, node:crypto, node:fs, node:os, node:path, node:url, sharp, unzip
@@ -46,9 +46,36 @@ const out = (rel) => {
 };
 const pngs = (dir) => readdirSync(dir).filter((name) => name.endsWith(".png"));
 
-/** Colour removed (luminance + alpha) so the runtime can tint hair and eyebrows. */
-const toTintable = (src, size, rel) =>
-  sharp(src).resize(size, size, { fit: "inside", withoutEnlargement: true }).grayscale().png({ compressionLevel: 9 }).toFile(out(rel));
+/**
+ * Colour removed so the runtime can tint: luminance is re-normalised to an alpha-weighted mean
+ * of 0.75 and standard deviation of 0.18 (hair), or set to white (eyebrows: shape is in alpha).
+ */
+async function toTintable(src, size, rel, mode) {
+  const { data, info } = await sharp(src)
+    .resize(size, size, { fit: "inside", withoutEnlargement: true })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const lum = (i) => (0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2]) / 255;
+  let sum = 0;
+  let sumSq = 0;
+  let weight = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3] / 255;
+    sum += alpha * lum(i);
+    sumSq += alpha * lum(i) ** 2;
+    weight += alpha;
+  }
+  const mean = sum / weight;
+  const std = Math.sqrt(Math.max(sumSq / weight - mean ** 2, 1e-6));
+  const pixels = Buffer.alloc((data.length / 4) * 2);
+  for (let i = 0, j = 0; i < data.length; i += 4, j += 2) {
+    const value = mode === "white" ? 1 : 0.75 + ((lum(i) - mean) / std) * 0.18;
+    pixels[j] = Math.round(Math.min(1, Math.max(0, value)) * 255);
+    pixels[j + 1] = data[i + 3];
+  }
+  await sharp(pixels, { raw: { width: info.width, height: info.height, channels: 2 } }).png({ compressionLevel: 9 }).toFile(out(rel));
+}
 const toPng = (src, size, rel) =>
   sharp(src).resize(size, size, { fit: "inside", withoutEnlargement: true }).png({ compressionLevel: 9 }).toFile(out(rel));
 
@@ -84,7 +111,8 @@ async function vendor(src) {
       const diffuse = pngs(dir).find((file) => !file.includes("normal"));
       const normal = pngs(dir).find((file) => file.includes("normal"));
       if (kind === "eyelashes") await toPng(join(dir, diffuse), 512, `${kind}/${name}/diffuse.png`);
-      else await toTintable(join(dir, diffuse), kind === "hair" ? 1024 : 512, `${kind}/${name}/diffuse.png`);
+      else if (kind === "hair") await toTintable(join(dir, diffuse), 1024, `${kind}/${name}/diffuse.png`, "normalise");
+      else await toTintable(join(dir, diffuse), 512, `${kind}/${name}/diffuse.png`, "white");
       if (normal) await toPng(join(dir, normal), 1024, `${kind}/${name}/normal.png`);
       counts[kind] += 1;
     }
@@ -107,8 +135,9 @@ function sourceNote(counts) {
     `- SHA-256 of the zip: \`${SHA256}\``,
     "- License: CC0 1.0 (asset pack page and file headers; see `LICENSE.ASSETS.md`).",
     `- Copied: ${JSON.stringify(counts)}.`,
-    "- Skins resized to 1024 JPEG; hair, eyebrow and eye textures resized; hair and eyebrow colour",
-    "  removed (greyscale + alpha) for runtime tinting. Meshes and .mhclo files are unchanged.",
+    "- Skins resized to 1024 JPEG; hair, eyebrow and eye textures resized. For runtime tinting hair",
+    "  is greyscale normalised to mean 0.75 / std 0.18 and eyebrows are white; alpha is kept.",
+    "  Meshes and .mhclo files are unchanged.",
     "- One-time snapshot. Regenerate with `node tools/vendor-makehuman-system.mjs`.",
     "",
   ].join("\n");
