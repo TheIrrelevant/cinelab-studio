@@ -13,6 +13,9 @@ node_modules
 # testing
 coverage
 
+# generated MakeHuman body (pnpm human:build)
+/apps/web/public/human/
+
 # e2e artifacts
 screenshots
 

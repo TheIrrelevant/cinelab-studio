@@ -5,13 +5,19 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: vendored MakeHuman CC0 assets into @cinelab/human
+last-change: MakeHuman GLB converter and morph pack
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - MakeHuman converter
+
+### Added
+- `pnpm human:build` (`packages/human/scripts/build-assets.ts`): converts the vendored MakeHuman data, with no external tools, into `makehuman-base.glb` (skinned body in metres, grounded, 14517 vertices with UV seams split, 163-bone default rig, top-4 weights, no unweighted vertices) and a morph pack (`makehuman-morphs.bin` + `.json`: source positions, render-to-source map, bone joint vertex lists, 288 targets as Uint16 indices + Int16 deltas). Output goes to `apps/web/public/human/` (gitignored); about 1.2 MB GLB and 25.4 MB morph pack (17.5 MB gzipped), built in about 2 s.
+- Converter modules in `packages/human/src/makehuman/convert/` and `src/makehuman/normals.ts`, with unit tests and an end-to-end test that loads the GLB in three's GLTFLoader.
 
 ## 2026-10-04 - MakeHuman CC0 assets
 

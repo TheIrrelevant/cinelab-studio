@@ -1,7 +1,7 @@
 ---
 type: agent-guide
 description: Entry point for agents and developers - package map, rules, commands.
-last-updated: 2026-10-03
+last-updated: 2026-10-04
 depends_on: [packages/*/AGENTS.md, apps/web/AGENTS.md, tools/check-structure.mjs]
 ---
 
@@ -46,5 +46,6 @@ core <- human <- character <- studio <- render-contract <- apps/web
 | `pnpm test:studio:browser` | GPU and studio pixel checks (needs dev server) |
 | `pnpm test:e2e` | first-milestone end-to-end flow (needs dev server) |
 | `pnpm build` | production build |
+| `pnpm human:build` | MakeHuman assets -> `apps/web/public/human/` (GLB + morph pack) |
 
 Docs: `docs/studio-verification.md`, `docs/render-contract.md`.

@@ -25,11 +25,27 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/three-jsx.d.ts` | r3f JSX element types |
 | `src/makehuman/target-file.ts` | Parses MakeHuman `.target` text into sparse offsets |
 | `src/makehuman/assets.test.ts` | Integrity checks for the vendored assets |
+| `src/makehuman/normals.ts` | Seam-free smooth normals (converter and runtime) |
+| `src/makehuman/convert/obj-mesh.ts` | OBJ parse, triangulation, UV-seam split |
+| `src/makehuman/convert/rig-refs.ts` | Rig JSON -> parent-first bones with joint vertex lists |
+| `src/makehuman/convert/skin-weights.ts` | Top-4 normalised JOINTS_0/WEIGHTS_0 |
+| `src/makehuman/convert/morph-pack.ts` | Targets -> Uint16 indices + Int16 deltas (one scale) |
+| `src/makehuman/convert/glb-writer.ts` | Minimal skinned GLB writer |
+| `src/makehuman/convert/binary-builder.ts` | 4-byte aligned binary sections |
+| `src/makehuman/convert/build.ts` | Pipeline: GLB + morph pack + manifest |
+| `scripts/build-assets.ts` | CLI for the pipeline (`pnpm human:build`) |
 | `assets/makehuman/` | MakeHuman CC0 data (see `SOURCE.md`); not bundled, input for the GLB converter |
 
 **MakeHuman assets:** vendored once by `node tools/vendor-makehuman.mjs` (pinned mpfb2 commit).
 Data only - mpfb2 code is GPL and must never be copied. Adult targets only (child/young/old,
 no baby); the body is 18+, child targets exist only to interpolate ages 18-25. Six
 `universal-*-averagemuscle-averageweight` targets are empty upstream (neutral body).
+
+**Converter:** `pnpm human:build` writes `makehuman-base.glb` (skinned base body, metres,
+grounded, 163 bones, identity bone rotations), `makehuman-morphs.bin` and `.json` to
+`apps/web/public/human/` (gitignored). Morphing is done on the CPU: positions = source
+positions + sum(weight * delta); bones are re-derived from their joint vertex lists. Converter
+files import with `.ts` extensions so Node runs them with built-in type stripping; they must not
+be imported by browser code. GLTFLoader strips dots from bone names (`pelvis.L` -> `pelvisL`).
 
 **Tests:** `pnpm --filter @cinelab/human test`
