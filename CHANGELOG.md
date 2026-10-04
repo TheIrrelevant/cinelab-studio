@@ -5,13 +5,23 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-04T00:00:00Z
 last-model: claude-opus-5-5
-last-change: vendored MakeHuman system assets (skins, eyes, hair)
+last-change: converter packs hair, eyes, eyebrows and eyelashes as fitted proxies
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-04 - Proxy pack
+
+### Added
+- Converter packs 27 proxies (eyes, 12 eyebrows, 4 eyelashes, 10 hairstyles) into `makehuman-proxies.bin/.json`: .mhclo fitting in source-vertex space, UV-split meshes and skin weights blended from the referenced body vertices; textures copied to `public/human/`.
+- `makehuman/proxy-fit.ts` (fitting shared with the runtime), `convert/mhclo.ts`, `convert/proxy-pack.ts`, `scripts/system-inputs.ts`.
+- Tests: mhclo parsing, fitting maths, eyes fit their authored mesh, every hairstyle sits on the head, proxy skin weights are normalised.
+
+### Changed
+- The morph pack also carries the helper vertices the proxies reference (16.9 -> 17.6 MB).
 
 ## 2026-10-04 - MakeHuman system assets
 

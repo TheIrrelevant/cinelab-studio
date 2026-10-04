@@ -42,6 +42,11 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/convert/morph-pack.ts` | Targets -> Uint16 indices + Int16 deltas (one scale) |
 | `src/makehuman/convert/glb-writer.ts` | Minimal skinned GLB writer |
 | `src/makehuman/convert/binary-builder.ts` | 4-byte aligned binary sections |
+| `src/makehuman/convert/mhclo.ts` | Parses proxy fitting files |
+| `src/makehuman/convert/proxy-pack.ts` | Proxies -> fitting data, UV-split mesh, blended skin weights |
+| `src/makehuman/proxy-fit.ts` | Places proxy vertices on a (morphed) body (converter + runtime) |
+| `src/makehuman/proxy-manifest.ts` | Proxy pack manifest types |
+| `scripts/system-inputs.ts` | Loads system assets for the converter, lists textures to copy |
 | `src/makehuman/convert/build.ts` | Pipeline: GLB + morph pack + manifest |
 | `scripts/build-assets.ts` | CLI for the pipeline (`pnpm human:build`) |
 | `assets/makehuman-system/` | MakeHuman system asset pack subset (CC0): skins, eyes, eyebrows, eyelashes, hair (see `SOURCE.md`) |
@@ -60,7 +65,9 @@ files (rows are `v1 v2 v3 w1 w2 w3 dx dy dz` or a single vertex index).
 
 **Converter:** `pnpm human:build` writes `makehuman-base.glb` (skinned base body, metres,
 grounded, 163 bones, identity bone rotations), `makehuman-morphs.bin` and `.json` to
-`apps/web/public/human/` (gitignored). Morphing is done on the CPU: positions = source
+`apps/web/public/human/` (gitignored), plus `makehuman-proxies.bin/.json` (27 proxies fitted to
+source vertices) and textures under `proxies/`, `eyes/`, `skins/`. Proxy .obj positions were
+authored on other bodies (hair is offset by up to 1 dm); only the .mhclo fit is authoritative. Morphing is done on the CPU: positions = source
 positions + sum(weight * delta); bones are re-derived from their joint vertex lists. Converter
 files import with `.ts` extensions so Node runs them with built-in type stripping; they must not
 be imported by browser code. GLTFLoader strips dots from bone names (`pelvis.L` -> `pelvisL`).

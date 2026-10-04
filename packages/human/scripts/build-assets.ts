@@ -1,10 +1,12 @@
 /**
  * @file build-assets.ts
  * @description CLI: converts the vendored MakeHuman assets into makehuman-base.glb,
- *   makehuman-morphs.bin and makehuman-morphs.json in the given output folder.
+ *   makehuman-morphs.bin/.json and makehuman-proxies.bin/.json, and copies skin, eye and proxy
+ *   textures into the given output folder.
  *   Run with Node's built-in type stripping: node packages/human/scripts/build-assets.ts <outDir>
  * @scope cinelab-studio
- * @depends ../src/makehuman/convert/build.ts, ../src/makehuman/target-file.ts, ../assets/makehuman
+ * @depends ../src/makehuman/convert/build.ts, ../src/makehuman/target-file.ts, ./system-inputs.ts,
+ *   ../assets/makehuman
  */
 
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -14,6 +16,7 @@ import { gunzipSync } from "node:zlib";
 import { convertMakeHuman } from "../src/makehuman/convert/build.ts";
 import type { NamedTarget } from "../src/makehuman/convert/morph-pack.ts";
 import { parseTarget } from "../src/makehuman/target-file.ts";
+import { copyTextures, loadSystemInputs } from "./system-inputs.ts";
 
 const ASSETS = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/makehuman");
 const MACRO = join(ASSETS, "targets/macrodetails");
@@ -35,12 +38,17 @@ export function loadTargets(): NamedTarget[] {
 
 export function buildAssets() {
   const json = (rel: string) => JSON.parse(readFileSync(join(ASSETS, rel), "utf8"));
-  return convertMakeHuman({
+  const system = loadSystemInputs();
+  const result = convertMakeHuman({
     obj: readFileSync(join(ASSETS, "3dobjs/base.obj"), "utf8"),
     rig: json("rigs/standard/rig.default.json"),
     weights: json("rigs/standard/weights.default.json"),
     targets: loadTargets(),
+    proxies: system.proxies,
+    eyeColours: system.eyeColours,
+    skins: system.skins,
   });
+  return { ...result, textureCopies: system.copies };
 }
 
 function main(outDir: string) {
@@ -50,9 +58,13 @@ function main(outDir: string) {
   writeFileSync(join(outDir, "makehuman-base.glb"), result.glb);
   writeFileSync(join(outDir, "makehuman-morphs.bin"), result.morphBin);
   writeFileSync(join(outDir, "makehuman-morphs.json"), JSON.stringify(result.manifest));
+  writeFileSync(join(outDir, "makehuman-proxies.bin"), result.proxyBin);
+  writeFileSync(join(outDir, "makehuman-proxies.json"), JSON.stringify(result.proxyManifest));
+  copyTextures(result.textureCopies, outDir);
   const mb = (bytes: number) => (bytes / 1e6).toFixed(1);
   console.log(
     `MakeHuman assets -> ${outDir}: glb ${mb(result.glb.byteLength)} MB, morphs ${mb(result.morphBin.byteLength)} MB, ` +
+      `proxies ${result.proxyManifest.proxies.length} (${mb(result.proxyBin.byteLength)} MB), ` +
       `${result.manifest.targets.length} targets, ${result.manifest.vertexCount} vertices, ` +
       `${result.manifest.bones.length} bones, ${result.unweighted} unweighted, ${Date.now() - started} ms`,
   );
