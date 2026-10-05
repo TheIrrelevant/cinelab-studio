@@ -28,8 +28,8 @@ export type MorphManifest = {
   vertexSource: Section;
   /** Source vertices whose mean is the floor contact point. */
   ground: number[];
-  /** Parent-first, same order as the GLB skin joints; head/tail are source vertex lists. */
-  bones: Array<{ name: string; parent: number; head: number[]; tail: number[] }>;
+  /** Parent-first, same order as the GLB skin joints; head/tail are source vertex lists, roll is the Blender roll in radians. */
+  bones: Array<{ name: string; parent: number; head: number[]; tail: number[]; roll: number }>;
   scale: number;
   targets: PackedTarget[];
 };

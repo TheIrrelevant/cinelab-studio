@@ -2,13 +2,15 @@
  * @file body-shape.ts
  * @description Applies body parameters to a loaded MakeHuman skinned mesh: morphs the vertices
  *   on the CPU, recomputes seam-free normals and re-fits the skeleton (bone rest positions and
- *   inverse bind matrices) to the new joint positions. Bone rotations are preserved.
+ *   inverse bind matrices) to the new joints with head/tail/roll rest frames. Pose deltas are
+ *   preserved across re-shapes.
  * @scope cinelab-studio
- * @depends three, ./macro, ./morph-data, ./normals
+ * @depends three, ./bone-frames, ./macro, ./morph-data, ./normals
  */
 
 import { Quaternion, type BufferAttribute, type SkinnedMesh } from "three";
 import { macroTargetWeights, type BodyParams } from "./macro";
+import { bonePoseDelta, boneRestQuaternion, setBonePoseDelta } from "./bone-frames";
 import { jointPosition, morphSourcePositions, type MorphData } from "./morph-data";
 import { seamlessNormals } from "./normals";
 
@@ -48,24 +50,32 @@ export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: BodyP
   return { source, heightMetres: top };
 }
 
-/** Moves bones to the morphed joints in rest pose, rebinds, then restores the pose rotations. */
+/**
+ * Moves bones to the morphed joints with head/tail/roll rest frames, rebinds, then restores each
+ * bone's pose delta on top of its new rest frame.
+ */
 function refitSkeleton(mesh: SkinnedMesh, data: MorphData, source: Float32Array) {
   const { bones } = mesh.skeleton;
   const spec = data.manifest.bones;
   if (bones.length !== spec.length) throw new Error("Skeleton does not match the morph pack");
-  const saved = bones.map((bone) => bone.quaternion.clone());
+  const deltas = bones.map(bonePoseDelta);
   const heads = spec.map((bone) => jointPosition(source, bone.head));
+  const worlds = spec.map((bone, i) => boneRestQuaternion(heads[i], jointPosition(source, bone.tail), bone.roll));
   bones.forEach((bone, i) => {
-    const parentHead = spec[i].parent >= 0 ? heads[spec[i].parent] : [0, 0, 0];
-    bone.position.set(heads[i][0] - parentHead[0], heads[i][1] - parentHead[1], heads[i][2] - parentHead[2]);
-    bone.quaternion.copy(IDENTITY);
+    const parent = spec[i].parent;
+    const inverseParent = parent >= 0 ? worlds[parent].clone().invert() : new Quaternion();
+    const parentHead = parent >= 0 ? heads[parent] : [0, 0, 0];
+    bone.position
+      .set(heads[i][0] - parentHead[0], heads[i][1] - parentHead[1], heads[i][2] - parentHead[2])
+      .applyQuaternion(inverseParent);
+    const rest = inverseParent.multiply(worlds[i]);
+    bone.userData.restQuaternion = rest.clone();
+    bone.quaternion.copy(rest);
   });
   mesh.updateWorldMatrix(true, false);
   (bones[0].parent ?? bones[0]).updateWorldMatrix(true, true);
   mesh.skeleton.calculateInverses();
   // calculateInverses works in world space; keep the binding relative to the mesh.
   mesh.bind(mesh.skeleton, mesh.matrixWorld);
-  bones.forEach((bone, i) => bone.quaternion.copy(saved[i]));
+  bones.forEach((bone, i) => setBonePoseDelta(bone, deltas[i]));
 }
-
-const IDENTITY = new Quaternion();

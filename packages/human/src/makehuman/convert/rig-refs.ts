@@ -10,9 +10,10 @@
 import { groupVertices, type ObjData } from "./obj-mesh.ts";
 
 type RigEnd = { strategy: string; cube_name?: string; vertex_index?: number; vertex_indices?: number[] };
-export type RigJson = Record<string, { parent?: string; head: RigEnd; tail: RigEnd }>;
+export type RigJson = Record<string, { parent?: string; head: RigEnd; tail: RigEnd; roll?: number }>;
 
-export type BoneRef = { name: string; parent: number; head: number[]; tail: number[] };
+/** `roll` is the Blender bone roll in radians (Z-up frame). */
+export type BoneRef = { name: string; parent: number; head: number[]; tail: number[]; roll: number };
 
 function resolveEnd(obj: ObjData, bone: string, end: RigEnd): number[] {
   if (end.strategy === "CUBE" && end.cube_name) return groupVertices(obj, end.cube_name);
@@ -40,6 +41,7 @@ export function resolveRig(obj: ObjData, rig: RigJson): BoneRef[] {
     parent: rig[name].parent ? ordered.indexOf(rig[name].parent as string) : -1,
     head: resolveEnd(obj, name, rig[name].head),
     tail: resolveEnd(obj, name, rig[name].tail),
+    roll: rig[name].roll ?? 0,
   }));
 }
 

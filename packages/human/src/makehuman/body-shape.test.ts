@@ -8,9 +8,10 @@
  */
 
 import { beforeAll, describe, expect, it } from "vitest";
-import { Vector3 } from "three";
+import { Quaternion, Vector3 } from "three";
 import { buildAssets } from "../../scripts/build-assets.ts";
 import { applyBodyShape } from "./body-shape";
+import { bonePoseDelta, setBonePoseDelta } from "./bone-frames";
 import { parseBody, type LoadedBody } from "./load-body";
 import { DEFAULT_BODY, macroTargetWeights, type BodyParams } from "./macro";
 
@@ -78,12 +79,12 @@ describe("applyBodyShape", () => {
     expect(headY()).toBeGreaterThan(low + 0.1);
   });
 
-  it("preserves bone rotations across a re-shape", () => {
+  it("keeps each bone's pose delta across a re-shape", () => {
     const bone = body.mesh.skeleton.bones[5];
-    bone.rotation.set(0.3, 0, 0);
-    const before = bone.quaternion.clone();
+    const delta = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), 0.3);
+    setBonePoseDelta(bone, delta);
     shape({ weight: 0.2 });
-    expect(bone.quaternion.angleTo(before)).toBeLessThan(1e-6);
-    bone.rotation.set(0, 0, 0);
+    expect(bonePoseDelta(bone).angleTo(delta)).toBeLessThan(1e-6);
+    setBonePoseDelta(bone, new Quaternion());
   });
 });

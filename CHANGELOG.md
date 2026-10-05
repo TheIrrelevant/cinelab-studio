@@ -5,13 +5,24 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: Anny study notes and NOTICE (Phase 0.2)
+last-change: bone rest frames from head, tail and roll (Phase 1.1)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Bone rest frames (human creator plan Phase 1.1)
+
+### Added
+- `bone-frames.ts`: Blender head/tail/roll bone basis (vec_roll_to_mat3, adapted via Anny) built in Blender Z-up axes and converted to our Y-up axes; pose delta helpers `bonePoseDelta` / `setBonePoseDelta`.
+- Converter writes each bone's Blender roll into the morph manifest.
+- `/lab/human`: "Bone axes" overlay (`bone-axes.ts`, `showBoneAxes` on `MakeHumanBody`).
+- Tests: basis math (orthonormal, roll direction, -Y case), plan 1.1 acceptance on five body shapes (all 163 bones local Y on the tail within 1 degree, skinned rest pose within 0.1 mm over all vertices), axis mapping against the rig's default positions; browser check of the overlay with screenshots.
+
+### Changed
+- Skeleton refit sets real rest frames after every morph instead of identity rotations, and keeps pose deltas (rest * delta) across re-shapes.
 
 ## 2026-10-05 - Anny study and attribution (human creator plan Phase 0.2)
 

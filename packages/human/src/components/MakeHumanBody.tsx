@@ -2,9 +2,9 @@
  * @file MakeHumanBody.tsx
  * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
  *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
- *   eyebrows and eyelashes when `appearance` changes.
+ *   eyebrows and eyelashes when `appearance` changes. Optional bone axes overlay for debugging.
  * @scope cinelab-studio
- * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/macro,
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/macro,
  *   ../makehuman/appearance
  */
 
@@ -13,6 +13,7 @@
 import { useEffect, useState } from "react";
 import { appearanceCatalog, DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "../makehuman/appearance";
 import { BodyController } from "../makehuman/body-controller";
+import { attachBoneAxes } from "../makehuman/bone-axes";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { BodyParams } from "../makehuman/macro";
@@ -26,11 +27,13 @@ type Props = {
   /** Called once the assets are loaded, with the available hair, eyebrow, eyelash and eye choices. */
   onCatalog?: (catalog: AppearanceCatalog) => void;
   onError?: (error: Error) => void;
+  /** Debug overlay: RGB axes on every bone. */
+  showBoneAxes?: boolean;
 };
 
 type Ready = { body: LoadedBody; controller: BodyController };
 
-export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError }: Props) {
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false }: Props) {
   const [ready, setReady] = useState<Ready | null>(null);
 
   useEffect(() => {
@@ -69,6 +72,11 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
     // onError is a notification only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, appearance]);
+
+  useEffect(() => {
+    if (!ready || !showBoneAxes) return;
+    return attachBoneAxes(ready.body.mesh.skeleton.bones);
+  }, [ready, showBoneAxes]);
 
   return ready ? <primitive object={ready.body.scene} /> : null;
 }

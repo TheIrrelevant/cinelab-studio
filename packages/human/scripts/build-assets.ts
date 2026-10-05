@@ -18,7 +18,7 @@ import type { NamedTarget } from "../src/makehuman/convert/morph-pack.ts";
 import { parseTarget } from "../src/makehuman/target-file.ts";
 import { copyTextures, loadSystemInputs } from "./system-inputs.ts";
 
-const ASSETS = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/makehuman");
+export const ASSETS = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/makehuman");
 const MACRO = join(ASSETS, "targets/macrodetails");
 const TARGET_DIRS = ["", "height", "proportions"];
 const SUFFIX = ".target.gz";

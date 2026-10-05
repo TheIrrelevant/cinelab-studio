@@ -64,7 +64,7 @@ export function convertMakeHuman(input: ConvertInput) {
   vertexSource.forEach((s, i) => positions.set(sourcePositions.subarray(s * 3, s * 3 + 3), i * 3));
   const normals = seamlessNormals(positions, body.indices, vertexSource, originals.length);
   const skin = buildSkin(body.source, rig.map((bone) => bone.name), input.weights);
-  const bones = rig.map((bone) => ({ name: bone.name, parent: bone.parent, head: toCompact(bone.head), tail: toCompact(bone.tail) }));
+  const bones = rig.map((bone) => ({ name: bone.name, parent: bone.parent, head: toCompact(bone.head), tail: toCompact(bone.tail), roll: bone.roll }));
 
   const glb = writeGlb({
     name: "makehuman-body",

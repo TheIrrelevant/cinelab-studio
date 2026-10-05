@@ -27,7 +27,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
   morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
   4 eyelashes as fitted `.mhclo` proxies.
 - Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: bones have identity rotations (no roll, no joint limits); UI is raw 0-100 % sliders.
+- Known gaps: no joint limits yet (bone frames with roll done in 1.1); UI is raw 0-100 % sliders.
 
 ## 3. Sources and licenses
 
@@ -68,6 +68,7 @@ AC: notes list every adapted algorithm with file references.
 **1.1 Bone orientation.** Build real bone frames from head, tail and roll (local Y along the bone,
 roll around it), re-derived after every morph. AC: local Y points at the tail within 1 degree for all
 163 bones on five body shapes; rest-pose skinning error below 0.1 mm.
+**Done 2026-10-05:** `bone-frames.ts`, refit in `body-shape.ts`, `skeleton-frames.test.ts`; lab "Bone axes" overlay.
 
 **1.2 Joint limits.** Anatomical rotation limits per joint (elbow and knee hinge, neck, spine, wrist,
 fingers, toes, jaw) as data plus a clamp function. AC: table covers every posable bone; clamped poses

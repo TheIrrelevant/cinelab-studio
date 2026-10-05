@@ -1,7 +1,8 @@
 /**
  * @file page.tsx (lab/human)
  * @description MakeHuman spike test page: large 3D viewport with the morphable body and a right
- *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height.
+ *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height and can
+ *   overlay bone axes.
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
@@ -26,6 +27,7 @@ export default function HumanLabPage() {
   const [catalog, setCatalog] = useState<AppearanceCatalog | null>(null);
   const [height, setHeight] = useState<number | null>(null);
   const [view, setView] = useState<LabView>("body");
+  const [boneAxes, setBoneAxes] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const onShape = useCallback((result: { heightMetres: number }) => setHeight(result.heightMetres), []);
   const onError = useCallback((cause: Error) => setError(cause.message), []);
@@ -42,7 +44,7 @@ export default function HumanLabPage() {
             <circleGeometry args={[2, 48]} />
             <meshStandardMaterial color="#3a3a3f" />
           </mesh>
-          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} />
+          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} showBoneAxes={boneAxes} />
           <LabCamera view={view} height={height ?? 1.66} />
         </Canvas>
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
@@ -57,6 +59,15 @@ export default function HumanLabPage() {
               {option === "body" ? "Full body" : "Portrait"}
             </button>
           ))}
+          <button
+            type="button"
+            data-testid="toggle-bone-axes"
+            aria-pressed={boneAxes}
+            onClick={() => setBoneAxes((on) => !on)}
+            className={`rounded px-3 py-1 text-xs ${boneAxes ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
+          >
+            Bone axes
+          </button>
         </div>
         {error ? (
           <p className="absolute left-4 top-4 rounded bg-red-950 px-3 py-2 text-sm text-red-200">{error}</p>

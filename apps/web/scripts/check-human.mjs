@@ -4,7 +4,8 @@
  *   ethnicity presets and gender change the rendered pixels, the height slider changes the
  *   measured height, ages 18-25 share the adult body, and screenshots of the three ethnic
  *   presets (female and male) and three ages are saved; hairstyle, hair colour, eye colour and
- *   skin tone change the portrait, and three portraits are saved.
+ *   skin tone change the portrait, and three portraits are saved; the bone axes overlay draws
+ *   and clears, with screenshots of the rest frames.
  * @depends playwright; running Next dev server on STUDIO_URL or http://localhost:3000
  */
 import assert from "node:assert/strict";
@@ -133,6 +134,25 @@ try {
     await page.getByTestId("human-viewport").screenshot({ path: `${output}/portrait-${ethnicity}.png` });
   }
   console.log("PASS portraits saved");
+
+  // Bone rest frames (plan 1.1): axes overlay on, screenshots, off again restores the render.
+  await setSlider(page, "gender", 0.5);
+  await page.getByTestId("preset-caucasian").click();
+  await page.getByTestId("view-body").click();
+  await page.waitForTimeout(1200);
+  const plain = await viewport(page);
+  await page.getByTestId("toggle-bone-axes").click();
+  await page.waitForTimeout(600);
+  assert.ok(differs(plain, await viewport(page)) > 0.002, "bone axes overlay is drawn");
+  await page.getByTestId("human-viewport").screenshot({ path: `${output}/bone-axes-body.png` });
+  await page.getByTestId("view-portrait").click();
+  await page.waitForTimeout(800);
+  await page.getByTestId("human-viewport").screenshot({ path: `${output}/bone-axes-portrait.png` });
+  await page.getByTestId("view-body").click();
+  await page.getByTestId("toggle-bone-axes").click();
+  await page.waitForTimeout(800);
+  assert.ok(differs(plain, await viewport(page)) < 0.001, "bone axes overlay is removed");
+  console.log("PASS bone axes overlay");
 
   assert.deepEqual(errors, [], "no page or console errors");
   console.log("PASS no errors");

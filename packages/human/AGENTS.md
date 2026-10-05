@@ -1,7 +1,7 @@
 ---
 type: agent-guide
 description: "@cinelab/human - 3D human figure, its proportions and pose presets."
-last-updated: 2026-10-04
+last-updated: 2026-10-05
 depends_on: [../core/AGENTS.md]
 ---
 
@@ -35,7 +35,10 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/macro.ts` | Body params -> macro target weights (own implementation of macro.json ranges) |
 | `src/makehuman/morph-manifest.ts` | Morph pack manifest types (converter + runtime) |
 | `src/makehuman/morph-data.ts` | Reads the pack; CPU morph + regrounding |
-| `src/makehuman/body-shape.ts` | Applies params to the skinned mesh; refits skeleton, keeps bone rotations |
+| `src/makehuman/body-shape.ts` | Applies params to the skinned mesh; refits skeleton with head/tail/roll rest frames, keeps pose deltas |
+| `src/makehuman/bone-frames.ts` | Blender head/tail/roll bone basis in Y-up axes; pose delta on top of the rest frame (`bonePoseDelta`, `setBonePoseDelta`) |
+| `src/makehuman/bone-axes.ts` | Debug overlay: RGB axes on every bone |
+| `src/makehuman/skeleton-frames.test.ts` | Plan 1.1 acceptance: local Y on the tail within 1 degree on five shapes, rest pose within 0.1 mm |
 | `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |
 | `src/components/MakeHumanBody.tsx` | r3f component |
 | `src/makehuman/appearance.ts` | Appearance model, hair colours, skin blend weights, tone |
@@ -71,11 +74,13 @@ textures are greyscale + alpha so the runtime tints them. Proxies keep their `.m
 files (rows are `v1 v2 v3 w1 w2 w3 dx dy dz` or a single vertex index).
 
 **Converter:** `pnpm human:build` writes `makehuman-base.glb` (skinned base body, metres,
-grounded, 163 bones, identity bone rotations), `makehuman-morphs.bin` and `.json` to
+grounded, 163 bones, identity bone rotations until the first runtime refit), `makehuman-morphs.bin` and `.json` to
 `apps/web/public/human/` (gitignored), plus `makehuman-proxies.bin/.json` (27 proxies fitted to
 source vertices) and textures under `proxies/`, `eyes/`, `skins/`. Proxy .obj positions were
 authored on other bodies (hair is offset by up to 1 dm); only the .mhclo fit is authoritative. Morphing is done on the CPU: positions = source
-positions + sum(weight * delta); bones are re-derived from their joint vertex lists. Converter
+positions + sum(weight * delta); bones are re-derived from their joint vertex lists; rest rotations come from head, tail and the
+rig's Blender roll (computed in Blender Z-up axes, ours = Blender (x, -z, y)). Bone `quaternion` =
+`userData.restQuaternion` * pose delta; pose code must use `setBonePoseDelta`. Converter
 files import with `.ts` extensions so Node runs them with built-in type stripping; they must not
 be imported by browser code. GLTFLoader strips dots from bone names (`pelvis.L` -> `pelvisL`).
 
