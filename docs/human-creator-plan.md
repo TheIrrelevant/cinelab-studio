@@ -100,6 +100,7 @@ open); screenshots; weight smoothing or corrective fixes where needed. AC: QA sh
 **2.1 Modifier data.** Vendor body and face modifier targets (about 70 body, about 134 face, breast
 cup size and firmness macros); converter builds a modifier catalogue (group, label, decr/incr targets,
 left/right pairs) from `target.json`. AC: catalogue tests; morph pack budget documented.
+**Done 2026-10-05:** 668 files vendored (20 groups + target.json); catalogue of 200 modifiers (83 body, 117 head; 8 unipolar face/chin shapes) and 144 breast macros in a separate modifier pack (5.1 MB raw, 1.4 MB gzip; budget 6 / 1.6 MB).
 
 **2.2 Shape model v2.** Phenotype (gender, age, muscle, weight, height, proportions, cup size,
 firmness, ethnicity) plus local modifiers, following Anny's phenotype logic. AC: same results as the

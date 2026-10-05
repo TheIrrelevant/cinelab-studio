@@ -1,11 +1,13 @@
 /**
  * @file build-assets.ts
  * @description CLI: converts the vendored MakeHuman assets into makehuman-base.glb,
- *   makehuman-morphs.bin/.json and makehuman-proxies.bin/.json, and copies skin, eye and proxy
+ *   makehuman-morphs.bin/.json, makehuman-proxies.bin/.json and makehuman-modifiers.bin/.json,
+ *   and copies skin, eye and proxy
  *   textures into the given output folder.
  *   Run with Node's built-in type stripping: node packages/human/scripts/build-assets.ts <outDir>
  * @scope cinelab-studio
  * @depends ../src/makehuman/convert/build.ts, ../src/makehuman/target-file.ts, ./system-inputs.ts,
+ *   ./modifier-inputs.ts,
  *   ../assets/makehuman
  */
 
@@ -16,6 +18,7 @@ import { gunzipSync } from "node:zlib";
 import { convertMakeHuman } from "../src/makehuman/convert/build.ts";
 import type { NamedTarget } from "../src/makehuman/convert/morph-pack.ts";
 import { parseTarget } from "../src/makehuman/target-file.ts";
+import { loadModifierInput } from "./modifier-inputs.ts";
 import { copyTextures, loadSystemInputs } from "./system-inputs.ts";
 
 export const ASSETS = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/makehuman");
@@ -47,6 +50,7 @@ export function buildAssets() {
     proxies: system.proxies,
     eyeColours: system.eyeColours,
     skins: system.skins,
+    modifiers: loadModifierInput(ASSETS),
   });
   return { ...result, textureCopies: system.copies };
 }
@@ -60,11 +64,16 @@ function main(outDir: string) {
   writeFileSync(join(outDir, "makehuman-morphs.json"), JSON.stringify(result.manifest));
   writeFileSync(join(outDir, "makehuman-proxies.bin"), result.proxyBin);
   writeFileSync(join(outDir, "makehuman-proxies.json"), JSON.stringify(result.proxyManifest));
+  if (result.modifiers) {
+    writeFileSync(join(outDir, "makehuman-modifiers.bin"), result.modifiers.bin);
+    writeFileSync(join(outDir, "makehuman-modifiers.json"), JSON.stringify(result.modifiers.manifest));
+  }
   copyTextures(result.textureCopies, outDir);
   const mb = (bytes: number) => (bytes / 1e6).toFixed(1);
   console.log(
     `MakeHuman assets -> ${outDir}: glb ${mb(result.glb.byteLength)} MB, morphs ${mb(result.morphBin.byteLength)} MB, ` +
       `proxies ${result.proxyManifest.proxies.length} (${mb(result.proxyBin.byteLength)} MB), ` +
+      `modifiers ${result.modifiers?.manifest.catalogue.length ?? 0} (${mb(result.modifiers?.bin.byteLength ?? 0)} MB), ` +
       `${result.manifest.targets.length} targets, ${result.manifest.vertexCount} vertices, ` +
       `${result.manifest.bones.length} bones, ${result.unweighted} unweighted, ${Date.now() - started} ms`,
   );

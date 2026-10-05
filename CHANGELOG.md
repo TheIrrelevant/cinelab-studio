@@ -5,13 +5,21 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: deformation QA (Phase 1.6)
+last-change: modifier data (Phase 2.1)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Modifier data (human creator plan Phase 2.1)
+
+### Added
+- Vendored MakeHuman CC0 modifier data: `target.json` and 668 targets of 20 groups (arms, breast incl. adult cup/firmness macros, buttocks, feet, hands, hip, legs, pelvis, stomach, torso; head, forehead, eyebrows, eyes, nose, cheek, mouth, chin, ears, neck). Not vendored: asym, expression, genitals. `tools/vendor-makehuman.mjs` extended; existing files unchanged.
+- `modifier-catalogue.ts`: 200 modifiers (83 body, 117 head) with section, readable label, bipolar/unipolar kind, left/right targets and end words.
+- Converter writes `makehuman-modifiers.bin/.json` (catalogue targets + 144 breast macros, same source indexing as the morph pack): 5.1 MB raw, 1.4 MB gzip, budget checked in tests.
+- Tests: catalogue (counts, sides, labels, unipolar shapes, vendored files) and modifier pack (coverage, budget).
 
 ## 2026-10-05 - Deformation QA (human creator plan Phase 1.6)
 

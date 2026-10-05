@@ -6,6 +6,8 @@
  * @depends none
  */
 
+import type { Modifier } from "./modifier-catalogue";
+
 export type Section = { offset: number; length: number };
 
 export type PackedTarget = {
@@ -31,5 +33,17 @@ export type MorphManifest = {
   /** Parent-first, same order as the GLB skin joints; head/tail are source vertex lists, roll is the Blender roll in radians. */
   bones: Array<{ name: string; parent: number; head: number[]; tail: number[]; roll: number }>;
   scale: number;
+  targets: PackedTarget[];
+};
+
+/** Modifier pack (plan 2.1): local body/head modifiers and breast cup/firmness macros. */
+export type ModifierManifest = {
+  version: 1;
+  /** Same source vertex indexing as the morph pack. */
+  sourceCount: number;
+  scale: number;
+  catalogue: Modifier[];
+  /** Pack names of the breast macro targets (`breast/female-young-...`). */
+  breastMacros: string[];
   targets: PackedTarget[];
 };

@@ -64,6 +64,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/pose-ik.ts` | Re-solves IK limbs after edits (planted feet) and writes rotations |
 | `src/components/IkTargetGizmo.tsx` | Move gizmo for an IK target |
 | `src/makehuman/qa-poses.ts` | Deformation QA pose set |
+| `src/makehuman/modifier-catalogue.ts` | target.json -> body/head modifier catalogue (bipolar/unipolar, sides, labels) |
+| `src/makehuman/convert/modifier-pack.ts` | Modifier pack: catalogue targets + breast macros, same source indexing |
+| `scripts/modifier-inputs.ts` | Loads target.json and the vendored modifier targets for the converter |
 | `src/makehuman/deformation-metrics.ts` | Collapsed / inverted triangle metrics of a posed mesh |
 | `src/makehuman/deformation-qa.test.ts` | Regression guard against the docs/deformation-qa.md baseline |
 | `src/makehuman/joint-directions.test.ts` | Limits bend joints anatomically on both sides; right frames mirror left |
@@ -105,7 +108,10 @@ files (rows are `v1 v2 v3 w1 w2 w3 dx dy dz` or a single vertex index).
 **Converter:** `pnpm human:build` writes `makehuman-base.glb` (skinned base body, metres,
 grounded, 163 bones, identity bone rotations until the first runtime refit), `makehuman-morphs.bin` and `.json` to
 `apps/web/public/human/` (gitignored), plus `makehuman-proxies.bin/.json` (27 proxies fitted to
-source vertices) and textures under `proxies/`, `eyes/`, `skins/`. Proxy .obj positions were
+source vertices) and textures under `proxies/`, `eyes/`, `skins/`, and `makehuman-modifiers.bin/.json` (plan 2.1: 200
+modifiers - 83 body, 117 head - plus 144 breast cup/firmness macros; 5.1 MB raw, 1.4 MB gzip; budget
+6 MB raw / 1.6 MB gzip, checked in build.test.ts; separate from the 17.6 MB morph pack so it can be
+lazy-loaded). Proxy .obj positions were
 authored on other bodies (hair is offset by up to 1 dm); only the .mhclo fit is authoritative. Morphing is done on the CPU: positions = source
 positions + sum(weight * delta); bones are re-derived from their joint vertex lists; rest rotations come from head, tail and the
 rig's Blender roll (computed in Blender Z-up axes, ours = Blender (x, -z, y)). Bone `quaternion` =

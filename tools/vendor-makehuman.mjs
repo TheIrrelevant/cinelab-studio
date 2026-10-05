@@ -1,7 +1,7 @@
 /**
  * @file vendor-makehuman.mjs
- * @description One-time copy of MakeHuman CC0 assets (base mesh, adult young/old macro targets, default rig
- *   and weights) from the mpfb2 repository into packages/human/assets/makehuman. Only data is
+ * @description One-time copy of MakeHuman CC0 assets (base mesh, adult young/old macro targets, body and
+ *   head modifier targets with target.json, breast cup/firmness macros, default rig and weights) from the mpfb2 repository into packages/human/assets/makehuman. Only data is
  *   copied; mpfb2 code is GPL and must never be vendored. Updates are intentionally not tracked.
  *   Usage: node tools/vendor-makehuman.mjs [path-to-existing-mpfb2-checkout]
  * @scope cinelab-studio
@@ -24,11 +24,21 @@ const DATA = "src/mpfb/data";
 const FILES = [
   "3dobjs/base.obj",
   "targets/macrodetails/macro.json",
+  "targets/target.json",
   "rigs/standard/rig.default.json",
   "rigs/standard/weights.default.json",
 ];
 /** Macro target folders; only young (25 y) and old (90 y) targets: the body covers ages 18-35. */
-const TARGET_DIRS = ["targets/macrodetails", "targets/macrodetails/height", "targets/macrodetails/proportions"];
+const MACRO_DIRS = ["targets/macrodetails", "targets/macrodetails/height", "targets/macrodetails/proportions"];
+/**
+ * Local modifier groups of target.json (body and head), plus the breast cup/firmness macros in
+ * targets/breast. Left out: asym, expression (Face Units are used instead), genitals, measure.
+ */
+export const MODIFIER_GROUPS = [
+  "arms", "breast", "buttocks", "feet", "hands", "hip", "legs", "pelvis", "stomach", "torso",
+  "head", "forehead", "eyebrows", "eyes", "nose", "cheek", "mouth", "chin", "ears", "neck",
+];
+const TARGET_DIRS = [...MACRO_DIRS, ...MODIFIER_GROUPS.map((group) => `targets/${group}`)];
 const isAdultTarget = (name) => name.endsWith(".target.gz") && !/-(baby|child)[-.]/.test(name);
 
 function checkout() {
@@ -60,7 +70,9 @@ function sourceNote(count) {
     `- Source: ${REPO} (\`${DATA}\`), commit \`${COMMIT}\`.`,
     "- License: CC0 1.0 (see `LICENSE.ASSETS.md`). Copyright holders at release: Data Collection AB,",
     "  Joel Palmius, Jonas Hauquier.",
-    "- Copied: base mesh hm08, adult macro targets (young/old; no baby or child), default rig and weights.",
+    "- Copied: base mesh hm08, adult macro targets (young/old; no baby or child), target.json with the",
+    `  body and head modifier groups (${MODIFIER_GROUPS.join(", ")}) incl. adult breast cup/firmness`,
+    "  macros, default rig and weights. Not copied: asym, expression, genitals, measure.",
     `- Target files: ${count}. Regenerate with \`node tools/vendor-makehuman.mjs\`.`,
     "- Only data is copied. mpfb2 code is GPL/AGPL and must not be copied into this repository.",
     "- Updates are not tracked on purpose; this is a one-time snapshot.",

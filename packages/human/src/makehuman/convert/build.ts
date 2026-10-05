@@ -20,6 +20,7 @@ import { buildGroupMesh, groupVertices, parseObj } from "./obj-mesh.ts";
 import { meanPosition, resolveRig, type RigJson } from "./rig-refs.ts";
 import { buildSkin, type WeightsJson } from "./skin-weights.ts";
 import { seamlessNormals } from "../normals.ts";
+import { packModifiers, type ModifierInput } from "./modifier-pack.ts";
 
 /** MakeHuman meshes are in decimetres. */
 export const UNIT_TO_METRES = 0.1;
@@ -33,6 +34,8 @@ export type ConvertInput = {
   proxies: ProxyInput[];
   eyeColours: string[];
   skins: string[];
+  /** Local modifiers and breast macros for the separate modifier pack (plan 2.1). */
+  modifiers?: ModifierInput;
 };
 
 export function convertMakeHuman(input: ConvertInput) {
@@ -102,5 +105,6 @@ export function convertMakeHuman(input: ConvertInput) {
     eyeColours: input.eyeColours,
     skins: input.skins,
   };
-  return { glb, morphBin: pack.toBytes(), manifest, proxyBin: proxyBin.toBytes(), proxyManifest, unweighted: skin.unweighted };
+  const modifiers = input.modifiers ? packModifiers(input.modifiers, compact, UNIT_TO_METRES, originals.length) : null;
+  return { glb, morphBin: pack.toBytes(), manifest, proxyBin: proxyBin.toBytes(), proxyManifest, modifiers, unweighted: skin.unweighted };
 }

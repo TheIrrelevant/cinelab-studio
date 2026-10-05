@@ -1,7 +1,8 @@
 /**
  * @file build.test.ts
  * @description End-to-end conversion of the vendored MakeHuman assets: the GLB loads in three's
- *   GLTFLoader as a skinned, grounded, adult-sized body, and the morph pack is consistent.
+ *   GLTFLoader as a skinned, grounded, adult-sized body, the morph pack is consistent, and the
+ *   modifier pack holds every catalogue target within its size budget.
  * @scope cinelab-studio
  * @depends ../../../scripts/build-assets.ts, ./build.ts, three GLTFLoader
  */
@@ -9,7 +10,9 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { Box3, PropertyBinding, Vector3, type SkinnedMesh } from "three";
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { gzipSync } from "node:zlib";
 import { buildAssets } from "../../../scripts/build-assets.ts";
+import { catalogueTargets } from "../modifier-catalogue";
 
 type Result = ReturnType<typeof buildAssets>;
 let result: Result;
@@ -87,3 +90,23 @@ describe("MakeHuman morph pack", () => {
     expect(largest).toBeGreaterThan(0.005);
   });
 });
+
+describe("modifier pack (plan 2.1)", () => {
+  it("packs every catalogue target and the 144 breast macros", () => {
+    const modifiers = result.modifiers!;
+    const packed = new Set(modifiers.manifest.targets.map((t) => t.name));
+    expect(modifiers.manifest.catalogue).toHaveLength(200);
+    expect(modifiers.manifest.breastMacros).toHaveLength(144);
+    for (const name of [...catalogueTargets(modifiers.manifest.catalogue), ...modifiers.manifest.breastMacros]) expect(packed.has(name), name).toBe(true);
+    expect(modifiers.manifest.sourceCount).toBe(result.manifest.sourceCount);
+  });
+
+  it("moves real vertices and stays inside the download budget", () => {
+    const modifiers = result.modifiers!;
+    expect(modifiers.manifest.targets.every((t) => t.count > 0)).toBe(true);
+    // Budget (docs in packages/human/AGENTS.md): 6 MB raw, 1.6 MB gzip.
+    expect(modifiers.bin.byteLength).toBeLessThan(6e6);
+    expect(gzipSync(modifiers.bin).byteLength).toBeLessThan(1.6e6);
+  });
+});
+
