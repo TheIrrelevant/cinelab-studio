@@ -19,15 +19,26 @@ be changed. We build something similar, not a copy.
 multiple characters, pose libraries, anatomy (muscle) view.
 **Not wanted now:** wooden mannequins.
 
-## 2. Current state (branch `feat/makehuman-assets`)
+## 2. Progress (resume here)
 
-- MakeHuman CC0 base mesh hm08 (13,380 body vertices), 163-bone default rig with fingers, toes, jaw,
-  eyes, tongue and facial muscle bones; 192 adult macro targets; converter to GLB + morph pack.
-- Runtime: macro weighting (gender, age 18-35, muscle, weight, height, proportions, ethnicity), CPU
-  morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
-  4 eyelashes as fitted `.mhclo` proxies.
-- Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: Phase 1 done; shoulder/hip correctives open (docs/deformation-qa.md); UI is raw 0-100 % sliders.
+**Status 2026-10-05 (branch `main`, last step commit `9f38242`):** Phase 0 and Phase 1 complete; Phase 2
+steps 2.1 and 2.2 complete. **Next: 2.3 Anthropometry and solvers** (needs approval to start).
+
+| Phase | Step | Status |
+|---|---|---|
+| 0 | 0.1 Branch strategy, 0.2 Anny study | done |
+| 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
+| 2 | 2.1 Modifier data, 2.2 Shape model v2 | done |
+| 2 | **2.3 Anthropometry and solvers** | **next** |
+| 2 | 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
+| 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
+| 4 | 4.1-4.3 Studio integration | open |
+
+Current state of the body: MakeHuman hm08 with real bone frames, joint limits, handles, gizmo, undo,
+two-bone IK with planted feet, deformation QA baseline (linear blend skinning kept), 200 local modifiers
+and breast cup/firmness in shape model v2. Lab page `/lab/human` exposes all of it. Known gaps: shoulder
+and deep hip correctives (docs/deformation-qa.md); UI is still raw 0-100 % sliders (2.5 / 2.6). The dev
+server is not left running; browser checks start a temporary one.
 
 ## 3. Sources and licenses
 
@@ -107,7 +118,7 @@ firmness, ethnicity) plus local modifiers, following Anny's phenotype logic. AC:
 current macro model for shared parameters; every modifier resolves to packed targets.
 **Done 2026-10-05:** `shape-model.ts` (macro.ts unchanged; breast macros female x age x muscle x weight x cup x firmness; ReLU modifier pairs, symmetric sides), modifier pack loaded at runtime with per-target scale; identical bodies for shared parameters (max difference 0); lab breast size/firmness sliders.
 
-**2.3 Anthropometry and solvers.** Measure height, mass (volume x 980), waist and BMI on the mesh;
+**2.3 Anthropometry and solvers.** *(next)* Measure height, mass (volume x 980), waist and BMI on the mesh;
 solve typed height (cm) and weight (kg) into parameters; report the feasible range for the current
 gender and body type. AC: solved body within 0.5 cm and 0.5 kg; out-of-range input is clamped and shown.
 

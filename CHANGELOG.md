@@ -5,13 +5,18 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: shape model v2 (Phase 2.2)
+last-change: plan progress table (session end)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Plan progress
+
+### Changed
+- `docs/human-creator-plan.md`: section 2 is now a progress table with the resume point (next: 2.3).
 
 ## 2026-10-05 - Shape model v2 (human creator plan Phase 2.2)
 
