@@ -26,6 +26,7 @@ import { LabCamera, type LabView } from "./LabCamera";
 import { LabProbe } from "./LabProbe";
 import { LabToggle } from "./LabToggle";
 import { PosePanel } from "./PosePanel";
+import { QaPoseSelect } from "./QaPoseSelect";
 import { usePoseEditor } from "./use-pose-editor";
 import type { GizmoMode, GizmoSpace } from "@cinelab/human/components/PoseGizmo";
 import { rotationOf } from "@cinelab/human/makehuman/pose-editor";
@@ -106,7 +107,7 @@ export default function HumanLabPage() {
           <LabCamera view={view} height={height ?? 1.66} />
         </Canvas>
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-          {(["body", "side", "portrait"] as const).map((option) => (
+          {(["body", "side", "portrait", "hands"] as const).map((option) => (
             <button
               key={option}
               type="button"
@@ -114,7 +115,7 @@ export default function HumanLabPage() {
               onClick={() => setView(option)}
               className={`whitespace-nowrap rounded px-3 py-1 text-xs ${view === option ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
             >
-              {{ body: "Full body", side: "Side", portrait: "Portrait" }[option]}
+              {{ body: "Full body", side: "Side", portrait: "Portrait", hands: "Hands" }[option]}
             </button>
           ))}
           <LabToggle id="toggle-handles" on={handles} onChange={setHandles} label="Handles" />
@@ -140,6 +141,7 @@ export default function HumanLabPage() {
         <p className="text-xs text-neutral-400" data-testid="body-height">
           Height: {height === null ? "loading..." : `${(height * 100).toFixed(0)} cm`}
         </p>
+        <QaPoseSelect onLoad={(qa) => actions.loadPose(qa.pose, qa.rootOffset)} onRest={actions.resetAll} />
         <PosePanel
           primary={primary}
           rotation={primary ? rotationOf(editor, primary) : null}

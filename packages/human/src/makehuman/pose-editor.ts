@@ -83,8 +83,8 @@ export function setRootOffset(editor: PoseEditor, offset: Vector3, record = true
 }
 
 /** Replaces the whole pose (e.g. a preset) as one undo step; bones are clamped. */
-export function loadPose(editor: PoseEditor, pose: BodyPose): PoseEditor {
-  let next: PoseEditor = { ...editor, current: { ...editor.current, rotations: {} } };
+export function loadPose(editor: PoseEditor, pose: BodyPose, rootOffset?: Vec3): PoseEditor {
+  let next: PoseEditor = { ...editor, current: { ...editor.current, rotations: {}, ...(rootOffset ? { rootOffset: [...rootOffset] as Vec3 } : {}) } };
   for (const [bone, q] of Object.entries(pose)) next = setRotation(next, bone, q, false);
   return update(editor, next.current, true);
 }

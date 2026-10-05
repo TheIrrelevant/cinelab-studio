@@ -46,7 +46,7 @@ export function usePoseEditor() {
       moveIkLive: (limb: LimbId, target: Vector3) => run((e) => P.setIkTarget(e, limb, target, false), []),
       setIk: (limb: LimbId, on: boolean) =>
         run((e) => P.setIkTarget(e, limb, on && rig.current ? effectorPosition(rig.current, e, limb) : null)),
-      loadPose: (pose: BodyPose) => run((e) => P.loadPose(e, pose), Object.keys(pose)),
+      loadPose: (pose: BodyPose, rootOffset?: readonly [number, number, number]) => run((e) => P.loadPose(e, pose, rootOffset), Object.keys(pose)),
       resetSelected: () => run(P.resetSelected, latest.current.selection),
       resetAll: () => run(P.resetAll),
       undo: () => run(P.undo),

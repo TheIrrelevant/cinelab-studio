@@ -16,6 +16,7 @@
     "./makehuman/limbs": "./src/makehuman/limbs.ts",
     "./makehuman/load-body": "./src/makehuman/load-body.ts",
     "./makehuman/pose-ik": "./src/makehuman/pose-ik.ts",
+    "./makehuman/qa-poses": "./src/makehuman/qa-poses.ts",
     "./makehuman/pose-editor": "./src/makehuman/pose-editor.ts",
     "./makehuman/pose-numeric": "./src/makehuman/pose-numeric.ts",
     "./makehuman/macro": "./src/makehuman/macro.ts",

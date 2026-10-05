@@ -5,7 +5,8 @@
  *   measured height, ages 18-25 share the adult body, and screenshots of the three ethnic
  *   presets (female and male) and three ages are saved; hairstyle, hair colour, eye colour and
  *   skin tone change the portrait, and three portraits are saved; the bone axes overlay draws
- *   and clears, with screenshots of the rest frames; the joint limit demo pose bends and restores.
+ *   and clears, with screenshots of the rest frames; the joint limit demo pose bends and restores;
+ *   deformation QA poses load and return to rest.
  * @depends playwright, ./lab-helpers.mjs; running Next dev server on STUDIO_URL or http://localhost:3000
  */
 import assert from "node:assert/strict";
@@ -138,6 +139,18 @@ try {
   await page.waitForTimeout(800);
   assert.ok(differs(plain, await viewport(page)) < 0.001, "rest pose restored");
   console.log("PASS limit demo pose");
+
+  // Deformation QA poses (plan 1.6) load and return to rest.
+  await page.getByTestId("view-body").click();
+  await page.waitForTimeout(600);
+  const rest = await viewport(page);
+  await page.getByTestId("select-qa-pose").selectOption("deep-squat");
+  await page.waitForTimeout(800);
+  assert.ok(differs(rest, await viewport(page)) > 0.01, "QA pose changes the body");
+  await page.getByTestId("select-qa-pose").selectOption("");
+  await page.waitForTimeout(800);
+  assert.ok(differs(rest, await viewport(page)) < 0.001, "rest restored");
+  console.log("PASS QA poses");
 
   assert.deepEqual(errors, [], "no page or console errors");
   console.log("PASS no errors");

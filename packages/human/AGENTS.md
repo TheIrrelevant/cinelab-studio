@@ -19,6 +19,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./makehuman/limbs` - `LIMBS`, `LimbId`, `limbOfEffector`, `limbBones`.
   - `./makehuman/pose-ik` - `settleIk(rig, editor, changedBones)`, `effectorPosition`, `applySnapshot`, `PoseRig`.
   - `./makehuman/load-body` - `LoadedBody` (also passed to `onBody` of `MakeHumanBody`).
+  - `./makehuman/qa-poses` - `QA_POSES` deformation QA pose set (plan 1.6).
   - `./components/PoseGizmo` - drei TransformControls on a bone: rotate clamped to limits, move the root (world axes); `GizmoMode`, `GizmoSpace`.
   - `./makehuman/pose-editor` - pure pose editor (selection, clamped rotations, root offset, undo/redo snapshots, resets, presets).
   - `./makehuman/pose-numeric` - pose delta <-> X/Y/Z degrees (swing X, twist Y, swing Z).
@@ -31,6 +32,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
   18-25 uses the 25-year body unchanged; 25-35 blends up to about 15 % towards the 90-year targets.
 - **Must not know:** characters, studio or rendering.
+- **Skinning:** linear blend skinning (MakeHuman weights). Dual quaternion skinning and weight
+  smoothing were tried in plan 1.6 and rejected - see docs/deformation-qa.md.
 - **Known asset limits:** MakeHuman stock skins have a lighter painted patch around mouth/chin
   that shows as a soft band on one cheek; eye whites read slightly dark under studio lights.
 
@@ -60,6 +63,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/ik-solver.ts` | Exact analytic two-bone IK around the real hinge, pole, flat end effector |
 | `src/makehuman/pose-ik.ts` | Re-solves IK limbs after edits (planted feet) and writes rotations |
 | `src/components/IkTargetGizmo.tsx` | Move gizmo for an IK target |
+| `src/makehuman/qa-poses.ts` | Deformation QA pose set |
+| `src/makehuman/deformation-metrics.ts` | Collapsed / inverted triangle metrics of a posed mesh |
+| `src/makehuman/deformation-qa.test.ts` | Regression guard against the docs/deformation-qa.md baseline |
 | `src/makehuman/joint-directions.test.ts` | Limits bend joints anatomically on both sides; right frames mirror left |
 | `src/makehuman/skeleton-frames.test.ts` | Plan 1.1 acceptance: local Y on the tail within 1 degree on five shapes, rest pose within 0.1 mm |
 | `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |

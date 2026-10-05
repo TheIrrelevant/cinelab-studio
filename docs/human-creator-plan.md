@@ -27,7 +27,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
   morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
   4 eyelashes as fitted `.mhclo` proxies.
 - Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: deformation QA pending (frames 1.1, limits 1.2, handles 1.3, gizmo 1.4, IK 1.5 done); UI is raw 0-100 % sliders.
+- Known gaps: Phase 1 done; shoulder/hip correctives open (docs/deformation-qa.md); UI is raw 0-100 % sliders.
 
 ## 3. Sources and licenses
 
@@ -93,6 +93,7 @@ limb. AC: dragging a hand target reaches any point inside arm reach without join
 **1.6 Deformation quality.** Fixed QA pose set (arms up, elbow 140, deep squat, fist, head turn, jaw
 open); screenshots; weight smoothing or corrective fixes where needed. AC: QA sheet in
 `docs/deformation-qa.md` with before/after images and no collapsing joints.
+**Done 2026-10-05:** `qa-poses.ts`, `deformation-metrics.ts`, regression test, lab QA pose picker and Hands view, `capture-deformation.mjs`; linear blend skinning kept (no joint loses volume, at most 1.5 % of triangles affected); weight smoothing, dual quaternion skinning and a 50 % blend measured and rejected with images. Open: shoulder top above 110 degrees abduction and deep hip crease need corrective shapes later.
 
 ## 7. Phase 2 - Detailed human creation
 

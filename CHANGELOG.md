@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: two-bone IK (Phase 1.5)
+last-change: deformation QA (Phase 1.6)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Deformation QA (human creator plan Phase 1.6)
+
+### Added
+- `qa-poses.ts`: fixed QA pose set (arms up, elbows 140, deep squat, fists, head turn, jaw open) inside the joint limits.
+- `deformation-metrics.ts`: collapsed and inverted triangle counts of a posed mesh per dominant bone.
+- `deformation-qa.test.ts`: regression guard against the measured baseline.
+- `docs/deformation-qa.md` with images (`docs/images/deformation-qa/`), `apps/web/scripts/capture-deformation.mjs`.
+- `/lab/human`: QA pose picker and a Hands camera view; `loadPose` accepts a root offset.
+
+### Decided
+- Linear blend skinning stays. Laplacian weight smoothing (no material change), dual quaternion skinning (shoulder bulge, stepped silhouettes from MakeHuman's stepped weights) and a 50 % blend were implemented, measured and removed.
 
 ## 2026-10-05 - Two-bone IK (human creator plan Phase 1.5)
 
