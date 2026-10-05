@@ -1,0 +1,26 @@
+Cinelab Studio
+Copyright (C) 2026 Kraftreich
+
+This product includes algorithms adapted (re-implemented in TypeScript, no source
+code copied) from Anny:
+
+  Anny, Copyright (C) 2025 NAVER Corporation. All Rights Reserved.
+  Licensed under the Apache License, Version 2.0
+  https://github.com/naver/anny (commit d6fc027ced5c17b6b0775dee944096ade7a9ef80)
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Adapted from Anny (see docs/anny-notes.md for file references):
+  - Phenotype mask-product weighting, breast (cup size, firmness) block and
+    opposite-pair local modifiers with ReLU coefficients
+    (src/anny/models/phenotype.py, src/anny/models/full_model.py)
+  - Anthropometry: height, waist circumference (hm08 waist vertex indices),
+    signed-volume mass at 980 kg/m3, BMI (src/anny/anthropometry.py)
+  - Damped Gauss-Newton parameter update with finite-difference Jacobian
+    (src/anny/anny_inverter.py)
+  - Bone rest frames from head, tail and roll (src/anny/utils/kinematics.py)
+  - Facial action blendshape integration (src/anny/models/facial_actions.py)
+
+Third-party data:
+  - MakeHuman / MPFB2 base mesh, targets, rig and skinning weights - CC0 1.0
+  - MakeHuman system assets (skins, eyes, hair, eyebrows, eyelashes) - CC0 1.0
+  - Face Units 01 asset pack by Mika Suominen - CC0 1.0 (when vendored)

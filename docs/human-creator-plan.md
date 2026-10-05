@@ -1,9 +1,9 @@
 ---
 type: plan
 description: Step-by-step plan for the Cinelab human creator - skeleton and gizmo foundation, detailed body and face creation, expressions and hands, studio integration.
-last-updated: 2026-10-04
+last-updated: 2026-10-05
 last-model: claude-opus-5-5
-depends_on: [../packages/human/AGENTS.md, ../AGENTS.md, ./render-contract.md]
+depends_on: [../packages/human/AGENTS.md, ../AGENTS.md, ./render-contract.md, ./anny-notes.md]
 ---
 
 # Human creator plan
@@ -56,10 +56,12 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 **0.1 Branch strategy.** Decide how `refactor/packages` and `feat/makehuman-assets` reach `main`
 (open decision D1). AC: `main` builds and all checks pass after the merge.
+**Done 2026-10-05:** fast-forward of the linear chain, verified on `main` (commit `02391d3`).
 
 **0.2 Anny study and attribution.** Read `phenotype.py`, `anthropometry.py`, `anny_inverter.py`,
 `facial_actions.py`, `rigged_model.py`; write `docs/anny-notes.md` (what we adapt and why); add `NOTICE`.
 AC: notes list every adapted algorithm with file references.
+**Done 2026-10-05:** `docs/anny-notes.md`, `NOTICE`.
 
 ## 6. Phase 1 - Skeleton and gizmo foundation
 
@@ -145,11 +147,12 @@ AC: studio e2e passes with the new body; render contract tests updated.
 
 | ID | Decision | Needed before |
 |---|---|---|
-| D1 | Merge order of `refactor/packages` and `feat/makehuman-assets` into `main` | 0.1 |
+| D1 | Resolved: fast-forward `main` to `feat/makehuman-assets` (linear chain) | 0.1 |
 | D2 | Body type list (e.g. Skinny, Slim, Normal, Athletic, Muscular, Curvy) | 2.4 |
 | D3 | Ethnicity: single choice only, or also Mixed | 2.5 |
 | D4 | Extra body regions: waist/hips, shoulders, stomach, arms/legs | 2.5 |
 | D5 | Close-up mesh quality: keep hm08, subdivide, or denser topology | 2.8 |
+| D6 | Bone roll stability: tail and roll only, or Procrustes roll correction if roll flips across shapes (`docs/anny-notes.md` section 5) | 1.1 review |
 
 ## 11. Risks
 

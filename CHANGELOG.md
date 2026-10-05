@@ -5,13 +5,22 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: merged feat/makehuman-assets into main (Phase 0.1)
+last-change: Anny study notes and NOTICE (Phase 0.2)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Anny study and attribution (human creator plan Phase 0.2)
+
+### Added
+- `docs/anny-notes.md`: what we adapt from naver/anny (commit `d6fc027`), what we only reference and what we skip, with file and line references - phenotype weighting, anthropometry, bone frames, inversion, facial actions - plus license and provenance notes.
+- `NOTICE`: Apache 2.0 attribution for Anny-adapted algorithms and CC0 data credits.
+
+### Changed
+- `docs/human-creator-plan.md`: steps 0.1 and 0.2 marked done; D1 resolved; new decision D6 (bone roll stability).
 
 ## 2026-10-05 - Main merge (human creator plan Phase 0.1)
 
