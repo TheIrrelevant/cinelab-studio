@@ -14,7 +14,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./mannequin-spec` - `MannequinSpec`, `HairShape` (height, girth, shoulders, skin, hair).
   - `./components/Mannequin` - jointed react-three-fiber figure for a spec and pose.
   - `./poses` - `POSE_IDS`, `POSES`, `poseAngles(pose)` (joint Euler angles in degrees).
-  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices, `pose` clamped to joint limits, `showBoneAxes`).
+  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices, `pose` clamped to joint limits, `handles` (on-body joint handles: `fingers`, `selected`, `onSelect(bone, additive)`, `onHover`), `showBoneAxes`).
+  - `./components/JointHandles` - the handles on their own (`skeleton`, `boneNames`, same options).
   - `./makehuman/body-pose` - `BodyPose` (rig bone name -> rotation delta), `applyBodyPose`, `limitDemoPose`.
   - `./makehuman/appearance` - `Appearance`, `DEFAULT_APPEARANCE`, `HAIR_COLOURS`, `AppearanceCatalog`, `skinWeights`.
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
@@ -42,6 +43,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/swing-twist.ts` | Bone-local rotation <-> swing vector (X/Z) + twist (Y) |
 | `src/makehuman/joint-limits.ts` | Limit table (degrees, left side, right mirrored) per posable bone, `jointLimit`, `clampBoneDelta` |
 | `src/makehuman/body-pose.ts` | Applies a clamped pose to the skeleton; limit demo pose |
+| `src/makehuman/handle-spec.ts` | Handle per posable bone: side/finger colour, IK triangle, size, finger toggle |
+| `src/components/JointHandles.tsx` | Handles portalled into bones; on top of the mesh, hover, select |
 | `src/makehuman/joint-directions.test.ts` | Limits bend joints anatomically on both sides; right frames mirror left |
 | `src/makehuman/skeleton-frames.test.ts` | Plan 1.1 acceptance: local Y on the tail within 1 degree on five shapes, rest pose within 0.1 mm |
 | `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |

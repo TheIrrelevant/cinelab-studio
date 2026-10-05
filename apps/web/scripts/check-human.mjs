@@ -6,46 +6,17 @@
  *   presets (female and male) and three ages are saved; hairstyle, hair colour, eye colour and
  *   skin tone change the portrait, and three portraits are saved; the bone axes overlay draws
  *   and clears, with screenshots of the rest frames; the joint limit demo pose bends and restores.
- * @depends playwright; running Next dev server on STUDIO_URL or http://localhost:3000
+ * @depends playwright, ./lab-helpers.mjs; running Next dev server on STUDIO_URL or http://localhost:3000
  */
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
+import { differs, heightCm, setSlider, settle, viewport } from "./lab-helpers.mjs";
 
 const base = process.env.STUDIO_URL ?? "http://localhost:3000";
 const output = "screenshots/human-lab";
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL ?? "chrome" });
-
-/** Sets a React-controlled range input and fires the input event React listens to. */
-async function setSlider(page, key, value) {
-  await page.evaluate(
-    ([testId, next]) => {
-      const input = document.querySelector(`[data-testid="${testId}"]`);
-      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value").set;
-      setter.call(input, String(next));
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    },
-    [`slider-${key}`, value],
-  );
-}
-
-const heightCm = async (page) => Number((await page.getByTestId("body-height").textContent()).match(/(\d+) cm/)?.[1]);
-const settle = (page) => page.waitForTimeout(400);
-/** Downsampled greyscale pixels read back from the WebGL canvas (preserveDrawingBuffer). */
-const viewport = (page) =>
-  page.evaluate(() => {
-    const source = document.querySelector('[data-testid="human-viewport"] canvas');
-    const copy = document.createElement("canvas");
-    copy.width = 200;
-    copy.height = 180;
-    const context = copy.getContext("2d");
-    context.drawImage(source, 0, 0, copy.width, copy.height);
-    const { data } = context.getImageData(0, 0, copy.width, copy.height);
-    return Array.from({ length: data.length / 4 }, (_, i) => Math.round((data[i * 4] + data[i * 4 + 1] + data[i * 4 + 2]) / 3));
-  });
-/** Share of sampled pixels whose grey value changed by more than 6 levels. */
-const differs = (a, b) => a.reduce((count, value, i) => count + (Math.abs(value - b[i]) > 6 ? 1 : 0), 0) / a.length;
 
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });

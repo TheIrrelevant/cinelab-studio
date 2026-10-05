@@ -27,7 +27,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
   morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
   4 eyelashes as fitted `.mhclo` proxies.
 - Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: no handles, gizmo or IK yet (frames 1.1 and limits 1.2 done); UI is raw 0-100 % sliders.
+- Known gaps: no gizmo or IK yet (frames 1.1, limits 1.2, handles 1.3 done); UI is raw 0-100 % sliders.
 
 ## 3. Sources and licenses
 
@@ -79,6 +79,7 @@ never exceed limits; tests per joint group.
 finger; IK end effectors as triangles; hover highlight; toggle all handles and finger handles.
 AC: every posable bone has a handle that follows morphs and poses; handles stay clickable through the
 mesh.
+**Done 2026-10-05:** `handle-spec.ts`, `JointHandles.tsx` (103 handles; breast and pelvis helpers made non-posable), lab Handles / Finger handles toggles and selection readout; `check-handles.mjs`.
 
 **1.4 Selection and gizmo.** Click to select, Shift+click to add; rotate gizmo (and move for root and
 IK targets); local/world switch; numeric X/Y/Z bar; undo/redo; reset selected / reset all.

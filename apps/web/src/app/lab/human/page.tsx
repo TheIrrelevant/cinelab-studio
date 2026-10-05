@@ -2,7 +2,7 @@
  * @file page.tsx (lab/human)
  * @description MakeHuman spike test page: large 3D viewport with the morphable body and a right
  *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height and can
- *   overlay bone axes or show a joint limit demo pose.
+ *   overlay bone axes, show a joint limit demo pose, and select bones with on-body joint handles.
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
@@ -21,6 +21,8 @@ import { DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "@ci
 import { AppearancePanel } from "./AppearancePanel";
 import { BodySliders } from "./BodySliders";
 import { LabCamera, type LabView } from "./LabCamera";
+import { LabProbe } from "./LabProbe";
+import { LabToggle } from "./LabToggle";
 
 export default function HumanLabPage() {
   const [params, setParams] = useState<BodyParams>(DEFAULT_BODY);
@@ -30,6 +32,15 @@ export default function HumanLabPage() {
   const [view, setView] = useState<LabView>("body");
   const [boneAxes, setBoneAxes] = useState(false);
   const [demoPose, setDemoPose] = useState(false);
+  const [handles, setHandles] = useState(false);
+  const [fingerHandles, setFingerHandles] = useState(true);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const onSelect = useCallback(
+    (bone: string, additive: boolean) =>
+      setSelected((current) => (additive ? (current.includes(bone) ? current.filter((b) => b !== bone) : [...current, bone]) : [bone])),
+    [],
+  );
   const pose = useMemo(() => (demoPose ? limitDemoPose() : undefined), [demoPose]);
   const [error, setError] = useState<string | null>(null);
   const onShape = useCallback((result: { heightMetres: number }) => setHeight(result.heightMetres), []);
@@ -47,7 +58,11 @@ export default function HumanLabPage() {
             <circleGeometry args={[2, 48]} />
             <meshStandardMaterial color="#3a3a3f" />
           </mesh>
-          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} showBoneAxes={boneAxes} pose={pose} />
+          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} showBoneAxes={boneAxes}
+            pose={pose}
+            handles={handles ? { fingers: fingerHandles, selected, onSelect, onHover: setHovered } : undefined}
+          />
+          <LabProbe />
           <LabCamera view={view} height={height ?? 1.66} />
         </Canvas>
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
@@ -57,29 +72,15 @@ export default function HumanLabPage() {
               type="button"
               data-testid={`view-${option}`}
               onClick={() => setView(option)}
-              className={`rounded px-3 py-1 text-xs ${view === option ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
+              className={`whitespace-nowrap rounded px-3 py-1 text-xs ${view === option ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
             >
               {{ body: "Full body", side: "Side", portrait: "Portrait" }[option]}
             </button>
           ))}
-          <button
-            type="button"
-            data-testid="toggle-bone-axes"
-            aria-pressed={boneAxes}
-            onClick={() => setBoneAxes((on) => !on)}
-            className={`rounded px-3 py-1 text-xs ${boneAxes ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
-          >
-            Bone axes
-          </button>
-          <button
-            type="button"
-            data-testid="toggle-limit-demo"
-            aria-pressed={demoPose}
-            onClick={() => setDemoPose((on) => !on)}
-            className={`rounded px-3 py-1 text-xs ${demoPose ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
-          >
-            Limit demo
-          </button>
+          <LabToggle id="toggle-handles" on={handles} onChange={setHandles} label="Handles" />
+          <LabToggle id="toggle-finger-handles" on={fingerHandles} onChange={setFingerHandles} label="Finger handles" />
+          <LabToggle id="toggle-bone-axes" on={boneAxes} onChange={setBoneAxes} label="Bone axes" />
+          <LabToggle id="toggle-limit-demo" on={demoPose} onChange={setDemoPose} label="Limit demo" />
         </div>
         {error ? (
           <p className="absolute left-4 top-4 rounded bg-red-950 px-3 py-2 text-sm text-red-200">{error}</p>
@@ -92,6 +93,10 @@ export default function HumanLabPage() {
             Studio
           </Link>
         </header>
+        <p className="text-xs text-neutral-400" data-testid="selected-bones">
+          Selected: {selected.length ? selected.join(", ") : "none"}
+          {hovered ? ` (hover ${hovered})` : ""}
+        </p>
         <p className="text-xs text-neutral-400" data-testid="body-height">
           Height: {height === null ? "loading..." : `${(height * 100).toFixed(0)} cm`}
         </p>

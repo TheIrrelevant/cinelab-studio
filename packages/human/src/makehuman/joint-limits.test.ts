@@ -16,11 +16,11 @@ import { clampBoneDelta, jointLimit, type JointGroup, type JointLimit } from "./
 import { fromSwingTwist, toSwingTwist } from "./swing-twist";
 
 const RIG = Object.keys(JSON.parse(readFileSync(join(ASSETS, "rigs/standard/rig.default.json"), "utf8")) as object);
-const FACIAL = /^(levator|oculi|orbicularis|oris|risorius|temporalis|special|tongue)/;
+const NOT_POSABLE = /^(levator|oculi|orbicularis|oris|risorius|temporalis|special|tongue|breast|pelvis)/;
 const DEG = Math.PI / 180;
 const EPS = 1e-6;
 
-const posable = RIG.filter((name) => !FACIAL.test(name));
+const posable = RIG.filter((name) => !NOT_POSABLE.test(name));
 const byGroup = new Map<JointGroup, string[]>();
 for (const name of posable) {
   const group = jointLimit(name)?.group;
@@ -39,10 +39,10 @@ const rotations = Array.from({ length: 400 }, (_, i) =>
 );
 
 describe("joint limit table", () => {
-  it("covers every posable bone and no facial bone", () => {
+  it("covers every posable bone and no facial, breast or pelvis bone", () => {
     expect(posable.length).toBeGreaterThan(90);
     for (const name of posable) expect(jointLimit(name), name).toBeDefined();
-    for (const name of RIG.filter((n) => FACIAL.test(n))) expect(jointLimit(name), name).toBeUndefined();
+    for (const name of RIG.filter((n) => NOT_POSABLE.test(n))) expect(jointLimit(name), name).toBeUndefined();
   });
 
   it("mirrors right bones: X kept, Y and Z negated", () => {

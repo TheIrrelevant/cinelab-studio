@@ -4,7 +4,7 @@
  *   data plus a clamp. Limits are degrees on the bone's local axes relative to its rest frame:
  *   swing around X, swing around Z, twist around Y (the bone axis). Values are written for the
  *   left side; right bones mirror them (X kept, Y and Z negated). Facial and tongue bones are
- *   driven by expressions and are not posable here.
+ *   driven by expressions, breast and pelvis bones are soft-tissue / hip-bone helpers: not posable.
  *   Signs on the left side (measured on the rest frames): spine/neck/head +X bends forward;
  *   upper arm +X raises forward, +Z abducts; elbow, knee, finger and toe +X flex; hip -X flexes,
  *   -Z abducts; foot +X points the toes down; thumb flexes around -Z.
@@ -38,8 +38,6 @@ const TABLE: Record<string, { group: JointGroup; limit: JointLimit }> = {
   head: L("head", [-25, 20], [-15, 15], [-15, 15]),
   jaw: L("jaw", [-2, 25], [-3, 3], [-6, 6]),
   eye: L("eye", [-30, 30], NONE, [-35, 35]),
-  breast: L("shoulder", [-5, 5], NONE, [-5, 5]),
-  pelvis: L("hip", [-5, 5], [-5, 5], [-5, 5]),
   clavicle: L("shoulder", [-15, 15], [-10, 10], [-15, 25]),
   shoulder01: L("shoulder", [-15, 15], [-10, 10], [-15, 20]),
   // Rest is an A-pose about 40 degrees abducted: abduction to vertical is +140, adduction -70.

@@ -2,19 +2,20 @@
  * @file MakeHumanBody.tsx
  * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
  *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
- *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and bone axes overlay for debugging.
+ *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose, joint handles and bone axes overlay.
  * @scope cinelab-studio
- * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ../makehuman/macro,
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ../makehuman/macro,
  *   ../makehuman/appearance
  */
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { appearanceCatalog, DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "../makehuman/appearance";
 import { BodyController } from "../makehuman/body-controller";
 import { attachBoneAxes } from "../makehuman/bone-axes";
 import { applyBodyPose, type BodyPose } from "../makehuman/body-pose";
+import { JointHandles, type JointHandlesProps } from "./JointHandles";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { BodyParams } from "../makehuman/macro";
@@ -32,11 +33,13 @@ type Props = {
   showBoneAxes?: boolean;
   /** Rotation deltas per rig bone name, clamped to joint limits; missing bones stay at rest. */
   pose?: BodyPose;
+  /** On-body joint handles; omitted = no handles. */
+  handles?: Omit<JointHandlesProps, "skeleton" | "boneNames">;
 };
 
 type Ready = { body: LoadedBody; controller: BodyController };
 
-export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose }: Props) {
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles }: Props) {
   const [ready, setReady] = useState<Ready | null>(null);
 
   useEffect(() => {
@@ -86,5 +89,13 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
     return attachBoneAxes(ready.body.mesh.skeleton.bones);
   }, [ready, showBoneAxes]);
 
-  return ready ? <primitive object={ready.body.scene} /> : null;
+  const boneNames = useMemo(() => ready?.body.data.manifest.bones.map((bone) => bone.name) ?? [], [ready]);
+
+  if (!ready) return null;
+  return (
+    <>
+      <primitive object={ready.body.scene} />
+      {handles ? <JointHandles skeleton={ready.body.mesh.skeleton} boneNames={boneNames} {...handles} /> : null}
+    </>
+  );
 }

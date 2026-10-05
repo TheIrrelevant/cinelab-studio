@@ -5,13 +5,24 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: joint limits (Phase 1.2)
+last-change: joint handles (Phase 1.3)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Joint handles (human creator plan Phase 1.3)
+
+### Added
+- `handle-spec.ts`: one handle per posable bone - centre line white, right red, left blue, one colour per finger (metacarpals follow their finger), IK end effectors (wrists, feet) as triangles, sizes by joint group, finger toggle membership.
+- `JointHandles.tsx` and `handles` prop on `MakeHumanBody`: handles portalled into their bones (follow morphs and poses), drawn on top of the body and clickable through it, hover enlarges, selected turn yellow, Shift+click adds.
+- `/lab/human`: Handles and Finger handles toggles, selection and hover readout, `LabProbe` test hook, `LabToggle` button.
+- Tests: handle spec coverage and colours; browser check `check-handles.mjs` (toggles, 2 x 19 finger handles, hover, click through the mesh, Shift+click, handles follow morph and pose) with screenshots. Shared helpers moved to `scripts/lab-helpers.mjs`.
+
+### Changed
+- Breast and pelvis bones are no longer posable (soft-tissue and hip-bone helpers; their handles overlapped spine and root).
 
 ## 2026-10-05 - Joint limits (human creator plan Phase 1.2)
 
