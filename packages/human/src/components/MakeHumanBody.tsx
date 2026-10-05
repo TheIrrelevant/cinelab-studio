@@ -5,7 +5,7 @@
  *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and root offset, joint handles, transform or IK target gizmo and
  *   bone axes overlay.
  * @scope cinelab-studio
- * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ./PoseGizmo, ./IkTargetGizmo, ../makehuman/macro,
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ./PoseGizmo, ./IkTargetGizmo, ../makehuman/shape-model,
  *   ../makehuman/appearance
  */
 
@@ -21,10 +21,10 @@ import { PoseGizmo, type PoseGizmoProps } from "./PoseGizmo";
 import { IkTargetGizmo, type IkTargetGizmoProps } from "./IkTargetGizmo";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
-import type { BodyParams } from "../makehuman/macro";
+import type { ShapeParams } from "../makehuman/shape-model";
 
 type Props = {
-  params: BodyParams;
+  params: ShapeParams;
   appearance?: Appearance;
   /** Folder with the converter output, ending with "/". */
   baseUrl?: string;

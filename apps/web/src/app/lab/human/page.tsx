@@ -18,7 +18,7 @@ import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { MakeHumanBody } from "@cinelab/human/components/MakeHumanBody";
 import { limitDemoPose } from "@cinelab/human/makehuman/body-pose";
-import { DEFAULT_BODY, type BodyParams } from "@cinelab/human/makehuman/macro";
+import { DEFAULT_SHAPE, type ShapeParams } from "@cinelab/human/makehuman/shape-model";
 import { DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "@cinelab/human/makehuman/appearance";
 import { AppearancePanel } from "./AppearancePanel";
 import { BodySliders } from "./BodySliders";
@@ -33,7 +33,7 @@ import { rotationOf } from "@cinelab/human/makehuman/pose-editor";
 import { limbOfEffector } from "@cinelab/human/makehuman/limbs";
 
 export default function HumanLabPage() {
-  const [params, setParams] = useState<BodyParams>(DEFAULT_BODY);
+  const [params, setParams] = useState<Required<ShapeParams>>(DEFAULT_SHAPE);
   const [appearance, setAppearance] = useState<Appearance>(DEFAULT_APPEARANCE);
   const [catalog, setCatalog] = useState<AppearanceCatalog | null>(null);
   const [height, setHeight] = useState<number | null>(null);
@@ -160,7 +160,7 @@ export default function HumanLabPage() {
           onResetSelected={actions.resetSelected}
           onResetAll={actions.resetAll}
         />
-        <BodySliders params={params} onChange={setParams} onReset={() => setParams(DEFAULT_BODY)} />
+        <BodySliders params={params} onChange={setParams} onReset={() => setParams(DEFAULT_SHAPE)} />
         <h2 className="border-t border-neutral-800 pt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Appearance</h2>
         <AppearancePanel appearance={appearance} catalog={catalog} onChange={setAppearance} />
       </aside>

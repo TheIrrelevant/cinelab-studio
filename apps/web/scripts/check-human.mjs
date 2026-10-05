@@ -140,6 +140,21 @@ try {
   assert.ok(differs(plain, await viewport(page)) < 0.001, "rest pose restored");
   console.log("PASS limit demo pose");
 
+  // Breast size and firmness (plan 2.2) shape the female body.
+  await setSlider(page, "gender", 0);
+  await page.getByTestId("view-body").click();
+  await page.waitForTimeout(600);
+  const flat = await viewport(page);
+  await setSlider(page, "cupSize", 1);
+  await page.waitForTimeout(600);
+  assert.ok(differs(flat, await viewport(page)) > 0.001, "breast size changes the female body");
+  await page.getByTestId("view-side").click();
+  await page.waitForTimeout(600);
+  await page.getByTestId("human-viewport").screenshot({ path: `${output}/breast-size-side.png` });
+  await setSlider(page, "cupSize", 0.5);
+  await setSlider(page, "gender", 0.5);
+  console.log("PASS breast size");
+
   // Deformation QA poses (plan 1.6) load and return to rest.
   await page.getByTestId("view-body").click();
   await page.waitForTimeout(600);

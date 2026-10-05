@@ -40,7 +40,7 @@ export const DEFAULT_BODY: BodyParams = {
   caucasian: 1 / 3,
 };
 
-type Weights = Record<string, number>;
+export type Weights = Record<string, number>;
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 /** MakeHuman age value (0.5 = 25 years, 1 = 90 years); never below 0.5, so no child shape. */
@@ -57,7 +57,7 @@ function blend(value: number, from: number, to: number, low: string, high: strin
 
 const ageWeights = (years: number): Weights => blend(ageToMacro(years), 0.5, 1, "young", "old");
 
-const twoSided = (value: number, min: string, average: string, max: string) =>
+export const twoSided = (value: number, min: string, average: string, max: string) =>
   value < 0.5 ? blend(value, 0, 0.5, min, average) : blend(value, 0.5, 1, average, max);
 
 /** One-sided modifiers: only the extreme on the active side has a target. */
@@ -72,7 +72,7 @@ function ethnicityWeights(params: BodyParams): Weights {
 }
 
 /** Cartesian product of category weights, named `prefix + categories.join("-")`, scaled by `scale`. */
-function combine(prefix: string, factors: Weights[], out: Map<string, number>, scale = 1) {
+export function combine(prefix: string, factors: Weights[], out: Map<string, number>, scale = 1) {
   let entries: Array<[string[], number]> = [[[], scale]];
   for (const factor of factors) {
     const next: Array<[string[], number]> = [];
@@ -88,12 +88,19 @@ function combine(prefix: string, factors: Weights[], out: Map<string, number>, s
   }
 }
 
+/** Category weights of the four shared macro variables (also used by the breast macros). */
+export function macroFactors(params: BodyParams) {
+  return {
+    gender: { female: 1 - clamp01(params.gender), male: clamp01(params.gender) } as Weights,
+    age: ageWeights(params.ageYears),
+    muscle: twoSided(clamp01(params.muscle), "minmuscle", "averagemuscle", "maxmuscle"),
+    weight: twoSided(clamp01(params.weight), "minweight", "averageweight", "maxweight"),
+  };
+}
+
 /** Target name (as in the morph manifest) -> weight, for every target with a non-zero weight. */
 export function macroTargetWeights(params: BodyParams): Map<string, number> {
-  const gender = { female: 1 - clamp01(params.gender), male: clamp01(params.gender) };
-  const age = ageWeights(params.ageYears);
-  const muscle = twoSided(clamp01(params.muscle), "minmuscle", "averagemuscle", "maxmuscle");
-  const weight = twoSided(clamp01(params.weight), "minweight", "averageweight", "maxweight");
+  const { gender, age, muscle, weight } = macroFactors(params);
   const body = [gender, age, muscle, weight];
   const out = new Map<string, number>();
   for (const [race, raceWeight] of Object.entries(ethnicityWeights(params))) combine(`${race}-`, [gender, age], out, raceWeight);

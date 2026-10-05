@@ -4,14 +4,14 @@
  *   skin texture blend and tone, eyes, and the optional hair / eyebrow / eyelash proxies, which
  *   are created on demand, re-fitted on every shape change and share the body skeleton.
  * @scope cinelab-studio
- * @depends three, ./body-shape, ./appearance, ./materials, ./proxy-data, ./load-body, ./macro
+ * @depends three, ./body-shape, ./appearance, ./materials, ./proxy-data, ./load-body, ./shape-model
  */
 
 import type { MeshStandardMaterial, SkinnedMesh } from "three";
 import { skinWeights, type Appearance } from "./appearance";
 import { applyBodyShape, type BodyShapeResult } from "./body-shape";
 import type { LoadedBody } from "./load-body";
-import type { BodyParams } from "./macro";
+import type { ShapeParams } from "./shape-model";
 import {
   createEyeMaterial,
   createEyelashMaterial,
@@ -42,7 +42,7 @@ export class BodyController {
     await this.skin.load(this.baseUrl, this.body.proxyManifest.skins);
   }
 
-  setShape(params: BodyParams): BodyShapeResult {
+  setShape(params: ShapeParams): BodyShapeResult {
     const result = applyBodyShape(this.body.mesh, this.body.data, params);
     this.source = result.source;
     this.skin.update(skinWeights(params));

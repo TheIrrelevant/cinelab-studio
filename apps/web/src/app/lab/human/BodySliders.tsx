@@ -1,16 +1,18 @@
 /**
  * @file BodySliders.tsx
- * @description Slider panel for the MakeHuman lab: macro body parameters, ethnicity mix and
+ * @description Slider panel for the MakeHuman lab: macro body parameters, breast size and firmness, ethnicity mix and
  *   one-click ethnicity presets. Values are shown as the user sees them (years, percent).
  * @scope cinelab-studio/web
- * @depends @cinelab/human/makehuman/macro
+ * @depends @cinelab/human/makehuman/macro, @cinelab/human/makehuman/shape-model
  */
 
 "use client";
 
 import { MAX_AGE_YEARS, MIN_AGE_YEARS, type BodyParams } from "@cinelab/human/makehuman/macro";
+import type { ShapeParams } from "@cinelab/human/makehuman/shape-model";
 
-type Key = keyof BodyParams;
+type Shape = Required<ShapeParams>;
+type Key = Exclude<keyof Shape, "modifiers">;
 type Row = { key: Key; label: string; min: number; max: number; step: number; format: (value: number) => string };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
@@ -21,6 +23,8 @@ const ROWS: Row[] = [
   { key: "weight", label: "Weight", min: 0, max: 1, step: 0.01, format: percent },
   { key: "muscle", label: "Muscle", min: 0, max: 1, step: 0.01, format: percent },
   { key: "proportions", label: "Proportions", min: 0, max: 1, step: 0.01, format: percent },
+  { key: "cupSize", label: "Breast size (female)", min: 0, max: 1, step: 0.01, format: percent },
+  { key: "firmness", label: "Breast firmness (female)", min: 0, max: 1, step: 0.01, format: percent },
   { key: "african", label: "African", min: 0, max: 1, step: 0.01, format: percent },
   { key: "asian", label: "Asian", min: 0, max: 1, step: 0.01, format: percent },
   { key: "caucasian", label: "Caucasian", min: 0, max: 1, step: 0.01, format: percent },
@@ -34,8 +38,8 @@ const ETHNIC_PRESETS: Array<{ id: string; label: string; mix: Pick<BodyParams, "
 ];
 
 type Props = {
-  params: BodyParams;
-  onChange: (params: BodyParams) => void;
+  params: Shape;
+  onChange: (params: Shape) => void;
   onReset: () => void;
 };
 

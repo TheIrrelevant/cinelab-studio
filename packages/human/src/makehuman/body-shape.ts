@@ -1,15 +1,15 @@
 /**
  * @file body-shape.ts
- * @description Applies body parameters to a loaded MakeHuman skinned mesh: morphs the vertices
+ * @description Applies shape parameters (macros, breast, local modifiers) to a loaded MakeHuman skinned mesh: morphs the vertices
  *   on the CPU, recomputes seam-free normals and re-fits the skeleton (bone rest positions and
  *   inverse bind matrices) to the new joints with head/tail/roll rest frames. Pose deltas are
  *   preserved across re-shapes.
  * @scope cinelab-studio
- * @depends three, ./bone-frames, ./macro, ./morph-data, ./normals
+ * @depends three, ./bone-frames, ./shape-model, ./morph-data, ./normals
  */
 
 import { Quaternion, type BufferAttribute, type SkinnedMesh } from "three";
-import { macroTargetWeights, type BodyParams } from "./macro";
+import { shapeTargetWeights, type ShapeParams } from "./shape-model";
 import { bonePoseDelta, boneRestQuaternion, setBonePoseDelta } from "./bone-frames";
 import { jointPosition, morphSourcePositions, type MorphData } from "./morph-data";
 import { seamlessNormals } from "./normals";
@@ -21,8 +21,8 @@ export type BodyShapeResult = {
   heightMetres: number;
 };
 
-export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: BodyParams): BodyShapeResult {
-  const source = morphSourcePositions(data, macroTargetWeights(params));
+export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: ShapeParams): BodyShapeResult {
+  const source = morphSourcePositions(data, shapeTargetWeights(params, data.modifiers?.catalogue));
   const geometry = mesh.geometry;
   const position = geometry.getAttribute("position") as BufferAttribute;
   const normal = geometry.getAttribute("normal") as BufferAttribute;

@@ -1,6 +1,6 @@
 /**
  * @file load-body.ts
- * @description Loads the generated MakeHuman base GLB, morph pack and proxy pack (see
+ * @description Loads the generated MakeHuman base GLB, morph pack, modifier pack and proxy pack (see
  *   `pnpm human:build`) and returns the skinned body mesh with its morph and proxy data.
  *   Asset URLs come from the caller.
  * @scope cinelab-studio
@@ -9,8 +9,8 @@
 
 import type { Group, SkinnedMesh } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { readMorphData, type MorphData } from "./morph-data";
-import type { MorphManifest } from "./morph-manifest";
+import { addModifierPack, readMorphData, type MorphData } from "./morph-data";
+import type { ModifierManifest, MorphManifest } from "./morph-manifest";
 import { readProxyData, type ProxyData } from "./proxy-data";
 import type { ProxyManifest } from "./proxy-manifest";
 
@@ -28,6 +28,9 @@ export type BodyFiles = {
   morphs: ArrayBuffer;
   proxyManifest: ProxyManifest;
   proxies: ArrayBuffer;
+  /** Optional modifier pack (plan 2.2). */
+  modifierManifest?: ModifierManifest;
+  modifiers?: ArrayBuffer;
 };
 
 /** File names written by the converter into one folder. */
@@ -37,6 +40,8 @@ export const BODY_FILES = {
   manifest: "makehuman-morphs.json",
   proxies: "makehuman-proxies.bin",
   proxyManifest: "makehuman-proxies.json",
+  modifiers: "makehuman-modifiers.bin",
+  modifierManifest: "makehuman-modifiers.json",
 } as const;
 
 async function fetchOk(url: string): Promise<Response> {
@@ -56,10 +61,12 @@ export function parseBody(files: BodyFiles): Promise<LoadedBody> {
           if ((node as SkinnedMesh).isSkinnedMesh) mesh = node as SkinnedMesh;
         });
         if (!mesh) return reject(new Error("MakeHuman GLB has no skinned mesh"));
+        const data = readMorphData(files.manifest, files.morphs);
+        if (files.modifierManifest && files.modifiers) addModifierPack(data, files.modifierManifest, files.modifiers);
         resolve({
           scene: gltf.scene,
           mesh,
-          data: readMorphData(files.manifest, files.morphs),
+          data,
           proxies: readProxyData(files.proxyManifest, files.proxies),
           proxyManifest: files.proxyManifest,
         });
@@ -73,12 +80,14 @@ export function parseBody(files: BodyFiles): Promise<LoadedBody> {
 export async function loadBody(baseUrl: string): Promise<LoadedBody> {
   const buffer = (file: string) => fetchOk(baseUrl + file).then((r) => r.arrayBuffer());
   const json = <T>(file: string) => fetchOk(baseUrl + file).then((r) => r.json() as Promise<T>);
-  const [glb, manifest, morphs, proxyManifest, proxies] = await Promise.all([
+  const [glb, manifest, morphs, proxyManifest, proxies, modifierManifest, modifiers] = await Promise.all([
     buffer(BODY_FILES.glb),
     json<MorphManifest>(BODY_FILES.manifest),
     buffer(BODY_FILES.morphs),
     json<ProxyManifest>(BODY_FILES.proxyManifest),
     buffer(BODY_FILES.proxies),
+    json<ModifierManifest>(BODY_FILES.modifierManifest),
+    buffer(BODY_FILES.modifiers),
   ]);
-  return parseBody({ glb, manifest, morphs, proxyManifest, proxies });
+  return parseBody({ glb, manifest, morphs, proxyManifest, proxies, modifierManifest, modifiers });
 }

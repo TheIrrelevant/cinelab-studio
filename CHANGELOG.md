@@ -5,13 +5,24 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: modifier data (Phase 2.1)
+last-change: shape model v2 (Phase 2.2)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Shape model v2 (human creator plan Phase 2.2)
+
+### Added
+- `shape-model.ts`: `ShapeParams` = macro parameters + breast cup size and firmness + local modifiers. Breast macros weighted female x age x muscle x weight x cup x firmness (defaults add nothing); local modifiers as opposite-pair ReLU coefficients (adapted from Anny), both sides alike; unipolar shapes 0..1.
+- Runtime loads `makehuman-modifiers.bin/.json` (`addModifierPack`); morph targets carry their pack's scale.
+- `/lab/human`: breast size and firmness sliders.
+- Tests: identical bodies to the macro model for shared parameters, every modifier resolves at both ends, ReLU weighting, breast macros (female only, defaults neutral); browser check of breast size with screenshot.
+
+### Changed
+- `applyBodyShape`, `BodyController.setShape` and `MakeHumanBody` take `ShapeParams` (a superset of `BodyParams`).
 
 ## 2026-10-05 - Modifier data (human creator plan Phase 2.1)
 

@@ -19,6 +19,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./makehuman/limbs` - `LIMBS`, `LimbId`, `limbOfEffector`, `limbBones`.
   - `./makehuman/pose-ik` - `settleIk(rig, editor, changedBones)`, `effectorPosition`, `applySnapshot`, `PoseRig`.
   - `./makehuman/load-body` - `LoadedBody` (also passed to `onBody` of `MakeHumanBody`).
+  - `./makehuman/shape-model` - `ShapeParams` (BodyParams + `cupSize`, `firmness`, `modifiers` by id), `DEFAULT_SHAPE`, `shapeTargetWeights`, `breastTargetWeights`, `modifierTargetWeights`.
+  - `./makehuman/modifier-catalogue` - `Modifier`, `HEAD_GROUPS`, `buildCatalogue`.
   - `./makehuman/qa-poses` - `QA_POSES` deformation QA pose set (plan 1.6).
   - `./components/PoseGizmo` - drei TransformControls on a bone: rotate clamped to limits, move the root (world axes); `GizmoMode`, `GizmoSpace`.
   - `./makehuman/pose-editor` - pure pose editor (selection, clamped rotations, root offset, undo/redo snapshots, resets, presets).
@@ -47,7 +49,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/assets.test.ts` | Integrity checks for the vendored assets |
 | `src/makehuman/macro.ts` | Body params -> macro target weights (own implementation of macro.json ranges) |
 | `src/makehuman/morph-manifest.ts` | Morph pack manifest types (converter + runtime) |
-| `src/makehuman/morph-data.ts` | Reads the pack; CPU morph + regrounding |
+| `src/makehuman/morph-data.ts` | Reads the morph pack (+ modifier pack via `addModifierPack`; per-target scale); CPU morph + regrounding |
 | `src/makehuman/body-shape.ts` | Applies params to the skinned mesh; refits skeleton with head/tail/roll rest frames, keeps pose deltas |
 | `src/makehuman/bone-frames.ts` | Blender head/tail/roll bone basis in Y-up axes; pose delta on top of the rest frame (`bonePoseDelta`, `setBonePoseDelta`) |
 | `src/makehuman/bone-axes.ts` | Debug overlay: RGB axes on every bone |
@@ -64,6 +66,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/pose-ik.ts` | Re-solves IK limbs after edits (planted feet) and writes rotations |
 | `src/components/IkTargetGizmo.tsx` | Move gizmo for an IK target |
 | `src/makehuman/qa-poses.ts` | Deformation QA pose set |
+| `src/makehuman/shape-model.ts` | Shape model v2: macros + breast cup/firmness + ReLU local modifiers |
 | `src/makehuman/modifier-catalogue.ts` | target.json -> body/head modifier catalogue (bipolar/unipolar, sides, labels) |
 | `src/makehuman/convert/modifier-pack.ts` | Modifier pack: catalogue targets + breast macros, same source indexing |
 | `scripts/modifier-inputs.ts` | Loads target.json and the vendored modifier targets for the converter |

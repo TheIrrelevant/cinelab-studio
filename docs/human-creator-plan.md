@@ -105,6 +105,7 @@ left/right pairs) from `target.json`. AC: catalogue tests; morph pack budget doc
 **2.2 Shape model v2.** Phenotype (gender, age, muscle, weight, height, proportions, cup size,
 firmness, ethnicity) plus local modifiers, following Anny's phenotype logic. AC: same results as the
 current macro model for shared parameters; every modifier resolves to packed targets.
+**Done 2026-10-05:** `shape-model.ts` (macro.ts unchanged; breast macros female x age x muscle x weight x cup x firmness; ReLU modifier pairs, symmetric sides), modifier pack loaded at runtime with per-target scale; identical bodies for shared parameters (max difference 0); lab breast size/firmness sliders.
 
 **2.3 Anthropometry and solvers.** Measure height, mass (volume x 980), waist and BMI on the mesh;
 solve typed height (cm) and weight (kg) into parameters; report the feasible range for the current
