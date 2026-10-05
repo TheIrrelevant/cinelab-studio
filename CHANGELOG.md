@@ -3,15 +3,21 @@ type: changelog
 category: release-notes
 scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
-last-updated: 2026-10-04T00:00:00Z
+last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: human creator plan
+last-change: merged feat/makehuman-assets into main (Phase 0.1)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Main merge (human creator plan Phase 0.1)
+
+### Changed
+- Decision D1: `fix/studio-camera-persistence`, `refactor/packages` and `feat/makehuman-assets` form one linear chain, so `main` was fast-forwarded from `f48c3df` to `2d0b414` in a single step.
+- Verified on `main`: `pnpm check` (unit 208/208), `pnpm build`, studio browser 8/8, human browser all PASS, e2e 16/16.
 
 ## 2026-10-04 - Human creator plan
 
