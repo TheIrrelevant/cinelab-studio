@@ -14,12 +14,16 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./mannequin-spec` - `MannequinSpec`, `HairShape` (height, girth, shoulders, skin, hair).
   - `./components/Mannequin` - jointed react-three-fiber figure for a spec and pose.
   - `./poses` - `POSE_IDS`, `POSES`, `poseAngles(pose)` (joint Euler angles in degrees).
-  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices, `pose` clamped to joint limits, `handles` (on-body joint handles: `fingers`, `selected`, `onSelect(bone, additive)`, `onHover`), `showBoneAxes`).
+  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices, `pose` clamped to joint limits, `handles` (on-body joint handles: `fingers`, `selected`, `onSelect(bone, additive)`, `onHover`), `rootOffset`, `gizmo` (`PoseGizmoProps`), `showBoneAxes`).
+  - `./components/PoseGizmo` - drei TransformControls on a bone: rotate clamped to limits, move the root (world axes); `GizmoMode`, `GizmoSpace`.
+  - `./makehuman/pose-editor` - pure pose editor (selection, clamped rotations, root offset, undo/redo snapshots, resets, presets).
+  - `./makehuman/pose-numeric` - pose delta <-> X/Y/Z degrees (swing X, twist Y, swing Z).
+  - `./makehuman/joint-limits` - `jointLimit`, `clampBoneDelta`.
   - `./components/JointHandles` - the handles on their own (`skeleton`, `boneNames`, same options).
   - `./makehuman/body-pose` - `BodyPose` (rig bone name -> rotation delta), `applyBodyPose`, `limitDemoPose`.
   - `./makehuman/appearance` - `Appearance`, `DEFAULT_APPEARANCE`, `HAIR_COLOURS`, `AppearanceCatalog`, `skinWeights`.
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
-- **Depends on:** core, react, three, @react-three/fiber.
+- **Depends on:** core, react, three, @react-three/fiber, @react-three/drei (gizmo).
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
   18-25 uses the 25-year body unchanged; 25-35 blends up to about 15 % towards the 90-year targets.
 - **Must not know:** characters, studio or rendering.
@@ -45,6 +49,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/body-pose.ts` | Applies a clamped pose to the skeleton; limit demo pose |
 | `src/makehuman/handle-spec.ts` | Handle per posable bone: side/finger colour, IK triangle, size, finger toggle |
 | `src/components/JointHandles.tsx` | Handles portalled into bones; on top of the mesh, hover, select |
+| `src/components/PoseGizmo.tsx` | Rotate/move gizmo on the primary bone, clamped while dragging |
+| `src/makehuman/pose-editor.ts` | Pose editor state: selection, history, resets |
+| `src/makehuman/pose-numeric.ts` | Numeric X/Y/Z degrees of a pose delta |
 | `src/makehuman/joint-directions.test.ts` | Limits bend joints anatomically on both sides; right frames mirror left |
 | `src/makehuman/skeleton-frames.test.ts` | Plan 1.1 acceptance: local Y on the tail within 1 degree on five shapes, rest pose within 0.1 mm |
 | `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |

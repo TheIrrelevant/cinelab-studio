@@ -2,7 +2,8 @@
  * @file body-shape.test.ts
  * @description Shapes the real converted MakeHuman body: every macro weight resolves to a packed
  *   target, bodies stay grounded, height/gender/age change the size, and after the skeleton
- *   refit the skinned rest pose reproduces the morphed vertices exactly.
+ *   refit the skinned rest pose reproduces the morphed vertices exactly; pose deltas and the root
+ *   offset survive re-shapes.
  * @scope cinelab-studio
  * @depends ./body-shape, ./load-body, ./macro, ../../scripts/build-assets.ts
  */
@@ -11,6 +12,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { Quaternion, Vector3 } from "three";
 import { buildAssets } from "../../scripts/build-assets.ts";
 import { applyBodyShape } from "./body-shape";
+import { applyBodyPose } from "./body-pose";
 import { bonePoseDelta, setBonePoseDelta } from "./bone-frames";
 import { parseBody, type LoadedBody } from "./load-body";
 import { DEFAULT_BODY, macroTargetWeights, type BodyParams } from "./macro";
@@ -86,5 +88,19 @@ describe("applyBodyShape", () => {
     shape({ weight: 0.2 });
     expect(bonePoseDelta(bone).angleTo(delta)).toBeLessThan(1e-6);
     setBonePoseDelta(bone, new Quaternion());
+  });
+
+  it("offsets the root from its rest position and re-applies it after a re-shape", () => {
+    const root = body.mesh.skeleton.bones[0];
+    shape({});
+    const rest = root.position.clone();
+    applyBodyPose(body.mesh.skeleton, body.data.manifest.bones, {}, [0, 0.2, -0.1]);
+    expect(root.position.clone().sub(rest).distanceTo(new Vector3(0, 0.2, -0.1))).toBeLessThan(1e-9);
+    shape({ height: 1 });
+    const tallRest = root.position.clone();
+    applyBodyPose(body.mesh.skeleton, body.data.manifest.bones, {}, [0, 0.2, -0.1]);
+    expect(root.position.clone().sub(tallRest).distanceTo(new Vector3(0, 0.2, -0.1))).toBeLessThan(1e-9);
+    applyBodyPose(body.mesh.skeleton, body.data.manifest.bones, {});
+    shape({});
   });
 });

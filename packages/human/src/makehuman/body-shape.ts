@@ -70,6 +70,7 @@ function refitSkeleton(mesh: SkinnedMesh, data: MorphData, source: Float32Array)
       .applyQuaternion(inverseParent);
     const rest = inverseParent.multiply(worlds[i]);
     bone.userData.restQuaternion = rest.clone();
+    bone.userData.restPosition = bone.position.clone();
     bone.quaternion.copy(rest);
   });
   mesh.updateWorldMatrix(true, false);

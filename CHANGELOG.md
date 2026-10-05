@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: joint handles (Phase 1.3)
+last-change: selection and pose gizmo (Phase 1.4)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Selection and pose gizmo (human creator plan Phase 1.4)
+
+### Added
+- `pose-editor.ts`: pure pose editor - click selects, Shift adds/removes (last = primary), rotations clamped to joint limits, root offset, undo/redo with exact snapshots (a drag is one step, clamped no-op edits leave no step), reset selected, reset all, presets.
+- `pose-numeric.ts`: numeric X/Y/Z degrees in joint-limit space.
+- `PoseGizmo.tsx` (drei TransformControls) and `gizmo` / `rootOffset` props on `MakeHumanBody`: rotate in local or world axes, clamped while dragging; move for the root in world axes. `applyBodyPose` moves the root from its stored rest position.
+- `/lab/human`: `PosePanel` (numeric bar, Rotate/Move, Local/World, Undo, Redo, Reset selected, Reset all), Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z, Ctrl+Y, Escape deselects, click on empty space deselects; Limit demo now loads through the editor.
+- Tests: pose editor (selection, limits, numeric round-trip, exact undo/redo, drag as one step, resets, presets), root offset across re-shapes; browser check `check-pose.mjs` (numeric round-trip and clamp, gizmo drag within limits, undo/redo buttons and keys, reset, root move) with screenshots.
+
+### Changed
+- The root handle is a ring around the hips (it covered the spine05 handle at the same point).
 
 ## 2026-10-05 - Joint handles (human creator plan Phase 1.3)
 

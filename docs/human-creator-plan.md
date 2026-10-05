@@ -27,7 +27,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
   morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
   4 eyelashes as fitted `.mhclo` proxies.
 - Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: no gizmo or IK yet (frames 1.1, limits 1.2, handles 1.3 done); UI is raw 0-100 % sliders.
+- Known gaps: no IK yet (frames 1.1, limits 1.2, handles 1.3, gizmo 1.4 done); UI is raw 0-100 % sliders.
 
 ## 3. Sources and licenses
 
@@ -84,6 +84,7 @@ mesh.
 **1.4 Selection and gizmo.** Click to select, Shift+click to add; rotate gizmo (and move for root and
 IK targets); local/world switch; numeric X/Y/Z bar; undo/redo; reset selected / reset all.
 AC: gizmo rotation respects limits; numeric edits round-trip; undo restores exact pose.
+**Done 2026-10-05:** `pose-editor.ts`, `pose-numeric.ts`, `PoseGizmo.tsx` (root move in world axes; IK target move comes with 1.5), lab `PosePanel` with undo/redo/reset and Escape to deselect; root handle is now a ring around the hips; `check-pose.mjs`.
 
 **1.5 IK.** Two-bone IK for arms and legs with pole targets; feet keep floor contact; FK/IK switch per
 limb. AC: dragging a hand target reaches any point inside arm reach without joint-limit violations.

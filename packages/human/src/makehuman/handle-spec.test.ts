@@ -45,6 +45,11 @@ describe("handleSpecs", () => {
     expect(fingerIndex("wrist.L")).toBe(0);
   });
 
+  it("draws the root as a ring", () => {
+    expect(spec("root").shape).toBe("ring");
+    expect(specs.filter((s) => s.shape === "ring")).toHaveLength(1);
+  });
+
   it("draws IK end effectors as triangles", () => {
     const triangles = specs.filter((s) => s.shape === "triangle").map((s) => s.bone).sort();
     expect(triangles).toEqual(["foot.L", "foot.R", "wrist.L", "wrist.R"]);

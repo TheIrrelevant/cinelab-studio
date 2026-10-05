@@ -1,13 +1,14 @@
 /**
  * @file body-pose.ts
  * @description Applies a pose (bone name -> rotation delta on the rest frame) to a MakeHuman
- *   skeleton, clamped to the joint limits; bones missing from the pose return to rest. Also a
+ *   skeleton, clamped to the joint limits; bones missing from the pose return to rest; the root
+ *   can be offset from its rest position. Also a
  *   limit demo pose that bends the main joints towards their limit ends for visual checks.
  * @scope cinelab-studio
  * @depends three, ./bone-frames, ./joint-limits, ./swing-twist, ./morph-manifest
  */
 
-import { Quaternion, type Skeleton } from "three";
+import { Quaternion, Vector3, type Skeleton } from "three";
 import { setBonePoseDelta } from "./bone-frames";
 import { clampBoneDelta, jointLimit } from "./joint-limits";
 import type { MorphManifest } from "./morph-manifest";
@@ -16,11 +17,19 @@ import { fromSwingTwist } from "./swing-twist";
 /** Rig bone name (e.g. `lowerarm01.L`) -> rotation delta on top of the rest frame. */
 export type BodyPose = Record<string, Quaternion>;
 
-export function applyBodyPose(skeleton: Skeleton, bones: MorphManifest["bones"], pose: BodyPose): void {
+/** Also moves the root bone by `rootOffset` (metres, parent space) from its rest position. */
+export function applyBodyPose(skeleton: Skeleton, bones: MorphManifest["bones"], pose: BodyPose, rootOffset: readonly number[] = [0, 0, 0]): void {
   bones.forEach((spec, i) => {
+    const bone = skeleton.bones[i];
     const delta = pose[spec.name];
-    setBonePoseDelta(skeleton.bones[i], delta ? clampBoneDelta(spec.name, delta) : new Quaternion());
+    setBonePoseDelta(bone, delta ? clampBoneDelta(spec.name, delta) : new Quaternion());
+    if (spec.parent < 0) bone.position.copy(restPosition(bone).add(new Vector3(rootOffset[0], rootOffset[1], rootOffset[2])));
   });
+}
+
+/** Rest position stored by the skeleton refit (current position before the first refit). */
+export function restPosition(bone: Skeleton["bones"][number]): Vector3 {
+  return ((bone.userData.restPosition as Vector3 | undefined) ?? bone.position).clone();
 }
 
 const DEG = Math.PI / 180;

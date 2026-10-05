@@ -2,7 +2,8 @@
  * @file page.tsx (lab/human)
  * @description MakeHuman spike test page: large 3D viewport with the morphable body and a right
  *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height and can
- *   overlay bone axes, show a joint limit demo pose, and select bones with on-body joint handles.
+ *   overlay bone axes, show a joint limit demo pose, and pose the body: joint handles select,
+ *   a gizmo rotates (moves the root), a numeric bar edits X/Y/Z, with undo/redo and resets.
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
@@ -11,7 +12,7 @@
 
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { MakeHumanBody } from "@cinelab/human/components/MakeHumanBody";
@@ -23,6 +24,10 @@ import { BodySliders } from "./BodySliders";
 import { LabCamera, type LabView } from "./LabCamera";
 import { LabProbe } from "./LabProbe";
 import { LabToggle } from "./LabToggle";
+import { PosePanel } from "./PosePanel";
+import { usePoseEditor } from "./use-pose-editor";
+import type { GizmoMode, GizmoSpace } from "@cinelab/human/components/PoseGizmo";
+import { rotationOf } from "@cinelab/human/makehuman/pose-editor";
 
 export default function HumanLabPage() {
   const [params, setParams] = useState<BodyParams>(DEFAULT_BODY);
@@ -34,14 +39,19 @@ export default function HumanLabPage() {
   const [demoPose, setDemoPose] = useState(false);
   const [handles, setHandles] = useState(false);
   const [fingerHandles, setFingerHandles] = useState(true);
-  const [selected, setSelected] = useState<string[]>([]);
   const [hovered, setHovered] = useState<string | null>(null);
-  const onSelect = useCallback(
-    (bone: string, additive: boolean) =>
-      setSelected((current) => (additive ? (current.includes(bone) ? current.filter((b) => b !== bone) : [...current, bone]) : [bone])),
-    [],
+  const { editor, pose, primary, actions } = usePoseEditor();
+  const [mode, setMode] = useState<GizmoMode>("rotate");
+  const [space, setSpace] = useState<GizmoSpace>("local");
+  const gizmoMode = primary === "root" ? mode : "rotate";
+  const toggleDemo = useCallback(
+    (on: boolean) => {
+      setDemoPose(on);
+      if (on) actions.loadPose(limitDemoPose());
+      else actions.resetAll();
+    },
+    [actions],
   );
-  const pose = useMemo(() => (demoPose ? limitDemoPose() : undefined), [demoPose]);
   const [error, setError] = useState<string | null>(null);
   const onShape = useCallback((result: { heightMetres: number }) => setHeight(result.heightMetres), []);
   const onError = useCallback((cause: Error) => setError(cause.message), []);
@@ -49,7 +59,7 @@ export default function HumanLabPage() {
   return (
     <div className="flex h-screen w-full">
       <div className="relative flex-1" data-testid="human-viewport">
-        <Canvas shadows camera={{ position: [0, 1.1, 3.6], fov: 35 }} gl={{ preserveDrawingBuffer: true }}>
+        <Canvas onPointerMissed={() => actions.select(null)} shadows camera={{ position: [0, 1.1, 3.6], fov: 35 }} gl={{ preserveDrawingBuffer: true }}>
           <color attach="background" args={["#2a2a2e"]} />
           <hemisphereLight args={["#ffffff", "#444444", 0.8]} />
           <directionalLight position={[2.5, 4, 3]} intensity={2.2} castShadow />
@@ -58,9 +68,28 @@ export default function HumanLabPage() {
             <circleGeometry args={[2, 48]} />
             <meshStandardMaterial color="#3a3a3f" />
           </mesh>
-          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} showBoneAxes={boneAxes}
+          <MakeHumanBody
+            params={params}
+            appearance={appearance}
+            onShape={onShape}
+            onCatalog={setCatalog}
+            onError={onError}
+            showBoneAxes={boneAxes}
             pose={pose}
-            handles={handles ? { fingers: fingerHandles, selected, onSelect, onHover: setHovered } : undefined}
+            rootOffset={editor.current.rootOffset}
+            handles={handles ? { fingers: fingerHandles, selected: editor.selection, onSelect: actions.select, onHover: setHovered } : undefined}
+            gizmo={
+              handles && primary
+                ? {
+                    bone: primary,
+                    mode: gizmoMode,
+                    space,
+                    onDragStart: actions.beginDrag,
+                    onRotate: (delta) => actions.rotateLive(primary, delta),
+                    onMove: actions.moveRootLive,
+                  }
+                : undefined
+            }
           />
           <LabProbe />
           <LabCamera view={view} height={height ?? 1.66} />
@@ -80,7 +109,7 @@ export default function HumanLabPage() {
           <LabToggle id="toggle-handles" on={handles} onChange={setHandles} label="Handles" />
           <LabToggle id="toggle-finger-handles" on={fingerHandles} onChange={setFingerHandles} label="Finger handles" />
           <LabToggle id="toggle-bone-axes" on={boneAxes} onChange={setBoneAxes} label="Bone axes" />
-          <LabToggle id="toggle-limit-demo" on={demoPose} onChange={setDemoPose} label="Limit demo" />
+          <LabToggle id="toggle-limit-demo" on={demoPose} onChange={toggleDemo} label="Limit demo" />
         </div>
         {error ? (
           <p className="absolute left-4 top-4 rounded bg-red-950 px-3 py-2 text-sm text-red-200">{error}</p>
@@ -94,12 +123,27 @@ export default function HumanLabPage() {
           </Link>
         </header>
         <p className="text-xs text-neutral-400" data-testid="selected-bones">
-          Selected: {selected.length ? selected.join(", ") : "none"}
+          Selected: {editor.selection.length ? editor.selection.join(", ") : "none"}
           {hovered ? ` (hover ${hovered})` : ""}
         </p>
         <p className="text-xs text-neutral-400" data-testid="body-height">
           Height: {height === null ? "loading..." : `${(height * 100).toFixed(0)} cm`}
         </p>
+        <PosePanel
+          primary={primary}
+          rotation={primary ? rotationOf(editor, primary) : null}
+          mode={gizmoMode}
+          space={space}
+          canUndo={editor.past.length > 0}
+          canRedo={editor.future.length > 0}
+          onMode={setMode}
+          onSpace={setSpace}
+          onRotate={(delta) => primary && actions.rotate(primary, delta)}
+          onUndo={actions.undo}
+          onRedo={actions.redo}
+          onResetSelected={actions.resetSelected}
+          onResetAll={actions.resetAll}
+        />
         <BodySliders params={params} onChange={setParams} onReset={() => setParams(DEFAULT_BODY)} />
         <h2 className="border-t border-neutral-800 pt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Appearance</h2>
         <AppearancePanel appearance={appearance} catalog={catalog} onChange={setAppearance} />

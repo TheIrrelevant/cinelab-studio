@@ -91,7 +91,14 @@ function Handle({ spec, hovered, selected, onOver, onOut, onClick }: HandleProps
       onPointerOut={stop(onOut)}
       onClick={stop((event) => onClick(event.nativeEvent as MouseEvent))}
     >
-      {spec.shape === "triangle" ? <coneGeometry args={[r * 1.8, r * 2.6, 3]} /> : <sphereGeometry args={[r, 16, 12]} />}
+      {spec.shape === "triangle" ? (
+        <coneGeometry args={[r * 1.8, r * 2.6, 3]} />
+      ) : spec.shape === "ring" ? (
+        // Root frame: local Y points forward and Z down, so the XY torus lies flat.
+        <torusGeometry args={[r, 0.007, 8, 48]} />
+      ) : (
+        <sphereGeometry args={[r, 16, 12]} />
+      )}
       <meshBasicMaterial color={color} depthTest={false} depthWrite={false} transparent opacity={hovered || selected ? 1 : 0.85} />
     </mesh>
   );

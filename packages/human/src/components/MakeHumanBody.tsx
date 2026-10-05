@@ -2,9 +2,9 @@
  * @file MakeHumanBody.tsx
  * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
  *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
- *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose, joint handles and bone axes overlay.
+ *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and root offset, joint handles, transform gizmo and bone axes overlay.
  * @scope cinelab-studio
- * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ../makehuman/macro,
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ./PoseGizmo, ../makehuman/macro,
  *   ../makehuman/appearance
  */
 
@@ -16,6 +16,7 @@ import { BodyController } from "../makehuman/body-controller";
 import { attachBoneAxes } from "../makehuman/bone-axes";
 import { applyBodyPose, type BodyPose } from "../makehuman/body-pose";
 import { JointHandles, type JointHandlesProps } from "./JointHandles";
+import { PoseGizmo, type PoseGizmoProps } from "./PoseGizmo";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { BodyParams } from "../makehuman/macro";
@@ -35,11 +36,15 @@ type Props = {
   pose?: BodyPose;
   /** On-body joint handles; omitted = no handles. */
   handles?: Omit<JointHandlesProps, "skeleton" | "boneNames">;
+  /** Root offset from its rest position in metres. */
+  rootOffset?: readonly number[];
+  /** Transform gizmo on one bone; omitted = no gizmo. */
+  gizmo?: PoseGizmoProps;
 };
 
 type Ready = { body: LoadedBody; controller: BodyController };
 
-export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles }: Props) {
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles, rootOffset, gizmo }: Props) {
   const [ready, setReady] = useState<Ready | null>(null);
 
   useEffect(() => {
@@ -81,8 +86,9 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
 
   useEffect(() => {
     if (!ready) return;
-    applyBodyPose(ready.body.mesh.skeleton, ready.body.data.manifest.bones, pose ?? {});
-  }, [ready, pose]);
+    applyBodyPose(ready.body.mesh.skeleton, ready.body.data.manifest.bones, pose ?? {}, rootOffset);
+    // params: the re-shape refit resets the root position, so the offset is applied again.
+  }, [ready, pose, rootOffset, params]);
 
   useEffect(() => {
     if (!ready || !showBoneAxes) return;
@@ -96,6 +102,9 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
     <>
       <primitive object={ready.body.scene} />
       {handles ? <JointHandles skeleton={ready.body.mesh.skeleton} boneNames={boneNames} {...handles} /> : null}
+      {gizmo && boneNames.includes(gizmo.bone) ? (
+        <PoseGizmo object={ready.body.mesh.skeleton.bones[boneNames.indexOf(gizmo.bone)]} {...gizmo} />
+      ) : null}
     </>
   );
 }

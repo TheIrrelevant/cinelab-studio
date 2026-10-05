@@ -2,14 +2,15 @@
  * @file handle-spec.ts
  * @description Which bones get on-body joint handles and how they look: one handle per posable
  *   bone; centre line white, right red, left blue, one colour per finger (metacarpals take their
- *   finger's colour); IK end effectors (wrists, feet) are triangles. Sizes follow the joint group.
+ *   finger's colour); IK end effectors (wrists, feet) are triangles; the root is a ring around the
+ *   hips. Sizes follow the joint group.
  * @scope cinelab-studio
  * @depends ./joint-limits
  */
 
 import { jointLimit, type JointGroup } from "./joint-limits";
 
-export type HandleShape = "sphere" | "triangle";
+export type HandleShape = "sphere" | "triangle" | "ring";
 export type HandleSide = "L" | "R" | "C";
 export type HandleSpec = {
   /** Rig bone name, e.g. `lowerarm01.L`. */
@@ -49,7 +50,8 @@ export function fingerIndex(bone: string): number {
 }
 
 function radius(bone: string, group: JointGroup): number {
-  if (group === "root") return 0.03;
+  // Ring around the hips, so it does not cover the spine05 handle at the same point.
+  if (group === "root") return 0.16;
   if (SMALL_GROUPS.has(group)) return 0.005;
   if (group === "eye" || group === "jaw") return 0.008;
   // Twist-only segments sit between joints.
@@ -71,7 +73,7 @@ export function handleSpecs(bones: readonly string[]): HandleSpec[] {
       side,
       group: entry.group,
       color: index > 0 ? HANDLE_COLOURS.fingers[index - 1] : sideColour,
-      shape: IK_EFFECTORS.has(bone) ? "triangle" : "sphere",
+      shape: IK_EFFECTORS.has(bone) ? "triangle" : entry.group === "root" ? "ring" : "sphere",
       radius: radius(bone, entry.group),
       finger,
     }];
