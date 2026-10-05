@@ -14,7 +14,11 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./mannequin-spec` - `MannequinSpec`, `HairShape` (height, girth, shoulders, skin, hair).
   - `./components/Mannequin` - jointed react-three-fiber figure for a spec and pose.
   - `./poses` - `POSE_IDS`, `POSES`, `poseAngles(pose)` (joint Euler angles in degrees).
-  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices, `pose` clamped to joint limits, `handles` (on-body joint handles: `fingers`, `selected`, `onSelect(bone, additive)`, `onHover`), `rootOffset`, `gizmo` (`PoseGizmoProps`), `showBoneAxes`).
+  - `./components/MakeHumanBody` - r3f MakeHuman body for `BodyParams` + `Appearance` (`baseUrl` = converter output folder, `onCatalog` lists choices, `pose` clamped to joint limits, `handles` (on-body joint handles: `fingers`, `selected`, `onSelect(bone, additive)`, `onHover`), `rootOffset`, `gizmo` (`PoseGizmoProps`), `ikTarget`, `onBody`, `showBoneAxes`).
+  - `./components/IkTargetGizmo` - world move gizmo for an IK target (`position`, `onMove`).
+  - `./makehuman/limbs` - `LIMBS`, `LimbId`, `limbOfEffector`, `limbBones`.
+  - `./makehuman/pose-ik` - `settleIk(rig, editor, changedBones)`, `effectorPosition`, `applySnapshot`, `PoseRig`.
+  - `./makehuman/load-body` - `LoadedBody` (also passed to `onBody` of `MakeHumanBody`).
   - `./components/PoseGizmo` - drei TransformControls on a bone: rotate clamped to limits, move the root (world axes); `GizmoMode`, `GizmoSpace`.
   - `./makehuman/pose-editor` - pure pose editor (selection, clamped rotations, root offset, undo/redo snapshots, resets, presets).
   - `./makehuman/pose-numeric` - pose delta <-> X/Y/Z degrees (swing X, twist Y, swing Z).
@@ -52,6 +56,10 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/components/PoseGizmo.tsx` | Rotate/move gizmo on the primary bone, clamped while dragging |
 | `src/makehuman/pose-editor.ts` | Pose editor state: selection, history, resets |
 | `src/makehuman/pose-numeric.ts` | Numeric X/Y/Z degrees of a pose delta |
+| `src/makehuman/limbs.ts` | The four IK limbs (upper, hinge, effector, fallback bend) |
+| `src/makehuman/ik-solver.ts` | Exact analytic two-bone IK around the real hinge, pole, flat end effector |
+| `src/makehuman/pose-ik.ts` | Re-solves IK limbs after edits (planted feet) and writes rotations |
+| `src/components/IkTargetGizmo.tsx` | Move gizmo for an IK target |
 | `src/makehuman/joint-directions.test.ts` | Limits bend joints anatomically on both sides; right frames mirror left |
 | `src/makehuman/skeleton-frames.test.ts` | Plan 1.1 acceptance: local Y on the tail within 1 degree on five shapes, rest pose within 0.1 mm |
 | `src/makehuman/load-body.ts` | Fetches and parses GLB + morph pack |

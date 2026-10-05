@@ -5,6 +5,7 @@
   "description": "3D human model: mannequin spec, jointed figure and pose presets.",
   "type": "module",
   "exports": {
+    "./components/IkTargetGizmo": "./src/components/IkTargetGizmo.tsx",
     "./components/JointHandles": "./src/components/JointHandles.tsx",
     "./components/PoseGizmo": "./src/components/PoseGizmo.tsx",
     "./components/MakeHumanBody": "./src/components/MakeHumanBody.tsx",
@@ -12,6 +13,9 @@
     "./makehuman/appearance": "./src/makehuman/appearance.ts",
     "./makehuman/body-pose": "./src/makehuman/body-pose.ts",
     "./makehuman/joint-limits": "./src/makehuman/joint-limits.ts",
+    "./makehuman/limbs": "./src/makehuman/limbs.ts",
+    "./makehuman/load-body": "./src/makehuman/load-body.ts",
+    "./makehuman/pose-ik": "./src/makehuman/pose-ik.ts",
     "./makehuman/pose-editor": "./src/makehuman/pose-editor.ts",
     "./makehuman/pose-numeric": "./src/makehuman/pose-numeric.ts",
     "./makehuman/macro": "./src/makehuman/macro.ts",

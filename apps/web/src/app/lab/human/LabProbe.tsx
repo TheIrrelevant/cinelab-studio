@@ -21,6 +21,8 @@ declare global {
       /** `offset` is a point in the handle's local space (default its centre). */
       project: (bone: string, offset?: [number, number, number]) => { x: number; y: number } | null;
       handleCount: () => number;
+      /** Screen position of any named scene object (e.g. `ik-target`). */
+      projectNamed: (name: string) => { x: number; y: number } | null;
       gizmoPoint: (group: "rotate" | "translate", axis: string) => { x: number; y: number } | null;
     };
   }
@@ -61,6 +63,12 @@ export function LabProbe() {
         if (!handle) return null;
         scene.updateMatrixWorld(true);
         return toScreen(handle.localToWorld(new Vector3(...offset)));
+      },
+      projectNamed: (name) => {
+        const node = scene.getObjectByName(name);
+        if (!node) return null;
+        scene.updateMatrixWorld(true);
+        return toScreen(node.getWorldPosition(new Vector3()));
       },
       handleCount: () => {
         let count = 0;

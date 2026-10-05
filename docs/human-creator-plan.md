@@ -27,7 +27,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
   morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
   4 eyelashes as fitted `.mhclo` proxies.
 - Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: no IK yet (frames 1.1, limits 1.2, handles 1.3, gizmo 1.4 done); UI is raw 0-100 % sliders.
+- Known gaps: deformation QA pending (frames 1.1, limits 1.2, handles 1.3, gizmo 1.4, IK 1.5 done); UI is raw 0-100 % sliders.
 
 ## 3. Sources and licenses
 
@@ -88,6 +88,7 @@ AC: gizmo rotation respects limits; numeric edits round-trip; undo restores exac
 
 **1.5 IK.** Two-bone IK for arms and legs with pole targets; feet keep floor contact; FK/IK switch per
 limb. AC: dragging a hand target reaches any point inside arm reach without joint-limit violations.
+**Done 2026-10-05:** `ik-solver.ts` (exact for the real hinge axis; two roots, least limit distortion), `limbs.ts`, `pose-ik.ts` (IK results stored as rotations, feet planted on root moves, editing a limb bone re-targets it), `IkTargetGizmo.tsx`, lab FK/IK toggles; ankle dorsiflexion limit widened to 30 degrees (weight-bearing) so feet stay flat in squats; `check-ik.mjs`.
 
 **1.6 Deformation quality.** Fixed QA pose set (arms up, elbow 140, deep squat, fist, head turn, jaw
 open); screenshots; weight smoothing or corrective fixes where needed. AC: QA sheet in

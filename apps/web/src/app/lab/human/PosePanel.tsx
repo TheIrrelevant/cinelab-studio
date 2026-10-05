@@ -1,11 +1,11 @@
 /**
  * @file PosePanel.tsx
  * @description Pose controls for the human lab: selected bone, numeric X/Y/Z bar (degrees in
- *   joint-limit space: swing X, twist Y, swing Z), gizmo mode (move only for the root) and
- *   local/world space, undo/redo, reset selected and reset all.
+ *   joint-limit space: swing X, twist Y, swing Z), gizmo mode (move for the root and IK targets),
+ *   local/world space, FK/IK per limb, undo/redo, reset selected and reset all.
  * @scope cinelab-studio/web
  * @depends react, @cinelab/human/makehuman/pose-numeric, @cinelab/human/components/PoseGizmo,
- *   @cinelab/human/makehuman/joint-limits, ./LabToggle
+ *   @cinelab/human/makehuman/joint-limits, @cinelab/human/makehuman/limbs, ./LabToggle
  */
 
 "use client";
@@ -14,13 +14,20 @@ import type { Quaternion } from "three";
 import type { GizmoMode, GizmoSpace } from "@cinelab/human/components/PoseGizmo";
 import { clampBoneDelta } from "@cinelab/human/makehuman/joint-limits";
 import { degreesToDelta, deltaToDegrees, type PoseDegrees } from "@cinelab/human/makehuman/pose-numeric";
+import { LIMB_IDS, type LimbId } from "@cinelab/human/makehuman/limbs";
 import { LabToggle } from "./LabToggle";
+
+const LIMB_LABELS: Record<LimbId, string> = { "arm.L": "L arm", "arm.R": "R arm", "leg.L": "L leg", "leg.R": "R leg" };
 
 type Props = {
   primary: string | null;
   rotation: Quaternion | null;
   mode: GizmoMode;
   space: GizmoSpace;
+  /** Root or an IK effector in IK mode: offer Move. */
+  canMove: boolean;
+  ik: Readonly<Partial<Record<LimbId, unknown>>>;
+  onIk: (limb: LimbId, on: boolean) => void;
   canUndo: boolean;
   canRedo: boolean;
   onMode: (mode: GizmoMode) => void;
@@ -55,8 +62,14 @@ export function PosePanel(props: Props) {
       </div>
       <div className="flex flex-wrap gap-1">
         <LabToggle id="gizmo-rotate" on={mode === "rotate"} onChange={() => props.onMode("rotate")} label="Rotate" />
-        {primary === "root" ? <LabToggle id="gizmo-move" on={mode === "translate"} onChange={() => props.onMode("translate")} label="Move" /> : null}
+        {props.canMove ? <LabToggle id="gizmo-move" on={mode === "translate"} onChange={() => props.onMode("translate")} label="Move" /> : null}
         <LabToggle id="gizmo-local" on={space === "local"} onChange={() => props.onSpace(space === "local" ? "world" : "local")} label={space === "local" ? "Local" : "World"} />
+      </div>
+      <div className="flex flex-wrap items-center gap-1 text-xs text-neutral-400">
+        IK
+        {LIMB_IDS.map((limb) => (
+          <LabToggle key={limb} id={`ik-${limb}`} on={Boolean(props.ik[limb])} onChange={(on) => props.onIk(limb, on)} label={LIMB_LABELS[limb]} />
+        ))}
       </div>
       {primary && degrees ? (
         <div className="grid grid-cols-3 gap-1" key={`${primary}:${degrees.x.toFixed(1)}:${degrees.y.toFixed(1)}:${degrees.z.toFixed(1)}`}>

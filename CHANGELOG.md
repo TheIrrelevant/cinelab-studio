@@ -5,13 +5,26 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: selection and pose gizmo (Phase 1.4)
+last-change: two-bone IK (Phase 1.5)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Two-bone IK (human creator plan Phase 1.5)
+
+### Added
+- `ik-solver.ts`: analytic two-bone IK for arms and legs, exact for the real hinge axis (elbow/knee local X): flex solves the shoulder/hip-to-effector distance (two roots, the one the joint limits distort least wins), then the limb turns onto the target and towards an optional pole; the hand or foot keeps its world orientation; results clamped to joint limits.
+- `limbs.ts` (four limbs), `pose-ik.ts` (`settleIk`: IK limbs re-solved after every edit and stored as plain rotations, so undo, numeric bar and FK/IK switching stay exact; editing a limb bone moves its target).
+- Pose editor: IK targets per limb in the snapshot, `setIkTarget`, `setRotations`; reset all returns every limb to FK.
+- `IkTargetGizmo.tsx`, `ikTarget` and `onBody` props on `MakeHumanBody`.
+- `/lab/human`: FK/IK toggles per limb, Move on an IK effector drags its target, feet stay planted while the root moves.
+- Tests: reach within limits for targets generated from random in-limit poses on all four limbs (5 mm), stretching, flat foot and ankle-limit precedence, pole, planted feet on root moves, hands stay while the spine bends, re-targeting, FK/IK switch, undo; browser check `check-ik.mjs` with screenshots.
+
+### Changed
+- Ankle dorsiflexion limit -20 -> -30 degrees (weight-bearing range).
 
 ## 2026-10-05 - Selection and pose gizmo (human creator plan Phase 1.4)
 

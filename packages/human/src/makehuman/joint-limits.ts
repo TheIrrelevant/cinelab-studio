@@ -58,7 +58,8 @@ const TABLE: Record<string, { group: JointGroup; limit: JointLimit }> = {
   upperleg02: L("hip", NONE, [-20, 20], NONE),
   lowerleg01: L("knee", [-5, 150], [-10, 10], NONE),
   lowerleg02: L("knee", NONE, [-10, 10], NONE),
-  foot: L("ankle", [-20, 50], [-15, 15], [-20, 20]),
+  // Dorsiflexion to 30 degrees: weight-bearing range, so feet stay flat in a squat.
+  foot: L("ankle", [-30, 50], [-15, 15], [-20, 20]),
 };
 for (let f = 2; f <= 5; f += 1) {
   TABLE[`finger${f}-1`] = L("finger", [-20, 90], NONE, [-20, 20]);

@@ -1,36 +1,58 @@
 /**
  * @file use-pose-editor.ts
  * @description React state for the human lab pose editor: wraps the pure pose editor, exposes
- *   actions for handles, gizmo, numeric bar and toolbar, and binds undo/redo shortcuts
- *   (Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z, Ctrl+Y); Escape clears the selection.
+ *   actions for handles, gizmos, numeric bar and toolbar, keeps IK limbs settled after every edit
+ *   (feet stay planted when the root moves), and binds shortcuts (Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z,
+ *   Ctrl+Y; Escape clears the selection).
  * @scope cinelab-studio/web
- * @depends react, three, @cinelab/human/makehuman/pose-editor, @cinelab/human/makehuman/body-pose
+ * @depends react, three, @cinelab/human/makehuman/pose-editor, @cinelab/human/makehuman/pose-ik,
+ *   @cinelab/human/makehuman/limbs, @cinelab/human/makehuman/load-body
  */
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Quaternion, Vector3 } from "three";
 import type { BodyPose } from "@cinelab/human/makehuman/body-pose";
+import type { LimbId } from "@cinelab/human/makehuman/limbs";
+import type { LoadedBody } from "@cinelab/human/makehuman/load-body";
 import * as P from "@cinelab/human/makehuman/pose-editor";
+import { effectorPosition, settleIk, type PoseRig } from "@cinelab/human/makehuman/pose-ik";
+
+/** Bones whose edit re-targets their IK limb; `null` = no IK settle after the edit. */
+type Changed = readonly string[] | null;
 
 export function usePoseEditor() {
   const [editor, setEditor] = useState(P.createPoseEditor);
-  const act = useCallback((fn: (e: P.PoseEditor) => P.PoseEditor) => setEditor(fn), []);
+  const latest = useRef(editor);
+  const rig = useRef<PoseRig | null>(null);
+  const run = useCallback((fn: (e: P.PoseEditor) => P.PoseEditor, changed: Changed = null) => {
+    let next = fn(latest.current);
+    if (changed && rig.current) next = settleIk(rig.current, next, changed);
+    latest.current = next;
+    setEditor(next);
+  }, []);
+
   const actions = useMemo(
     () => ({
-      select: (bone: string | null, additive = false) => act((e) => P.select(e, bone, additive)),
-      beginDrag: () => act(P.beginEdit),
-      rotateLive: (bone: string, delta: Quaternion) => act((e) => P.setRotation(e, bone, delta, false)),
-      rotate: (bone: string, delta: Quaternion) => act((e) => P.setRotation(e, bone, delta)),
-      moveRootLive: (offset: Vector3) => act((e) => P.setRootOffset(e, offset, false)),
-      loadPose: (pose: BodyPose) => act((e) => P.loadPose(e, pose)),
-      resetSelected: () => act(P.resetSelected),
-      resetAll: () => act(P.resetAll),
-      undo: () => act(P.undo),
-      redo: () => act(P.redo),
+      setBody: (body: LoadedBody) => {
+        rig.current = { skeleton: body.mesh.skeleton, bones: body.data.manifest.bones };
+      },
+      select: (bone: string | null, additive = false) => run((e) => P.select(e, bone, additive)),
+      beginDrag: () => run(P.beginEdit),
+      rotateLive: (bone: string, delta: Quaternion) => run((e) => P.setRotation(e, bone, delta, false), [bone]),
+      rotate: (bone: string, delta: Quaternion) => run((e) => P.setRotation(e, bone, delta), [bone]),
+      moveRootLive: (offset: Vector3) => run((e) => P.setRootOffset(e, offset, false), []),
+      moveIkLive: (limb: LimbId, target: Vector3) => run((e) => P.setIkTarget(e, limb, target, false), []),
+      setIk: (limb: LimbId, on: boolean) =>
+        run((e) => P.setIkTarget(e, limb, on && rig.current ? effectorPosition(rig.current, e, limb) : null)),
+      loadPose: (pose: BodyPose) => run((e) => P.loadPose(e, pose), Object.keys(pose)),
+      resetSelected: () => run(P.resetSelected, latest.current.selection),
+      resetAll: () => run(P.resetAll),
+      undo: () => run(P.undo),
+      redo: () => run(P.redo),
     }),
-    [act],
+    [run],
   );
 
   useEffect(() => {

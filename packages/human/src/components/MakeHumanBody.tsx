@@ -2,9 +2,10 @@
  * @file MakeHumanBody.tsx
  * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
  *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
- *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and root offset, joint handles, transform gizmo and bone axes overlay.
+ *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and root offset, joint handles, transform or IK target gizmo and
+ *   bone axes overlay.
  * @scope cinelab-studio
- * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ./PoseGizmo, ../makehuman/macro,
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ./PoseGizmo, ./IkTargetGizmo, ../makehuman/macro,
  *   ../makehuman/appearance
  */
 
@@ -17,6 +18,7 @@ import { attachBoneAxes } from "../makehuman/bone-axes";
 import { applyBodyPose, type BodyPose } from "../makehuman/body-pose";
 import { JointHandles, type JointHandlesProps } from "./JointHandles";
 import { PoseGizmo, type PoseGizmoProps } from "./PoseGizmo";
+import { IkTargetGizmo, type IkTargetGizmoProps } from "./IkTargetGizmo";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { BodyParams } from "../makehuman/macro";
@@ -40,11 +42,15 @@ type Props = {
   rootOffset?: readonly number[];
   /** Transform gizmo on one bone; omitted = no gizmo. */
   gizmo?: PoseGizmoProps;
+  /** Move gizmo on an IK target (replaces `gizmo` while set). */
+  ikTarget?: IkTargetGizmoProps;
+  /** The loaded body, once (for IK solving and measurements). */
+  onBody?: (body: LoadedBody) => void;
 };
 
 type Ready = { body: LoadedBody; controller: BodyController };
 
-export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles, rootOffset, gizmo }: Props) {
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles, rootOffset, gizmo, ikTarget, onBody }: Props) {
   const [ready, setReady] = useState<Ready | null>(null);
 
   useEffect(() => {
@@ -59,6 +65,7 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
         await controller.init();
         if (cancelled) return;
         setReady({ body, controller });
+        onBody?.(body);
         onCatalog?.(appearanceCatalog(body.proxyManifest));
       })
       .catch((error: Error) => !cancelled && onError?.(error));
@@ -102,7 +109,8 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
     <>
       <primitive object={ready.body.scene} />
       {handles ? <JointHandles skeleton={ready.body.mesh.skeleton} boneNames={boneNames} {...handles} /> : null}
-      {gizmo && boneNames.includes(gizmo.bone) ? (
+      {ikTarget ? <IkTargetGizmo {...ikTarget} /> : null}
+      {!ikTarget && gizmo && boneNames.includes(gizmo.bone) ? (
         <PoseGizmo object={ready.body.mesh.skeleton.bones[boneNames.indexOf(gizmo.bone)]} {...gizmo} />
       ) : null}
     </>

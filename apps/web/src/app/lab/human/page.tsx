@@ -3,7 +3,8 @@
  * @description MakeHuman spike test page: large 3D viewport with the morphable body and a right
  *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height and can
  *   overlay bone axes, show a joint limit demo pose, and pose the body: joint handles select,
- *   a gizmo rotates (moves the root), a numeric bar edits X/Y/Z, with undo/redo and resets.
+ *   a gizmo rotates (moves the root and IK targets), FK/IK per limb, a numeric bar edits X/Y/Z,
+ *   with undo/redo and resets.
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
@@ -28,6 +29,7 @@ import { PosePanel } from "./PosePanel";
 import { usePoseEditor } from "./use-pose-editor";
 import type { GizmoMode, GizmoSpace } from "@cinelab/human/components/PoseGizmo";
 import { rotationOf } from "@cinelab/human/makehuman/pose-editor";
+import { limbOfEffector } from "@cinelab/human/makehuman/limbs";
 
 export default function HumanLabPage() {
   const [params, setParams] = useState<BodyParams>(DEFAULT_BODY);
@@ -43,7 +45,10 @@ export default function HumanLabPage() {
   const { editor, pose, primary, actions } = usePoseEditor();
   const [mode, setMode] = useState<GizmoMode>("rotate");
   const [space, setSpace] = useState<GizmoSpace>("local");
-  const gizmoMode = primary === "root" ? mode : "rotate";
+  const ikLimb = primary ? limbOfEffector(primary) : null;
+  const ikTarget = ikLimb ? editor.current.ik[ikLimb] : undefined;
+  const canMove = primary === "root" || Boolean(ikTarget);
+  const gizmoMode = canMove ? mode : "rotate";
   const toggleDemo = useCallback(
     (on: boolean) => {
       setDemoPose(on);
@@ -77,6 +82,12 @@ export default function HumanLabPage() {
             showBoneAxes={boneAxes}
             pose={pose}
             rootOffset={editor.current.rootOffset}
+            onBody={actions.setBody}
+            ikTarget={
+              handles && ikLimb && ikTarget && gizmoMode === "translate"
+                ? { position: ikTarget, onDragStart: actions.beginDrag, onMove: (p) => actions.moveIkLive(ikLimb, p) }
+                : undefined
+            }
             handles={handles ? { fingers: fingerHandles, selected: editor.selection, onSelect: actions.select, onHover: setHovered } : undefined}
             gizmo={
               handles && primary
@@ -134,6 +145,9 @@ export default function HumanLabPage() {
           rotation={primary ? rotationOf(editor, primary) : null}
           mode={gizmoMode}
           space={space}
+          canMove={canMove}
+          ik={editor.current.ik}
+          onIk={actions.setIk}
           canUndo={editor.past.length > 0}
           canRedo={editor.future.length > 0}
           onMode={setMode}

@@ -2,19 +2,21 @@
  * @file pose-editor.ts
  * @description Pure pose editor state: selection (click selects, Shift adds or removes), pose
  *   rotations clamped to joint limits, root offset, undo/redo of exact snapshots, reset selected
- *   and reset all. Drags call `beginEdit` once and then update without recording; numeric edits
+ *   and reset all, IK targets per limb. Drags call `beginEdit` once and then update without recording; numeric edits
  *   record. Rotations are stored as plain [x, y, z, w] arrays so undo restores them bit for bit.
  * @scope cinelab-studio
- * @depends three, ./joint-limits, ./body-pose
+ * @depends three, ./joint-limits, ./body-pose, ./limbs
  */
 
 import { Quaternion, Vector3 } from "three";
 import type { BodyPose } from "./body-pose";
 import { clampBoneDelta } from "./joint-limits";
+import type { LimbId } from "./limbs";
 
 type Quat = readonly [number, number, number, number];
 type Vec3 = readonly [number, number, number];
-export type PoseSnapshot = { rotations: Readonly<Record<string, Quat>>; rootOffset: Vec3 };
+/** `ik` holds the world target of every limb in IK mode (FK otherwise). */
+export type PoseSnapshot = { rotations: Readonly<Record<string, Quat>>; rootOffset: Vec3; ik: Readonly<Partial<Record<LimbId, Vec3>>> };
 export type PoseEditor = {
   current: PoseSnapshot;
   past: readonly PoseSnapshot[];
@@ -24,7 +26,7 @@ export type PoseEditor = {
 };
 
 const HISTORY_LIMIT = 200;
-const EMPTY: PoseSnapshot = { rotations: {}, rootOffset: [0, 0, 0] };
+const EMPTY: PoseSnapshot = { rotations: {}, rootOffset: [0, 0, 0], ik: {} };
 
 export const createPoseEditor = (): PoseEditor => ({ current: EMPTY, past: [], future: [], selection: [] });
 
@@ -61,6 +63,21 @@ export function setRotation(editor: PoseEditor, bone: string, delta: Quaternion,
   return update(editor, { ...editor.current, rotations }, record);
 }
 
+/** Sets several bone deltas at once (clamped) as one change. */
+export function setRotations(editor: PoseEditor, deltas: Record<string, Quaternion>, record = true): PoseEditor {
+  let next = editor;
+  for (const [bone, q] of Object.entries(deltas)) next = setRotation(next, bone, q, false);
+  return next === editor ? editor : update(editor, next.current, record);
+}
+
+/** Puts a limb in IK mode with a world target, or back to FK with `null`. */
+export function setIkTarget(editor: PoseEditor, limb: LimbId, target: Vector3 | null, record = true): PoseEditor {
+  const ik = { ...editor.current.ik };
+  if (target) ik[limb] = [target.x, target.y, target.z];
+  else delete ik[limb];
+  return update(editor, { ...editor.current, ik }, record);
+}
+
 export function setRootOffset(editor: PoseEditor, offset: Vector3, record = true): PoseEditor {
   return update(editor, { ...editor.current, rootOffset: [offset.x, offset.y, offset.z] }, record);
 }
@@ -77,9 +94,10 @@ export function resetSelected(editor: PoseEditor): PoseEditor {
   const rotations = { ...editor.current.rotations };
   for (const bone of editor.selection) delete rotations[bone];
   const rootOffset = editor.selection.includes("root") ? EMPTY.rootOffset : editor.current.rootOffset;
-  return update(editor, { rotations, rootOffset }, true);
+  return update(editor, { ...editor.current, rotations, rootOffset }, true);
 }
 
+/** Back to the rest pose with every limb in FK. */
 export const resetAll = (editor: PoseEditor): PoseEditor => update(editor, EMPTY, true);
 
 export function undo(editor: PoseEditor): PoseEditor {
