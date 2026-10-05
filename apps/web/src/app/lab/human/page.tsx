@@ -2,7 +2,7 @@
  * @file page.tsx (lab/human)
  * @description MakeHuman spike test page: large 3D viewport with the morphable body and a right
  *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height and can
- *   overlay bone axes.
+ *   overlay bone axes or show a joint limit demo pose.
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
@@ -11,10 +11,11 @@
 
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { MakeHumanBody } from "@cinelab/human/components/MakeHumanBody";
+import { limitDemoPose } from "@cinelab/human/makehuman/body-pose";
 import { DEFAULT_BODY, type BodyParams } from "@cinelab/human/makehuman/macro";
 import { DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "@cinelab/human/makehuman/appearance";
 import { AppearancePanel } from "./AppearancePanel";
@@ -28,6 +29,8 @@ export default function HumanLabPage() {
   const [height, setHeight] = useState<number | null>(null);
   const [view, setView] = useState<LabView>("body");
   const [boneAxes, setBoneAxes] = useState(false);
+  const [demoPose, setDemoPose] = useState(false);
+  const pose = useMemo(() => (demoPose ? limitDemoPose() : undefined), [demoPose]);
   const [error, setError] = useState<string | null>(null);
   const onShape = useCallback((result: { heightMetres: number }) => setHeight(result.heightMetres), []);
   const onError = useCallback((cause: Error) => setError(cause.message), []);
@@ -44,11 +47,11 @@ export default function HumanLabPage() {
             <circleGeometry args={[2, 48]} />
             <meshStandardMaterial color="#3a3a3f" />
           </mesh>
-          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} showBoneAxes={boneAxes} />
+          <MakeHumanBody params={params} appearance={appearance} onShape={onShape} onCatalog={setCatalog} onError={onError} showBoneAxes={boneAxes} pose={pose} />
           <LabCamera view={view} height={height ?? 1.66} />
         </Canvas>
         <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-          {(["body", "portrait"] as const).map((option) => (
+          {(["body", "side", "portrait"] as const).map((option) => (
             <button
               key={option}
               type="button"
@@ -56,7 +59,7 @@ export default function HumanLabPage() {
               onClick={() => setView(option)}
               className={`rounded px-3 py-1 text-xs ${view === option ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
             >
-              {option === "body" ? "Full body" : "Portrait"}
+              {{ body: "Full body", side: "Side", portrait: "Portrait" }[option]}
             </button>
           ))}
           <button
@@ -67,6 +70,15 @@ export default function HumanLabPage() {
             className={`rounded px-3 py-1 text-xs ${boneAxes ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
           >
             Bone axes
+          </button>
+          <button
+            type="button"
+            data-testid="toggle-limit-demo"
+            aria-pressed={demoPose}
+            onClick={() => setDemoPose((on) => !on)}
+            className={`rounded px-3 py-1 text-xs ${demoPose ? "bg-neutral-100 text-neutral-900" : "bg-neutral-800 text-neutral-300"}`}
+          >
+            Limit demo
           </button>
         </div>
         {error ? (

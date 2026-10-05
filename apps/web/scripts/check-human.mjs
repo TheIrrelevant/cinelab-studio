@@ -5,7 +5,7 @@
  *   measured height, ages 18-25 share the adult body, and screenshots of the three ethnic
  *   presets (female and male) and three ages are saved; hairstyle, hair colour, eye colour and
  *   skin tone change the portrait, and three portraits are saved; the bone axes overlay draws
- *   and clears, with screenshots of the rest frames.
+ *   and clears, with screenshots of the rest frames; the joint limit demo pose bends and restores.
  * @depends playwright; running Next dev server on STUDIO_URL or http://localhost:3000
  */
 import assert from "node:assert/strict";
@@ -153,6 +153,20 @@ try {
   await page.waitForTimeout(800);
   assert.ok(differs(plain, await viewport(page)) < 0.001, "bone axes overlay is removed");
   console.log("PASS bone axes overlay");
+
+  // Joint limits (plan 1.2): demo pose bends joints towards their limits.
+  await page.getByTestId("toggle-limit-demo").click();
+  await page.waitForTimeout(800);
+  assert.ok(differs(plain, await viewport(page)) > 0.01, "limit demo pose changes the body");
+  await page.getByTestId("human-viewport").screenshot({ path: `${output}/limit-demo-front.png` });
+  await page.getByTestId("view-side").click();
+  await page.waitForTimeout(800);
+  await page.getByTestId("human-viewport").screenshot({ path: `${output}/limit-demo-side.png` });
+  await page.getByTestId("view-body").click();
+  await page.getByTestId("toggle-limit-demo").click();
+  await page.waitForTimeout(800);
+  assert.ok(differs(plain, await viewport(page)) < 0.001, "rest pose restored");
+  console.log("PASS limit demo pose");
 
   assert.deepEqual(errors, [], "no page or console errors");
   console.log("PASS no errors");

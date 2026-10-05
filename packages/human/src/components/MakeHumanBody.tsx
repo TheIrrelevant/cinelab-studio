@@ -2,9 +2,9 @@
  * @file MakeHumanBody.tsx
  * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
  *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
- *   eyebrows and eyelashes when `appearance` changes. Optional bone axes overlay for debugging.
+ *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and bone axes overlay for debugging.
  * @scope cinelab-studio
- * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/macro,
+ * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ../makehuman/macro,
  *   ../makehuman/appearance
  */
 
@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { appearanceCatalog, DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "../makehuman/appearance";
 import { BodyController } from "../makehuman/body-controller";
 import { attachBoneAxes } from "../makehuman/bone-axes";
+import { applyBodyPose, type BodyPose } from "../makehuman/body-pose";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { BodyParams } from "../makehuman/macro";
@@ -29,11 +30,13 @@ type Props = {
   onError?: (error: Error) => void;
   /** Debug overlay: RGB axes on every bone. */
   showBoneAxes?: boolean;
+  /** Rotation deltas per rig bone name, clamped to joint limits; missing bones stay at rest. */
+  pose?: BodyPose;
 };
 
 type Ready = { body: LoadedBody; controller: BodyController };
 
-export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false }: Props) {
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose }: Props) {
   const [ready, setReady] = useState<Ready | null>(null);
 
   useEffect(() => {
@@ -72,6 +75,11 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
     // onError is a notification only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, appearance]);
+
+  useEffect(() => {
+    if (!ready) return;
+    applyBodyPose(ready.body.mesh.skeleton, ready.body.data.manifest.bones, pose ?? {});
+  }, [ready, pose]);
 
   useEffect(() => {
     if (!ready || !showBoneAxes) return;

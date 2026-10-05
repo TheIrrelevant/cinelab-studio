@@ -12,7 +12,7 @@ import { type ComponentRef, useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 
-export type LabView = "body" | "portrait";
+export type LabView = "body" | "side" | "portrait";
 
 export function LabCamera({ view, height }: { view: LabView; height: number }) {
   const camera = useThree((state) => state.camera);
@@ -22,7 +22,10 @@ export function LabCamera({ view, height }: { view: LabView; height: number }) {
     // Eyes sit at about 93 % of body height.
     const target = view === "portrait" ? [0, height * 0.93, 0] : [0, height * 0.55, 0];
     const distance = view === "portrait" ? 0.9 : 3.6;
-    camera.position.set(0, target[1] + (view === "portrait" ? 0.02 : 0.15), distance);
+    const y = target[1] + (view === "portrait" ? 0.02 : 0.15);
+    // Side view looks at the body's left side (+X).
+    if (view === "side") camera.position.set(distance, y, 0);
+    else camera.position.set(0, y, distance);
     controls.current?.target.set(target[0], target[1], target[2]);
     controls.current?.update();
   }, [camera, view, height]);

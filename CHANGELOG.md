@@ -5,13 +5,22 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-05T00:00:00Z
 last-model: claude-opus-5-5
-last-change: bone rest frames from head, tail and roll (Phase 1.1)
+last-change: joint limits (Phase 1.2)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-05 - Joint limits (human creator plan Phase 1.2)
+
+### Added
+- `joint-limits.ts`: anatomical limits for every posable bone (spine, neck, head, jaw, eyes, clavicle, shoulder, arm, elbow and knee hinges, wrist, hand, thumb, fingers, hip, ankle, toes) as swing X / swing Z / twist Y degrees on the rest frame; right side mirrors the left; facial and tongue bones excluded. `clampBoneDelta` clamps a pose delta.
+- `swing-twist.ts`: gimbal-free split of a bone rotation into swing vector and twist.
+- `body-pose.ts` and `pose` prop on `MakeHumanBody`: poses are applied clamped; `limitDemoPose` for checks.
+- `/lab/human`: "Limit demo" pose and a side view.
+- Tests: table coverage against the rig, mirror rule, per joint group clamping never exceeds limits, in-range poses unchanged; on the real skeleton right frames mirror left ones and knees, elbows, hips, shoulders, feet and spine bend the anatomical way on both sides. Browser check with front and side screenshots.
 
 ## 2026-10-05 - Bone rest frames (human creator plan Phase 1.1)
 

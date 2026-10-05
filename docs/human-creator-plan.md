@@ -27,7 +27,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
   morphing, skeleton refit, skin blend of six young skins, eyes, 10 hairstyles, 12 eyebrows,
   4 eyelashes as fitted `.mhclo` proxies.
 - Lab page `/lab/human`; unit, browser and e2e checks.
-- Known gaps: no joint limits yet (bone frames with roll done in 1.1); UI is raw 0-100 % sliders.
+- Known gaps: no handles, gizmo or IK yet (frames 1.1 and limits 1.2 done); UI is raw 0-100 % sliders.
 
 ## 3. Sources and licenses
 
@@ -73,6 +73,7 @@ roll around it), re-derived after every morph. AC: local Y points at the tail wi
 **1.2 Joint limits.** Anatomical rotation limits per joint (elbow and knee hinge, neck, spine, wrist,
 fingers, toes, jaw) as data plus a clamp function. AC: table covers every posable bone; clamped poses
 never exceed limits; tests per joint group.
+**Done 2026-10-05:** `joint-limits.ts` (swing X/Z + twist Y per bone, left table mirrored to right), `swing-twist.ts`, `body-pose.ts`; direction tests on the real skeleton; lab "Limit demo" pose and side view.
 
 **1.3 Joint handles.** On-body handles: centre line white, right red, left blue, one colour per
 finger; IK end effectors as triangles; hover highlight; toggle all handles and finger handles.
