@@ -21,22 +21,22 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 ## 2. Progress (resume here)
 
-**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.5 complete.
-**Next: 2.6 Character tab - head** (needs approval to start).
+**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.6 complete.
+**Next: 2.7 Appearance polish** (needs approval to start).
 
 | Phase | Step | Status |
 |---|---|---|
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
-| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body | done |
-| 2 | **2.6 Character tab - head** | **next** |
-| 2 | 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
+| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head | done |
+| 2 | **2.7 Appearance polish** | **next** |
+| 2 | 2.8 Mesh quality gate, 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
 Current state of the body: MakeHuman hm08 with real bone frames, joint limits, handles, gizmo, undo,
 two-bone IK with planted feet, deformation QA baseline (linear blend skinning kept), 200 local modifiers
-and breast cup/firmness in shape model v2, mesh measurements, a cm/kg solver and seven body types. Lab page `/lab/human` exposes all of it; the creator `/characters/creator` has the Body tab. Known gaps: shoulder
+and breast cup/firmness in shape model v2, mesh measurements, a cm/kg solver and seven body types. Lab page `/lab/human` exposes all of it; the creator `/characters/creator` has the Body and Head tabs. Known gaps: shoulder
 and deep hip correctives (docs/deformation-qa.md); UI is still raw 0-100 % sliders (2.5 / 2.6). The dev
 server is not left running; browser checks start a temporary one.
 
@@ -135,6 +135,7 @@ AC: every control changes the body as labelled; browser check with screenshots.
 **2.6 Character tab - head.** Collapsible groups: head shape, forehead, eyebrows, eyes, nose, cheeks,
 mouth, chin, ears, neck; symmetric left/right; per-group reset; face-shape presets.
 AC: all face modifiers reachable; portrait screenshots per group.
+**Done 2026-10-06:** `head-regions.ts` turns all 117 head modifiers into controls in ten groups (readable labels and end words; MakeHuman labels repeat), sided modifiers move both sides; face-shape presets Natural, Oval, Round, Square, Heart, Long, Diamond, Triangular (one unipolar head shape at 0.7). `HeadTab.tsx`, Head tab in the creator with a three-quarter portrait camera; `RegionGroup` handles unipolar controls and end words. Browser `check-head.mjs`: every face shape and all 117 controls change the portrait (23 fine-detail controls change it by 0.04-0.2 % of pixels), group resets; portraits in `docs/images/head/`.
 
 **2.7 Appearance polish.** Eye whites, skin detail, hair materials; look for CC0 beard and mustache
 assets. AC: before/after portraits.

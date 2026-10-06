@@ -1,8 +1,9 @@
 /**
  * @file RegionGroup.tsx
  * @description One collapsible body region of the creator (plan 2.5): its sliders and a reset.
- *   Female-only controls are hidden on male bodies. Values show as -100..100 (modifiers) or
- *   0..100 % (breast size and firmness).
+ *   Female-only controls are hidden on male bodies. Values show as -100..100 (bipolar modifiers,
+ *   with their end words under the slider) or 0..100 (breast size and firmness, unipolar shapes).
+ *   Used by the Body and Head tabs.
  * @scope cinelab-studio
  * @depends @cinelab/human/makehuman/body-regions
  */
@@ -36,6 +37,8 @@ export function RegionGroup({ region, shape, onChange, onReset }: Props) {
         {controls.map((control) => {
           const value = regionValue(shape, control);
           const param = control.kind === "param";
+          const fromZero = param || (control.kind === "modifier" && control.unipolar);
+          const ends = control.kind === "modifier" ? control.ends : undefined;
           return (
             <label key={controlKey(control)} className="block text-xs text-neutral-400">
               <span className="flex justify-between">
@@ -45,13 +48,19 @@ export function RegionGroup({ region, shape, onChange, onReset }: Props) {
               <input
                 type="range"
                 aria-label={control.label}
-                min={param ? 0 : -1}
+                min={fromZero ? 0 : -1}
                 max={1}
                 step={0.01}
                 value={value}
                 onChange={(event) => onChange(control, Number(event.target.value))}
                 className="w-full"
               />
+              {ends ? (
+                <span className="flex justify-between text-[10px] text-neutral-600">
+                  <span>{ends[0]}</span>
+                  <span>{ends[1]}</span>
+                </span>
+              ) : null}
             </label>
           );
         })}

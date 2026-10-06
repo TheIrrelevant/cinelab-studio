@@ -5,7 +5,7 @@
  *   Region sliders update the body live and re-solve 250 ms after the last change, so dragging
  *   stays smooth.
  * @scope cinelab-studio
- * @depends react, ./creator-model, @cinelab/human (anthropometry, body-regions, body-types, ethnic-presets, load-body)
+ * @depends react, ./creator-model, @cinelab/human (anthropometry, body-regions, body-types, ethnic-presets, head-regions, load-body)
  */
 
 "use client";
@@ -15,6 +15,7 @@ import { measureShape, measureTopology, sizeMeasurer } from "@cinelab/human/make
 import type { BodySize } from "@cinelab/human/makehuman/body-solver";
 import { resetRegion, withRegionValue, type BodyRegion, type RegionControl } from "@cinelab/human/makehuman/body-regions";
 import type { BodyTypeChoice } from "@cinelab/human/makehuman/body-types";
+import { applyFaceShape, type FaceShapeId } from "@cinelab/human/makehuman/head-regions";
 import { applyEthnicPreset, ETHNIC_PRESETS, matchEthnicPreset, type EthnicPresetId } from "@cinelab/human/makehuman/ethnic-presets";
 import type { LoadedBody } from "@cinelab/human/makehuman/load-body";
 import { initialCreatorState, keepSize, type CreatorState, type Shape } from "./creator-model";
@@ -66,9 +67,11 @@ export function useCreator() {
         timer.current = setTimeout(() => reshape((s) => s.shape), SETTLE_MS);
       },
       resetRegion: (region: BodyRegion) => reshape((s) => resetRegion(s.shape, region)),
+      setFaceShape: (id: FaceShapeId | null) => reshape((s) => applyFaceShape(s.shape, id)),
     }),
     [measure, reshape, solve],
   );
 
-  return { state: state.size ? state : { ...state, size: firstSize }, body, measured, setBody, actions };
+  const catalogue = body?.data.modifiers?.catalogue ?? null;
+  return { state: state.size ? state : { ...state, size: firstSize }, body, catalogue, measured, setBody, actions };
 }

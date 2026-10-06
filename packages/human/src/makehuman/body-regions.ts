@@ -2,7 +2,8 @@
  * @file body-regions.ts
  * @description Body region sliders (plan 2.5, decision D4): chest, shoulders and torso, waist and
  *   hips, stomach, arms, legs, neck. A control is either a shape parameter (breast cup and firmness,
- *   0..1) or a bipolar local modifier (-1..1, 0 = neutral). Region values add to the body type's
+ *   0..1) or a local modifier (bipolar -1..1 or unipolar 0..1, 0 = neutral; head regions in
+ *   head-regions.ts use the same shape). Region values add to the body type's
  *   offsets (see body-types.ts). Reading and writing go through `regionValue` / `withRegionValue`.
  * @scope cinelab-studio
  * @depends ./shape-model (types)
@@ -12,7 +13,7 @@ import type { ShapeParams } from "./shape-model";
 
 export type RegionControl =
   | { kind: "param"; key: "cupSize" | "firmness"; label: string; femaleOnly?: boolean }
-  | { kind: "modifier"; id: string; label: string; femaleOnly?: boolean };
+  | { kind: "modifier"; id: string; label: string; femaleOnly?: boolean; unipolar?: boolean; ends?: readonly [string, string] };
 
 export type BodyRegion = { id: string; label: string; controls: RegionControl[] };
 
@@ -91,7 +92,7 @@ export function regionValue(shape: ShapeParams, control: RegionControl): number 
 export function withRegionValue<T extends ShapeParams>(shape: T, control: RegionControl, value: number): T {
   if (control.kind === "param") return { ...shape, [control.key]: Math.min(1, Math.max(0, value)) };
   const modifiers = { ...(shape.modifiers ?? {}) };
-  const v = Math.min(1, Math.max(-1, value));
+  const v = Math.min(1, Math.max(control.unipolar ? 0 : -1, value));
   if (v === 0) delete modifiers[control.id];
   else modifiers[control.id] = v;
   return { ...shape, modifiers };

@@ -34,6 +34,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./makehuman/body-types` - `BODY_TYPE_IDS`, `BODY_TYPES`, `BodyTypeChoice` (`ShapeParams.bodyType`), `withBodyType`, `switchBodyType(params, choice, keep, measure)` (plan 2.4).
   - `./makehuman/ethnic-presets` - `ETHNIC_PRESET_IDS`, `ETHNIC_PRESETS`, `applyEthnicPreset(shape, appearance, id)`, `matchEthnicPreset` (plan 2.5, D3).
   - `./makehuman/body-regions` - `BODY_REGIONS`, `regionValue`, `withRegionValue`, `resetRegion` (plan 2.5, D4).
+  - `./makehuman/head-regions` - `headRegions(catalogue)`, `headControlLabel`, `FACE_SHAPE_IDS`, `applyFaceShape`, `currentFaceShape` (plan 2.6).
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber, @react-three/drei (gizmo).
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
@@ -78,6 +79,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/body-types.ts` | Seven body types as offsets x intensity; type switch keeps cm/kg |
 | `src/makehuman/ethnic-presets.ts` | Four ethnicity presets: mix + appearance, head modifiers cleared |
 | `src/makehuman/body-regions.ts` | Region slider definitions over shape params and modifiers |
+| `src/makehuman/head-regions.ts` | All head modifiers as grouped controls with readable labels; face-shape presets |
 | `src/makehuman/modifier-catalogue.ts` | target.json -> body/head modifier catalogue (bipolar/unipolar, sides, labels) |
 | `src/makehuman/convert/modifier-pack.ts` | Modifier pack: catalogue targets + breast macros, same source indexing |
 | `scripts/modifier-inputs.ts` | Loads target.json and the vendored modifier targets for the converter |

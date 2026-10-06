@@ -5,13 +5,24 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: character tab - body (Phase 2.5)
+last-change: character tab - head (Phase 2.6)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Character tab - head (human creator plan Phase 2.6)
+
+### Added
+- `packages/human/src/makehuman/head-regions.ts`: all 117 head modifiers in ten groups with readable labels; face-shape presets.
+- `packages/character/src/components/creator/HeadTab.tsx`; Head tab with a three-quarter portrait camera (`CreatorViewport` `focus`).
+- Tests: `head-regions.test.ts`, `HeadTab.test.tsx`; browser `apps/web/scripts/check-head.mjs`; portraits `docs/images/head/`.
+
+### Changed
+- Region controls support unipolar modifiers and end words (`body-regions.ts`, `RegionGroup.tsx`).
+- `docs/human-creator-plan.md`: 2.6 done, next 2.7.
 
 ## 2026-10-06 - Character tab - body (human creator plan Phase 2.5)
 
