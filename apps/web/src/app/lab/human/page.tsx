@@ -8,12 +8,12 @@
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
- *   @cinelab/human/makehuman/appearance, BodySliders, AppearancePanel, MeasurePanel
+ *   @cinelab/human/makehuman/appearance, BodySliders, AppearancePanel, MeasurePanel, BodyTypePanel
  */
 
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { Canvas } from "@react-three/fiber";
 import { MakeHumanBody } from "@cinelab/human/components/MakeHumanBody";
@@ -27,6 +27,8 @@ import { LabCamera, type LabView } from "./LabCamera";
 import { LabProbe } from "./LabProbe";
 import { LabToggle } from "./LabToggle";
 import { MeasurePanel } from "./MeasurePanel";
+import { BodyTypePanel } from "./BodyTypePanel";
+import { measureTopology } from "@cinelab/human/makehuman/anthropometry";
 import { PosePanel } from "./PosePanel";
 import { QaPoseSelect } from "./QaPoseSelect";
 import { usePoseEditor } from "./use-pose-editor";
@@ -62,6 +64,7 @@ export default function HumanLabPage() {
   );
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState<LoadedBody | null>(null);
+  const topology = useMemo(() => (body ? measureTopology(body.data, body.mesh.geometry.getIndex()!.array) : null), [body]);
   const onBody = useCallback((loaded: LoadedBody) => {
     actions.setBody(loaded);
     setBody(loaded);
@@ -167,7 +170,8 @@ export default function HumanLabPage() {
           onResetSelected={actions.resetSelected}
           onResetAll={actions.resetAll}
         />
-        <MeasurePanel body={body} params={params} onChange={setParams} />
+        <MeasurePanel body={body} topology={topology} params={params} onChange={setParams} />
+        <BodyTypePanel body={body} topology={topology} params={params} onChange={setParams} />
         <BodySliders params={params} onChange={setParams} onReset={() => setParams(DEFAULT_SHAPE)} />
         <h2 className="border-t border-neutral-800 pt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Appearance</h2>
         <AppearancePanel appearance={appearance} catalog={catalog} onChange={setAppearance} />

@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: Aion 2 creator notes
+last-change: body types (Phase 2.4)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Body types (human creator plan Phase 2.4)
+
+### Added
+- `packages/human/src/makehuman/body-types.ts`: Slim, Average, Athletic, Muscular, Curvy, Soft, Heavy with intensity; `switchBodyType` keeps typed cm/kg.
+- `packages/human/src/makehuman/body-types.test.ts`: AC (all types keep cm/kg within 0.5 for female and male), packed modifiers, Average no-op, wider mass ranges, intensity/gender scaling.
+- Lab `BodyTypePanel.tsx`; browser check `apps/web/scripts/check-body-types.mjs`; images `docs/images/body-types/`.
+
+### Changed
+- `shape-model.ts`: `ShapeParams.bodyType`, applied in `shapeTargetWeights`; `DEFAULT_SHAPE.bodyType` = Average.
+- Lab: measurement topology computed once in `page.tsx` and shared by `MeasurePanel` and `BodyTypePanel`.
+- `docs/human-creator-plan.md`: 2.4 done, D2 resolved, next 2.5.
 
 ## 2026-10-06 - Aion 2 creator notes
 

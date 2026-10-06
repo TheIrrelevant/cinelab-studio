@@ -12,7 +12,7 @@ import { MAX_AGE_YEARS, MIN_AGE_YEARS, type BodyParams } from "@cinelab/human/ma
 import type { ShapeParams } from "@cinelab/human/makehuman/shape-model";
 
 type Shape = Required<ShapeParams>;
-type Key = Exclude<keyof Shape, "modifiers">;
+type Key = Exclude<keyof Shape, "modifiers" | "bodyType">;
 type Row = { key: Key; label: string; min: number; max: number; step: number; format: (value: number) => string };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;

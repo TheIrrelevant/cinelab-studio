@@ -6,12 +6,13 @@
  *   the average-cup average-firmness body has no target, so the defaults add nothing. Local
  *   modifiers use opposite-pair ReLU coefficients (adapted from Anny, see NOTICE): value v in
  *   [-1, 1] puts weight max(v, 0) on the increase targets and max(-v, 0) on the decrease targets,
- *   both sides alike; unipolar modifiers take 0..1.
+ *   both sides alike; unipolar modifiers take 0..1. A body type (plan 2.4) adds its offsets first.
  * @scope cinelab-studio
- * @depends ./macro, ./modifier-catalogue
+ * @depends ./macro, ./modifier-catalogue, ./body-types
  */
 
 import { combine, DEFAULT_BODY, macroFactors, macroTargetWeights, twoSided, type BodyParams } from "./macro";
+import { withBodyType, type BodyTypeChoice } from "./body-types";
 import type { Modifier, ModifierEnds } from "./modifier-catalogue";
 
 export type ShapeParams = BodyParams & {
@@ -21,9 +22,11 @@ export type ShapeParams = BodyParams & {
   firmness?: number;
   /** Modifier id -> value (-1..1, unipolar 0..1); missing = 0. */
   modifiers?: Readonly<Record<string, number>>;
+  /** Named body type and intensity (plan 2.4); Average or missing adds nothing. */
+  bodyType?: BodyTypeChoice;
 };
 
-export const DEFAULT_SHAPE: Required<ShapeParams> = { ...DEFAULT_BODY, cupSize: 0.5, firmness: 0.5, modifiers: {} };
+export const DEFAULT_SHAPE: Required<ShapeParams> = { ...DEFAULT_BODY, cupSize: 0.5, firmness: 0.5, modifiers: {}, bodyType: { id: "average", intensity: 1 } };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -63,9 +66,10 @@ export function modifierTargetWeights(catalogue: readonly Modifier[], values: Re
 
 /**
  * All target weights for a body. Without the modifier pack (`catalogue` undefined) only the macro
- * targets are used, exactly as before.
+ * targets are used, exactly as before (a body type then only shifts muscle and proportions).
  */
-export function shapeTargetWeights(params: ShapeParams, catalogue?: readonly Modifier[]): Map<string, number> {
+export function shapeTargetWeights(shape: ShapeParams, catalogue?: readonly Modifier[]): Map<string, number> {
+  const params = withBodyType(shape, shape.bodyType);
   const out = macroTargetWeights(params);
   if (!catalogue) return out;
   for (const [name, w] of breastTargetWeights(params)) out.set(name, w);

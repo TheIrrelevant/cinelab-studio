@@ -19,7 +19,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./makehuman/limbs` - `LIMBS`, `LimbId`, `limbOfEffector`, `limbBones`.
   - `./makehuman/pose-ik` - `settleIk(rig, editor, changedBones)`, `effectorPosition`, `applySnapshot`, `PoseRig`.
   - `./makehuman/load-body` - `LoadedBody` (also passed to `onBody` of `MakeHumanBody`).
-  - `./makehuman/shape-model` - `ShapeParams` (BodyParams + `cupSize`, `firmness`, `modifiers` by id), `DEFAULT_SHAPE`, `shapeTargetWeights`, `breastTargetWeights`, `modifierTargetWeights`.
+  - `./makehuman/shape-model` - `ShapeParams` (BodyParams + `cupSize`, `firmness`, `modifiers` by id, `bodyType`), `DEFAULT_SHAPE`, `shapeTargetWeights`, `breastTargetWeights`, `modifierTargetWeights`.
   - `./makehuman/modifier-catalogue` - `Modifier`, `HEAD_GROUPS`, `buildCatalogue`.
   - `./makehuman/qa-poses` - `QA_POSES` deformation QA pose set (plan 1.6).
   - `./components/PoseGizmo` - drei TransformControls on a bone: rotate clamped to limits, move the root (world axes); `GizmoMode`, `GizmoSpace`.
@@ -31,6 +31,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./makehuman/appearance` - `Appearance`, `DEFAULT_APPEARANCE`, `HAIR_COLOURS`, `AppearanceCatalog`, `skinWeights`.
   - `./makehuman/anthropometry` - `BodyMeasurements`, `measureTopology(data, index)`, `measureShape`, `measureBody`, `sizeMeasurer` (plan 2.3: height, mass = volume x 980, waist, BMI).
   - `./makehuman/body-solver` - `solveBody(base, { heightCm, massKg }, measure)`: typed cm/kg -> `height`/`weight` params, clamped, with feasible ranges.
+  - `./makehuman/body-types` - `BODY_TYPE_IDS`, `BODY_TYPES`, `BodyTypeChoice` (`ShapeParams.bodyType`), `withBodyType`, `switchBodyType(params, choice, keep, measure)` (plan 2.4).
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber, @react-three/drei (gizmo).
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
@@ -72,6 +73,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/anthropometry.ts` | Height, closed-mesh volume and mass, natural waist, BMI on morphed source positions |
 | `src/makehuman/mesh-slice.ts` | Horizontal mesh cross-section loops, area, convex hull girth |
 | `src/makehuman/body-solver.ts` | cm/kg -> height/weight parameters (bracketed roots), clamping, ranges |
+| `src/makehuman/body-types.ts` | Seven body types as offsets x intensity; type switch keeps cm/kg |
 | `src/makehuman/modifier-catalogue.ts` | target.json -> body/head modifier catalogue (bipolar/unipolar, sides, labels) |
 | `src/makehuman/convert/modifier-pack.ts` | Modifier pack: catalogue targets + breast macros, same source indexing |
 | `scripts/modifier-inputs.ts` | Loads target.json and the vendored modifier targets for the converter |

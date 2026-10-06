@@ -14,6 +14,7 @@
     "./makehuman/appearance": "./src/makehuman/appearance.ts",
     "./makehuman/body-pose": "./src/makehuman/body-pose.ts",
     "./makehuman/body-solver": "./src/makehuman/body-solver.ts",
+    "./makehuman/body-types": "./src/makehuman/body-types.ts",
     "./makehuman/joint-limits": "./src/makehuman/joint-limits.ts",
     "./makehuman/limbs": "./src/makehuman/limbs.ts",
     "./makehuman/load-body": "./src/makehuman/load-body.ts",

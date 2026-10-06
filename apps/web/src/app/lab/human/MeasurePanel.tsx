@@ -11,18 +11,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { measureShape, measureTopology, sizeMeasurer } from "@cinelab/human/makehuman/anthropometry";
+import { measureShape, sizeMeasurer, type MeasureTopology } from "@cinelab/human/makehuman/anthropometry";
 import { solveBody, type SolveResult } from "@cinelab/human/makehuman/body-solver";
 import type { LoadedBody } from "@cinelab/human/makehuman/load-body";
 import type { ShapeParams } from "@cinelab/human/makehuman/shape-model";
 
 type Shape = Required<ShapeParams>;
-type Props = { body: LoadedBody | null; params: Shape; onChange: (params: Shape) => void };
+type Props = { body: LoadedBody | null; topology: MeasureTopology | null; params: Shape; onChange: (params: Shape) => void };
 
 const range = (r: { min: number; max: number }, digits: number) => `${r.min.toFixed(digits)}-${r.max.toFixed(digits)}`;
 
-export function MeasurePanel({ body, params, onChange }: Props) {
-  const topology = useMemo(() => (body ? measureTopology(body.data, body.mesh.geometry.getIndex()!.array) : null), [body]);
+export function MeasurePanel({ body, topology, params, onChange }: Props) {
   const measured = useMemo(() => (body && topology ? measureShape(body.data, topology, params) : null), [body, topology, params]);
   const [heightCm, setHeightCm] = useState("");
   const [massKg, setMassKg] = useState("");

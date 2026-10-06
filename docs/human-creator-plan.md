@@ -21,22 +21,22 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 ## 2. Progress (resume here)
 
-**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.3 complete.
-**Next: 2.4 Body types** (needs approval to start).
+**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.4 complete.
+**Next: 2.5 Character tab - body** (needs approval to start).
 
 | Phase | Step | Status |
 |---|---|---|
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
-| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers | done |
-| 2 | **2.4 Body types** | **next** |
-| 2 | 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
+| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types | done |
+| 2 | **2.5 Character tab - body** | **next** |
+| 2 | 2.6 Character tab - head, 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
 Current state of the body: MakeHuman hm08 with real bone frames, joint limits, handles, gizmo, undo,
 two-bone IK with planted feet, deformation QA baseline (linear blend skinning kept), 200 local modifiers
-and breast cup/firmness in shape model v2, mesh measurements and a cm/kg solver. Lab page `/lab/human` exposes all of it. Known gaps: shoulder
+and breast cup/firmness in shape model v2, mesh measurements, a cm/kg solver and seven body types. Lab page `/lab/human` exposes all of it. Known gaps: shoulder
 and deep hip correctives (docs/deformation-qa.md); UI is still raw 0-100 % sliders (2.5 / 2.6). The dev
 server is not left running; browser checks start a temporary one.
 
@@ -125,6 +125,7 @@ gender and body type. AC: solved body within 0.5 cm and 0.5 kg; out-of-range inp
 
 **2.4 Body types.** Named types (list is open decision D2) mapped to muscle, proportions and fat
 distribution while height and weight stay as typed. AC: switching type keeps cm and kg.
+**Done 2026-10-06:** D2 = Slim, Average, Athletic, Muscular, Curvy, Soft, Heavy plus a 0-100 % intensity. `body-types.ts`: a type is offsets (muscle, proportions, female cup, local modifiers; Curvy at 40 % on males) on top of the user's values, resolved inside `shapeTargetWeights`; `switchBodyType` re-solves the kept cm/kg. Kept within 0.5 cm / 0.5 kg for all types (female 165/55, male 180/74; unit + browser `check-body-types.mjs`). Reachable mass at 180 cm male: Average 62-75 kg, Muscular 64-105, Heavy 72-103, Soft 63-112 (the 2.3 finding is solved by types). Images: `docs/images/body-types/types-{female,male}.jpg` (order Slim ... Heavy). At equal kg the differences are moderate; Soft and Heavy both read mainly as belly - tune in 2.5 with region sliders if needed.
 
 **2.5 Character tab - body.** Gender toggle; ethnicity selection (D3); height and weight inputs; body
 type cards; region sliders for breast size and firmness, buttocks and further regions (D4).
@@ -168,7 +169,7 @@ AC: studio e2e passes with the new body; render contract tests updated.
 | ID | Decision | Needed before |
 |---|---|---|
 | D1 | Resolved: fast-forward `main` to `feat/makehuman-assets` (linear chain) | 0.1 |
-| D2 | Body type list (e.g. Skinny, Slim, Normal, Athletic, Muscular, Curvy) | 2.4 |
+| D2 | Body type list - resolved 2026-10-06: Slim, Average, Athletic, Muscular, Curvy, Soft, Heavy + intensity | 2.4 |
 | D3 | Ethnicity: single choice only, or also Mixed | 2.5 |
 | D4 | Extra body regions: waist/hips, shoulders, stomach, arms/legs | 2.5 |
 | D5 | Close-up mesh quality: keep hm08, subdivide, or denser topology | 2.8 |

@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:studio:browser": "node scripts/check-studio.mjs",
     "test:e2e": "node scripts/e2e-milestone.mjs",
-    "test:human:browser": "node scripts/check-human.mjs && node scripts/check-measure.mjs && node scripts/check-handles.mjs && node scripts/check-pose.mjs && node scripts/check-ik.mjs"
+    "test:human:browser": "node scripts/check-human.mjs && node scripts/check-measure.mjs && node scripts/check-body-types.mjs && node scripts/check-handles.mjs && node scripts/check-pose.mjs && node scripts/check-ik.mjs"
   },
   "dependencies": {
     "@cinelab/core": "workspace:*",
