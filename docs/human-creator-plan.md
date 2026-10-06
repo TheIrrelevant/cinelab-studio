@@ -21,8 +21,11 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 ## 2. Progress (resume here)
 
-**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.7 complete (beard assets wait for decision D7).
-**Next: 2.8 Mesh quality gate** (needs approval to start).
+**Status 2026-10-06 session end (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.7 complete (beard assets wait for decision D7).
+**Next: 2.8 Mesh quality gate** (needs approval to start). **Open on resume:** answer D7 (facial hair:
+CC0 only / CC0 + CC-BY with attribution / defer) - recommendation was CC0 + CC-BY with `NOTICE`
+attribution, skipping files with AGPL boilerplate. Separate notes for after the plan:
+`docs/aion2-creator-notes.md`.
 
 | Phase | Step | Status |
 |---|---|---|

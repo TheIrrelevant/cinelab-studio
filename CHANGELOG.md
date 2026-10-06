@@ -5,13 +5,18 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: appearance polish (Phase 2.7)
+last-change: plan resume point (session end)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Plan resume point
+
+### Changed
+- `docs/human-creator-plan.md`: section 2 marks 2.1-2.7 done, next 2.8, open decision D7 to answer on resume.
 
 ## 2026-10-06 - Appearance polish (human creator plan Phase 2.7)
 
