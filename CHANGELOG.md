@@ -5,13 +5,18 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: anthropometry and solvers (Phase 2.3)
+last-change: Aion 2 creator notes
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Aion 2 creator notes
+
+### Added
+- `docs/aion2-creator-notes.md`: UX reference notes (Aion 2 body tab) for after the human creator plan; the plan is unchanged.
 
 ## 2026-10-06 - Anthropometry and solvers (human creator plan Phase 2.3)
 
