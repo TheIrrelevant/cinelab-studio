@@ -21,22 +21,22 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 ## 2. Progress (resume here)
 
-**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.4 complete.
-**Next: 2.5 Character tab - body** (needs approval to start).
+**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.5 complete.
+**Next: 2.6 Character tab - head** (needs approval to start).
 
 | Phase | Step | Status |
 |---|---|---|
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
-| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types | done |
-| 2 | **2.5 Character tab - body** | **next** |
-| 2 | 2.6 Character tab - head, 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
+| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body | done |
+| 2 | **2.6 Character tab - head** | **next** |
+| 2 | 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
 Current state of the body: MakeHuman hm08 with real bone frames, joint limits, handles, gizmo, undo,
 two-bone IK with planted feet, deformation QA baseline (linear blend skinning kept), 200 local modifiers
-and breast cup/firmness in shape model v2, mesh measurements, a cm/kg solver and seven body types. Lab page `/lab/human` exposes all of it. Known gaps: shoulder
+and breast cup/firmness in shape model v2, mesh measurements, a cm/kg solver and seven body types. Lab page `/lab/human` exposes all of it; the creator `/characters/creator` has the Body tab. Known gaps: shoulder
 and deep hip correctives (docs/deformation-qa.md); UI is still raw 0-100 % sliders (2.5 / 2.6). The dev
 server is not left running; browser checks start a temporary one.
 
@@ -130,6 +130,7 @@ distribution while height and weight stay as typed. AC: switching type keeps cm 
 **2.5 Character tab - body.** Gender toggle; ethnicity selection (D3); height and weight inputs; body
 type cards; region sliders for breast size and firmness, buttocks and further regions (D4).
 AC: every control changes the body as labelled; browser check with screenshots.
+**Done 2026-10-06:** D3 = presets Asian, African, European, Latin (each loads a standard model: ethnicity mix, skin tone, eye colour, hairstyle per gender, hair colour; head modifiers cleared; gender, cm/kg, body type and regions kept) - `ethnic-presets.ts`. D4 = all proposed regions (chest, shoulders/torso, waist/hips, stomach, arms, legs, neck; 23 controls, breast only for female) - `body-regions.ts`. Creator in `@cinelab/character`: `creator-model.ts` (locked cm/kg re-solved on every change, request kept when clamped, note), `use-creator.ts` (region sliders re-solve 250 ms after the last change), `CharacterCreator`, `BodyTab`, `SizeFields`, `RegionGroup`, `CreatorViewport`; route `/characters/creator` (in memory until 2.9). Browser `check-creator.mjs`: every control changes the frame, cm/kg held within 0.5, Waist widens the measured waist. Fixed a latent `MakeHumanBody` bug: `onShape?.(setShape())` skipped shaping without an `onShape` listener. Images: `docs/images/creator/`. Notes: "Belly" at +100 reads as pregnancy (MakeHuman `stomach-pregnant` target); the creator is not linked from the library yet (2.9).
 
 **2.6 Character tab - head.** Collapsible groups: head shape, forehead, eyebrows, eyes, nose, cheeks,
 mouth, chin, ears, neck; symmetric left/right; per-group reset; face-shape presets.
@@ -170,8 +171,8 @@ AC: studio e2e passes with the new body; render contract tests updated.
 |---|---|---|
 | D1 | Resolved: fast-forward `main` to `feat/makehuman-assets` (linear chain) | 0.1 |
 | D2 | Body type list - resolved 2026-10-06: Slim, Average, Athletic, Muscular, Curvy, Soft, Heavy + intensity | 2.4 |
-| D3 | Ethnicity: single choice only, or also Mixed | 2.5 |
-| D4 | Extra body regions: waist/hips, shoulders, stomach, arms/legs | 2.5 |
+| D3 | Ethnicity - resolved 2026-10-06: presets Asian, African, European, Latin that load a standard model | 2.5 |
+| D4 | Body regions - resolved 2026-10-06: chest, shoulders/torso, waist/hips, stomach, arms, legs, neck | 2.5 |
 | D5 | Close-up mesh quality: keep hm08, subdivide, or denser topology | 2.8 |
 | D6 | Bone roll stability: tail and roll only, or Procrustes roll correction if roll flips across shapes (`docs/anny-notes.md` section 5) | 1.1 review |
 

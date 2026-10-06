@@ -5,13 +5,28 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: body types (Phase 2.4)
+last-change: character tab - body (Phase 2.5)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Character tab - body (human creator plan Phase 2.5)
+
+### Added
+- `packages/human/src/makehuman/ethnic-presets.ts`: Asian, African, European, Latin presets that load a standard model (D3).
+- `packages/human/src/makehuman/body-regions.ts`: seven body regions, 23 controls (D4).
+- `packages/character/src/creator/` (`creator-model.ts`, `use-creator.ts`) and `src/components/creator/` (`CharacterCreator`, `BodyTab`, `SizeFields`, `RegionGroup`, `CreatorViewport`); route `apps/web/src/app/characters/creator`.
+- Tests: `body-regions.test.ts`, `creator-model.test.ts`, `BodyTab.test.tsx`; browser `apps/web/scripts/check-creator.mjs`; images `docs/images/creator/`.
+
+### Fixed
+- `MakeHumanBody`: the body was never shaped when no `onShape` listener was passed (optional call skipped its argument).
+
+### Changed
+- `@cinelab/character` depends on three, @react-three/fiber and @react-three/drei for the creator viewport.
+- `docs/human-creator-plan.md`: 2.5 done, D3/D4 resolved, next 2.6.
 
 ## 2026-10-06 - Body types (human creator plan Phase 2.4)
 

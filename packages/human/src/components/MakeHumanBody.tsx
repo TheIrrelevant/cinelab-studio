@@ -79,7 +79,9 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
 
   useEffect(() => {
     if (!ready) return;
-    onShape?.(ready.controller.setShape(params));
+    // Shape first: `onShape?.(setShape())` would skip the call when no listener is passed.
+    const result = ready.controller.setShape(params);
+    onShape?.(result);
     // onShape is a notification only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, params]);
