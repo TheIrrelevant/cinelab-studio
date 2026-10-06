@@ -74,7 +74,7 @@ describe("ethnicity presets (plan 2.5)", () => {
     const shape = { ...DEFAULT_SHAPE, gender: 1, weight: 0.7, modifiers: { "nose/nose-scale-horiz-decr-incr": 0.5, "torso/torso-vshape-decr-incr": 0.4 } };
     const { shape: next, appearance } = applyEthnicPreset(shape, DEFAULT_APPEARANCE, "latin");
     expect(next).toEqual({ ...shape, african: 0.15, asian: 0.2, caucasian: 0.65, modifiers: { "torso/torso-vshape-decr-incr": 0.4 } });
-    expect(appearance).toMatchObject({ hair: "short02", skinTone: 0.42, eyeColour: "brown" });
+    expect(appearance).toMatchObject({ hair: "short02", skinTone: 0.42, eyeColour: "darkbrown" });
     expect(applyEthnicPreset({ ...shape, gender: 0 }, DEFAULT_APPEARANCE, "latin").appearance.hair).toBe("long01");
     expect(matchEthnicPreset(next)).toBe("latin");
     expect(matchEthnicPreset({ ...next, asian: 0.3 })).toBeNull();

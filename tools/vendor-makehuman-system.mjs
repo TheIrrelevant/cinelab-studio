@@ -104,6 +104,9 @@ async function vendor(src) {
     await toPng(join(src, "eyes/materials", file), 512, `eyes/colours/${basename(file, "_eye.png")}.png`);
     counts.eyeColours += 1;
   }
+  // The stock brown iris reads maroon; a hue-shifted copy gives a natural dark brown (plan 2.7).
+  await sharp(out("eyes/colours/brown.png")).modulate({ hue: 18, saturation: 0.7, brightness: 1.05 }).png({ compressionLevel: 9 }).toFile(out("eyes/colours/darkbrown.png"));
+  counts.eyeColours += 1;
   for (const kind of ["eyebrows", "eyelashes", "hair"]) {
     for (const name of readdirSync(join(src, kind)).filter((entry) => existsSync(join(src, kind, entry, `${entry}.mhclo`)))) {
       const dir = join(src, kind, name);
@@ -137,6 +140,8 @@ function sourceNote(counts) {
     `- Copied: ${JSON.stringify(counts)}.`,
     "- Skins resized to 1024 JPEG; hair, eyebrow and eye textures resized. For runtime tinting hair",
     "  is greyscale normalised to mean 0.75 / std 0.18 and eyebrows are white; alpha is kept.",
+    "  `eyes/colours/darkbrown.png` is derived from `brown.png` (hue +18, saturation 0.7) because the",
+    "  stock brown iris reads maroon.",
     "  Meshes and .mhclo files are unchanged.",
     "- One-time snapshot. Regenerate with `node tools/vendor-makehuman-system.mjs`.",
     "",

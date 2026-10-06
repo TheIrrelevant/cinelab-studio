@@ -21,16 +21,16 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 ## 2. Progress (resume here)
 
-**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.6 complete.
-**Next: 2.7 Appearance polish** (needs approval to start).
+**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.7 complete (beard assets wait for decision D7).
+**Next: 2.8 Mesh quality gate** (needs approval to start).
 
 | Phase | Step | Status |
 |---|---|---|
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
-| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head | done |
-| 2 | **2.7 Appearance polish** | **next** |
-| 2 | 2.8 Mesh quality gate, 2.9 Character data v2 | open |
+| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish | done |
+| 2 | **2.8 Mesh quality gate** | **next** |
+| 2 | 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
@@ -139,6 +139,7 @@ AC: all face modifiers reachable; portrait screenshots per group.
 
 **2.7 Appearance polish.** Eye whites, skin detail, hair materials; look for CC0 beard and mustache
 assets. AC: before/after portraits.
+**Done 2026-10-06:** face band removed (low-frequency flattening of the face UV island in the skin compositor, `skin-detail.ts`); tiled procedural micro-normal on the skin; eye whites lit by their own texture (emissive map); `darkbrown` eye colour derived from the maroon stock `brown` (vendor script, presets use it); hair and eyebrows matte (roughness 0.82) with alpha-to-coverage edges; procedural RoomEnvironment light in the creator. Portraits: `docs/images/appearance/{female,male}-{before,after}.jpg` (`capture-appearance.mjs`). Not solved: hairline cut-outs of the stock hair textures stay jagged in close-ups; hair reads as a shell (asset geometry). Beards: the system pack has none; candidates in MakeHuman Bodyparts 05 (CC0) and 06 (CC-BY) packs - see D7.
 
 **2.8 Mesh quality gate.** Evaluate subdivision or a denser topology for close-ups using the 2.6
 portraits (decision D5). AC: written comparison with images and cost.
@@ -175,6 +176,7 @@ AC: studio e2e passes with the new body; render contract tests updated.
 | D3 | Ethnicity - resolved 2026-10-06: presets Asian, African, European, Latin that load a standard model | 2.5 |
 | D4 | Body regions - resolved 2026-10-06: chest, shoulders/torso, waist/hips, stomach, arms, legs, neck | 2.5 |
 | D5 | Close-up mesh quality: keep hm08, subdivide, or denser topology | 2.8 |
+| D7 | Facial hair: CC0 only (Bodyparts 05: viking moustache/beard, faun beard - verified CC0 headers; scruffy/Sigmund beards CC0 on site but AGPL boilerplate in files) or also CC-BY with attribution (Bodyparts 06: grinsegold full beard and moustache - best young-adult fit); no stubble asset exists | 2.7 review |
 | D6 | Bone roll stability: tail and roll only, or Procrustes roll correction if roll flips across shapes (`docs/anny-notes.md` section 5) | 1.1 review |
 
 ## 11. Risks

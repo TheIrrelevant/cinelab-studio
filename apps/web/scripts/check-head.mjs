@@ -46,7 +46,8 @@ try {
   assert.ok(differs(fullBody, portrait) > 0.2, "camera frames the head");
   await shot(page, "natural");
 
-  const changes = async (label, act, min = 0.0002) => {
+  // 0.01 % of the sampled pixels: the finest controls (philtrum, nose compression) move few pixels.
+  const changes = async (label, act, min = 0.0001) => {
     const before = await pixels(page);
     await act();
     let share = 0;

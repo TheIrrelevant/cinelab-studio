@@ -42,8 +42,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 - **Must not know:** characters, studio or rendering.
 - **Skinning:** linear blend skinning (MakeHuman weights). Dual quaternion skinning and weight
   smoothing were tried in plan 1.6 and rejected - see docs/deformation-qa.md.
-- **Known asset limits:** MakeHuman stock skins have a lighter painted patch around mouth/chin
-  that shows as a soft band on one cheek; eye whites read slightly dark under studio lights.
+- **Known asset limits:** stock hair textures have jagged hairline cut-outs in close-ups and the hair
+  meshes read as shells. (Fixed in plan 2.7: the painted face band is flattened at runtime, eye
+  whites are self-lit, `darkbrown` replaces the maroon stock brown iris in presets.)
 
 | File | Purpose |
 |---|---|
@@ -91,6 +92,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/components/MakeHumanBody.tsx` | r3f component |
 | `src/makehuman/appearance.ts` | Appearance model, hair colours, skin blend weights, tone |
 | `src/makehuman/body-controller.ts` | Browser driver: shape, skin, eyes, hair/eyebrow/eyelash proxies |
+| `src/makehuman/skin-detail.ts` | Face band flattening and tiled micro-normal pixels (plan 2.7) |
 | `src/makehuman/materials.ts` | Skin canvas compositor, eye/hair/eyebrow/eyelash materials, texture cache |
 | `src/makehuman/proxy-data.ts` | Reads proxy pack; creates and re-fits proxy SkinnedMeshes |
 | `src/makehuman/normals.ts` | Seam-free smooth normals (converter and runtime) |

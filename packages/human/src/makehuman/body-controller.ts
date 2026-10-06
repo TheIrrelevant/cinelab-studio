@@ -123,6 +123,8 @@ export class BodyController {
     // Skip if a newer appearance or a different proxy took this slot while loading.
     if (version !== this.appearanceVersion || !entry || entry.name !== name) return;
     entry.material[key] = texture;
+    // Eyes light themselves with their own texture (see createEyeMaterial).
+    if (slot === "eyes" && key === "map") entry.material.emissiveMap = texture;
     entry.material.needsUpdate = true;
   }
 }

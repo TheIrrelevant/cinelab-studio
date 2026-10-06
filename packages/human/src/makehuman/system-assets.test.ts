@@ -35,8 +35,8 @@ describe("vendored MakeHuman system assets", () => {
     }
   });
 
-  it("has nine eye colours", () => {
-    expect(dirs("eyes/colours")).toHaveLength(9);
+  it("has ten eye colours (nine stock + darkbrown)", () => {
+    expect(dirs("eyes/colours")).toHaveLength(10);
     expect(dirs("eyes/colours")).toContain("brown.png");
   });
 

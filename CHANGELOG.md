@@ -5,13 +5,26 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: character tab - head (Phase 2.6)
+last-change: appearance polish (Phase 2.7)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Appearance polish (human creator plan Phase 2.7)
+
+### Added
+- `packages/human/src/makehuman/skin-detail.ts` (+ test): face band flattening, tiled micro-normal.
+- `eyes/colours/darkbrown.png` derived from the stock brown iris in `tools/vendor-makehuman-system.mjs`; presets and the default use it.
+- Creator viewport: procedural RoomEnvironment light (no external files).
+- `apps/web/scripts/capture-appearance.mjs`; before/after portraits in `docs/images/appearance/`.
+
+### Changed
+- Skin, eye, hair, eyebrow and eyelash materials (`materials.ts`, `body-controller.ts`): self-lit eye whites, matte hair, alpha-to-coverage strands.
+- `check-head.mjs` threshold 0.01 % of pixels for the finest face controls under the softer light.
+- `docs/human-creator-plan.md`: 2.7 done, new decision D7 (facial hair licences), next 2.8.
 
 ## 2026-10-06 - Character tab - head (human creator plan Phase 2.6)
 

@@ -12,7 +12,7 @@ import type { BodyParams } from "./macro";
 export type Appearance = {
   /** 0 = darker, 0.5 = texture as painted, 1 = lighter. */
   skinTone: number;
-  /** Eye colour name from the proxy manifest, e.g. "brown". */
+  /** Eye colour name from the proxy manifest, e.g. "darkbrown". */
   eyeColour: string;
   /** Hairstyle name, or null for none. */
   hair: string | null;
@@ -24,7 +24,7 @@ export type Appearance = {
 
 export const DEFAULT_APPEARANCE: Appearance = {
   skinTone: 0.5,
-  eyeColour: "brown",
+  eyeColour: "darkbrown",
   hair: "short02",
   hairColour: "#3b2a20",
   eyebrows: "eyebrow001",
