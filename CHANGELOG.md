@@ -3,15 +3,27 @@ type: changelog
 category: release-notes
 scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
-last-updated: 2026-10-05T00:00:00Z
+last-updated: 2026-10-06T00:00:00Z
 last-model: claude-opus-5-5
-last-change: plan progress table (session end)
+last-change: anthropometry and solvers (Phase 2.3)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-06 - Anthropometry and solvers (human creator plan Phase 2.3)
+
+### Added
+- `packages/human/src/makehuman/anthropometry.ts`: height, closed-mesh volume, mass (x 980 kg/m3), natural waist and BMI.
+- `packages/human/src/makehuman/mesh-slice.ts`: horizontal cross-section loops and convex hull girth.
+- `packages/human/src/makehuman/body-solver.ts`: typed cm/kg solved into height/weight parameters within 0.05 cm / 0.05 kg; out-of-range input clamped with feasible ranges.
+- Tests: `mesh-slice.test.ts`, `anthropometry.test.ts`, `body-solver.test.ts` (AC: 0.5 cm / 0.5 kg on four bodies, clamping, gender-dependent ranges).
+- Lab `/lab/human`: `MeasurePanel.tsx` (measurements, cm/kg inputs, range notice); browser check `apps/web/scripts/check-measure.mjs`.
+
+### Changed
+- `docs/human-creator-plan.md`: 2.3 done, next 2.4; mass-range finding recorded for body types.
 
 ## 2026-10-05 - Plan progress
 

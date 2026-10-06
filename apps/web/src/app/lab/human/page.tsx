@@ -1,14 +1,14 @@
 /**
  * @file page.tsx (lab/human)
  * @description MakeHuman spike test page: large 3D viewport with the morphable body and a right
- *   panel for body shape and appearance (skin, eyes, hair). Shows the measured height and can
+ *   panel for body shape and appearance (skin, eyes, hair). Shows measurements with cm/kg solving (plan 2.3) and can
  *   overlay bone axes, show a joint limit demo pose, and pose the body: joint handles select,
  *   a gizmo rotates (moves the root and IK targets), FK/IK per limb, a numeric bar edits X/Y/Z,
  *   with undo/redo and resets.
  *   Needs `pnpm human:build` output in public/human.
  * @scope cinelab-studio/web
  * @depends @cinelab/human/components/MakeHumanBody, @cinelab/human/makehuman/macro,
- *   @cinelab/human/makehuman/appearance, BodySliders, AppearancePanel
+ *   @cinelab/human/makehuman/appearance, BodySliders, AppearancePanel, MeasurePanel
  */
 
 "use client";
@@ -19,12 +19,14 @@ import { Canvas } from "@react-three/fiber";
 import { MakeHumanBody } from "@cinelab/human/components/MakeHumanBody";
 import { limitDemoPose } from "@cinelab/human/makehuman/body-pose";
 import { DEFAULT_SHAPE, type ShapeParams } from "@cinelab/human/makehuman/shape-model";
+import type { LoadedBody } from "@cinelab/human/makehuman/load-body";
 import { DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "@cinelab/human/makehuman/appearance";
 import { AppearancePanel } from "./AppearancePanel";
 import { BodySliders } from "./BodySliders";
 import { LabCamera, type LabView } from "./LabCamera";
 import { LabProbe } from "./LabProbe";
 import { LabToggle } from "./LabToggle";
+import { MeasurePanel } from "./MeasurePanel";
 import { PosePanel } from "./PosePanel";
 import { QaPoseSelect } from "./QaPoseSelect";
 import { usePoseEditor } from "./use-pose-editor";
@@ -59,6 +61,11 @@ export default function HumanLabPage() {
     [actions],
   );
   const [error, setError] = useState<string | null>(null);
+  const [body, setBody] = useState<LoadedBody | null>(null);
+  const onBody = useCallback((loaded: LoadedBody) => {
+    actions.setBody(loaded);
+    setBody(loaded);
+  }, [actions]);
   const onShape = useCallback((result: { heightMetres: number }) => setHeight(result.heightMetres), []);
   const onError = useCallback((cause: Error) => setError(cause.message), []);
 
@@ -83,7 +90,7 @@ export default function HumanLabPage() {
             showBoneAxes={boneAxes}
             pose={pose}
             rootOffset={editor.current.rootOffset}
-            onBody={actions.setBody}
+            onBody={onBody}
             ikTarget={
               handles && ikLimb && ikTarget && gizmoMode === "translate"
                 ? { position: ikTarget, onDragStart: actions.beginDrag, onMove: (p) => actions.moveIkLive(ikLimb, p) }
@@ -160,6 +167,7 @@ export default function HumanLabPage() {
           onResetSelected={actions.resetSelected}
           onResetAll={actions.resetAll}
         />
+        <MeasurePanel body={body} params={params} onChange={setParams} />
         <BodySliders params={params} onChange={setParams} onReset={() => setParams(DEFAULT_SHAPE)} />
         <h2 className="border-t border-neutral-800 pt-3 text-xs font-semibold uppercase tracking-wide text-neutral-400">Appearance</h2>
         <AppearancePanel appearance={appearance} catalog={catalog} onChange={setAppearance} />

@@ -1,7 +1,7 @@
 ---
 type: agent-guide
 description: "@cinelab/human - 3D human figure, its proportions and pose presets."
-last-updated: 2026-10-05
+last-updated: 2026-10-06
 depends_on: [../core/AGENTS.md]
 ---
 
@@ -29,6 +29,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./components/JointHandles` - the handles on their own (`skeleton`, `boneNames`, same options).
   - `./makehuman/body-pose` - `BodyPose` (rig bone name -> rotation delta), `applyBodyPose`, `limitDemoPose`.
   - `./makehuman/appearance` - `Appearance`, `DEFAULT_APPEARANCE`, `HAIR_COLOURS`, `AppearanceCatalog`, `skinWeights`.
+  - `./makehuman/anthropometry` - `BodyMeasurements`, `measureTopology(data, index)`, `measureShape`, `measureBody`, `sizeMeasurer` (plan 2.3: height, mass = volume x 980, waist, BMI).
+  - `./makehuman/body-solver` - `solveBody(base, { heightCm, massKg }, measure)`: typed cm/kg -> `height`/`weight` params, clamped, with feasible ranges.
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber, @react-three/drei (gizmo).
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
@@ -67,6 +69,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/components/IkTargetGizmo.tsx` | Move gizmo for an IK target |
 | `src/makehuman/qa-poses.ts` | Deformation QA pose set |
 | `src/makehuman/shape-model.ts` | Shape model v2: macros + breast cup/firmness + ReLU local modifiers |
+| `src/makehuman/anthropometry.ts` | Height, closed-mesh volume and mass, natural waist, BMI on morphed source positions |
+| `src/makehuman/mesh-slice.ts` | Horizontal mesh cross-section loops, area, convex hull girth |
+| `src/makehuman/body-solver.ts` | cm/kg -> height/weight parameters (bracketed roots), clamping, ranges |
 | `src/makehuman/modifier-catalogue.ts` | target.json -> body/head modifier catalogue (bipolar/unipolar, sides, labels) |
 | `src/makehuman/convert/modifier-pack.ts` | Modifier pack: catalogue targets + breast macros, same source indexing |
 | `scripts/modifier-inputs.ts` | Loads target.json and the vendored modifier targets for the converter |

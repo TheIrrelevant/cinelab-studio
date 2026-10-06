@@ -21,22 +21,22 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 ## 2. Progress (resume here)
 
-**Status 2026-10-05 (branch `main`, last step commit `9f38242`):** Phase 0 and Phase 1 complete; Phase 2
-steps 2.1 and 2.2 complete. **Next: 2.3 Anthropometry and solvers** (needs approval to start).
+**Status 2026-10-06 (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.3 complete.
+**Next: 2.4 Body types** (needs approval to start).
 
 | Phase | Step | Status |
 |---|---|---|
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
-| 2 | 2.1 Modifier data, 2.2 Shape model v2 | done |
-| 2 | **2.3 Anthropometry and solvers** | **next** |
-| 2 | 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
+| 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers | done |
+| 2 | **2.4 Body types** | **next** |
+| 2 | 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish, 2.8 Mesh quality gate, 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
 Current state of the body: MakeHuman hm08 with real bone frames, joint limits, handles, gizmo, undo,
 two-bone IK with planted feet, deformation QA baseline (linear blend skinning kept), 200 local modifiers
-and breast cup/firmness in shape model v2. Lab page `/lab/human` exposes all of it. Known gaps: shoulder
+and breast cup/firmness in shape model v2, mesh measurements and a cm/kg solver. Lab page `/lab/human` exposes all of it. Known gaps: shoulder
 and deep hip correctives (docs/deformation-qa.md); UI is still raw 0-100 % sliders (2.5 / 2.6). The dev
 server is not left running; browser checks start a temporary one.
 
@@ -118,9 +118,10 @@ firmness, ethnicity) plus local modifiers, following Anny's phenotype logic. AC:
 current macro model for shared parameters; every modifier resolves to packed targets.
 **Done 2026-10-05:** `shape-model.ts` (macro.ts unchanged; breast macros female x age x muscle x weight x cup x firmness; ReLU modifier pairs, symmetric sides), modifier pack loaded at runtime with per-target scale; identical bodies for shared parameters (max difference 0); lab breast size/firmness sliders.
 
-**2.3 Anthropometry and solvers.** *(next)* Measure height, mass (volume x 980), waist and BMI on the mesh;
+**2.3 Anthropometry and solvers.** Measure height, mass (volume x 980), waist and BMI on the mesh;
 solve typed height (cm) and weight (kg) into parameters; report the feasible range for the current
 gender and body type. AC: solved body within 0.5 cm and 0.5 kg; out-of-range input is clamped and shown.
+**Done 2026-10-06:** `anthropometry.ts` (height floor to crown, closed-mesh volume x 980, natural waist = smallest torso hull girth between spine04 and spine01 via `mesh-slice.ts`, BMI), `body-solver.ts` (nested bracketed Illinois roots: `height` for a weight, `weight` for the height-matched mass; 26-44 morphs, about 0.1 s), lab cm/kg panel, `check-measure.mjs`. Finding for 2.4: the `weight` macro alone spans a narrow mass band at a fixed height (female 165 cm: 43-58 kg; male 182 cm: 64-76 kg; muscle 0.9 widens it to 58-90 kg), so heavier typed weights clamp until body types add muscle and fat.
 
 **2.4 Body types.** Named types (list is open decision D2) mapped to muscle, proportions and fat
 distribution while height and weight stay as typed. AC: switching type keeps cm and kg.
