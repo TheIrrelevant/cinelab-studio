@@ -116,3 +116,15 @@ describe("CharacterLibrary studio link", () => {
     );
   });
 });
+
+describe("CharacterLibrary creator links (plan 2.9)", () => {
+  it("opens the 3D creator for new and saved characters", () => {
+    const aria = useCharacterStore.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
+    render(<CharacterLibrary />);
+    expect(screen.getByRole("link", { name: "Create in 3D" })).toHaveAttribute("href", "/characters/creator");
+    expect(screen.getByRole("link", { name: "Open Aria in creator" })).toHaveAttribute(
+      "href",
+      `/characters/creator?id=${encodeURIComponent(aria.id)}`,
+    );
+  });
+});

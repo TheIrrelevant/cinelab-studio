@@ -5,13 +5,24 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-07T00:00:00Z
 last-model: claude-opus-5-5
-last-change: facial hair placeholder (2.7b deferred)
+last-change: character data v2 (plan 2.9)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-07 - Character data v2 (plan 2.9)
+
+### Added
+- `human-schema.ts`, `legacy-mapping.ts`: the MakeHuman human (shape, appearance, size, pose) in the character and the mapping to and from the v1 fields.
+- Creator Name + Save (`use-creator-persistence.ts`); deep link `/characters/creator?id=...`.
+- Library links "Create in 3D" and "Creator" per character.
+- Tests `character-v2.test.ts`, `use-creator-persistence.test.ts`; browser `check-character-data.mjs` (chained in `test:human:browser`).
+
+### Changed
+- Character schema version 2; v1 records migrate on parse (same storage key).
 
 ## 2026-10-07 - Facial hair placeholder (plan 2.7b deferred)
 

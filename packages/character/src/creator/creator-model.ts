@@ -3,15 +3,17 @@
  * @description Pure state of the character creator (plan 2.5): body shape, appearance and the
  *   locked size (typed cm and kg). Every body change goes through `keepSize`, which re-solves the
  *   height and weight parameters so the locked cm/kg stay (clamped to the feasible range with a
- *   note). Persistence arrives with character data v2 (plan 2.9).
+ *   note). `stateFromHuman` / `humanFromState` convert to and from the saved character data v2
+ *   (plan 2.9); the pose is carried along unchanged until the creator edits poses.
  * @scope cinelab-studio
- * @depends @cinelab/human (shape-model, appearance, body-solver, ethnic-presets)
+ * @depends ../human-schema, @cinelab/human (shape-model, appearance, body-solver, ethnic-presets)
  */
 
 import { DEFAULT_APPEARANCE, type Appearance } from "@cinelab/human/makehuman/appearance";
 import { solveBody, type BodySize, type MeasureSize } from "@cinelab/human/makehuman/body-solver";
 import { applyEthnicPreset } from "@cinelab/human/makehuman/ethnic-presets";
 import { DEFAULT_SHAPE, type ShapeParams } from "@cinelab/human/makehuman/shape-model";
+import { HumanSchema, type Human } from "../human-schema";
 
 export type Shape = Required<ShapeParams>;
 
@@ -22,12 +24,25 @@ export type CreatorState = {
   size: BodySize | null;
   /** Shown when the locked size had to be clamped. */
   note: string | null;
+  /** Saved pose, kept as loaded. */
+  pose: Human["pose"];
+  rootOffset: Human["rootOffset"];
 };
 
 /** The creator opens on the European female standard model. */
 export function initialCreatorState(): CreatorState {
   const loaded = applyEthnicPreset({ ...DEFAULT_SHAPE, gender: 0 }, DEFAULT_APPEARANCE, "european");
-  return { shape: loaded.shape, appearance: loaded.appearance, size: null, note: null };
+  return { shape: loaded.shape, appearance: loaded.appearance, size: null, note: null, pose: {}, rootOffset: [0, 0, 0] };
+}
+
+/** Creator state for a saved human (the body re-solves its saved size once it is measured). */
+export function stateFromHuman(human: Human): CreatorState {
+  return { shape: { ...human.shape }, appearance: { ...human.appearance }, size: human.size, note: null, pose: human.pose, rootOffset: human.rootOffset };
+}
+
+/** The human to save; validated so a broken state never reaches storage. */
+export function humanFromState(state: CreatorState): Human {
+  return HumanSchema.parse({ shape: state.shape, appearance: state.appearance, size: state.size, pose: state.pose, rootOffset: state.rootOffset });
 }
 
 const range = (r: { min: number; max: number }, digits: number, unit: string) => `${r.min.toFixed(digits)}-${r.max.toFixed(digits)} ${unit}`;

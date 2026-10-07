@@ -25,7 +25,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
 **2026-10-07:** D7 resolved (CC0 + CC-BY with `NOTICE` attribution, AGPL-boilerplate files excluded);
 D5 resolved (denser topology). 2.8 done (dense body). 2.7b deferred: D7 reopened after the file
 license check (see D7); the Head tab shows facial hair disabled. User priority: the female side.
-**Next:** 2.9 Character data v2 or female-side work (needs approval). Separate notes for after the plan:
+2.9 done (character data v2, save/load/deep link). **Next: 3.1 Facial actions** (needs approval). Separate notes for after the plan:
 `docs/aion2-creator-notes.md`.
 
 | Phase | Step | Status |
@@ -35,7 +35,7 @@ license check (see D7); the Head tab shows facial hair disabled. User priority: 
 | 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish | done |
 | 2 | 2.8 Denser topology (D5) | done |
 | 2 | 2.7b Facial hair assets (D7) | deferred (disabled UI placeholder) |
-| 2 | 2.9 Character data v2 | open |
+| 2 | 2.9 Character data v2 | done |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
@@ -175,6 +175,16 @@ faceted; lip edge slightly softer.
 
 **2.9 Character data v2.** Schema for phenotype, modifiers, appearance and pose; migration from the
 current character store; save, load, deep link. AC: old characters migrate; round-trip tests.
+**Done 2026-10-07:** `human-schema.ts` (zod: shape with modifiers and body type, appearance, locked
+size, pose as bone -> quaternion, root offset), `legacy-mapping.ts` (v1 fields <-> human), schema
+version 2 with migrate-on-parse (same storage key; v1 records are rewritten as v2 on the next save),
+creator Name + Save (`use-creator-persistence.ts`), deep link `/characters/creator?id=...` (id put into
+the URL after the first save), library "Create in 3D" and per-card "Creator" links. v1 fields stay and
+follow the human so the library swatches and the studio mannequin keep working until 4.1. Tests:
+`character-v2.test.ts`, `use-creator-persistence.test.ts`; browser `check-character-data.mjs` (v1
+migrates and opens; save -> reload restores the same cm/kg and an identical picture; no duplicate on
+re-save). Images: `docs/images/character-data/`. The old form editor (`/characters/new`, `/edit`)
+still edits only the v1 fields.
 
 ## 8. Phase 3 - Face and hands
 

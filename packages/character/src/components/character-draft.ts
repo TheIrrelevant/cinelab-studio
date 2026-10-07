@@ -10,7 +10,8 @@ import type { Character, CharacterInput } from "../schema";
 import { BASE_MODELS, HAIR_STYLES, SKIN_TONES } from "../presets";
 import { imageRepository } from "../image-repository";
 
-export type Draft = Omit<Character, "id" | "createdAt" | "updatedAt">;
+/** The v1 editor fields; the MakeHuman `human` is edited in the creator and kept on save. */
+export type Draft = Omit<Character, "id" | "createdAt" | "updatedAt" | "version" | "human">;
 
 export function emptyDraft(): Draft {
   return {
@@ -28,8 +29,8 @@ export function emptyDraft(): Draft {
 
 export function draftFromCharacter(existing: Character | null): Draft {
   if (existing) {
-    const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = existing;
-    void _id; void _c; void _u;
+    const { id: _id, createdAt: _c, updatedAt: _u, version: _v, human: _h, ...rest } = existing;
+    void _id; void _c; void _u; void _v; void _h;
     return rest;
   }
   return emptyDraft();

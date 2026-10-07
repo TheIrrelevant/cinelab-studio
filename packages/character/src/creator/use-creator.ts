@@ -68,6 +68,8 @@ export function useCreator() {
       },
       resetRegion: (region: BodyRegion) => reshape((s) => resetRegion(s.shape, region)),
       setFaceShape: (id: FaceShapeId | null) => reshape((s) => applyFaceShape(s.shape, id)),
+      /** Replaces the whole state (a loaded character, plan 2.9). */
+      load: (next: CreatorState) => setState(next),
     }),
     [measure, reshape, solve],
   );
