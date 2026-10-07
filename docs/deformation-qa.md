@@ -1,7 +1,7 @@
 ---
 type: qa-report
 description: Deformation QA of the MakeHuman body (human creator plan step 1.6) - fixed pose set, triangle metrics, images, tried fixes (weight smoothing, dual quaternion skinning, blend) and the decision to keep linear blend skinning.
-last-updated: 2026-10-05
+last-updated: 2026-10-07
 last-model: claude-opus-5-5
 depends_on: [./human-creator-plan.md, ../packages/human/src/makehuman/qa-poses.ts, ../packages/human/src/makehuman/deformation-metrics.ts]
 ---
@@ -18,7 +18,8 @@ depends_on: [./human-creator-plan.md, ../packages/human/src/makehuman/qa-poses.t
   **inverted** = normal pointing against the rest normal carried by the triangle's dominant bone.
   Inverted counts include natural skin folds (inner elbow, palm, back of knee), so they overstate damage.
 - Images: `apps/web/scripts/capture-deformation.mjs <label>` from `/lab/human` (QA pose picker).
-- Regression guard: `deformation-qa.test.ts` fails if any pose gets worse than the numbers below.
+- Regression guard: `deformation-qa.test.ts` fails if any pose gets worse than its baseline. Since plan
+  2.8 the guard uses the dense body (section 2a); the table below is the coarse 2026-10-05 baseline.
 
 ## 2. Linear blend skinning (kept)
 
@@ -40,6 +41,25 @@ flattened shoulder top with arms fully raised and compressed creases in deep fle
 | ![Elbows 140](./images/deformation-qa/lbs/elbows-140-side.jpg) | ![Deep squat](./images/deformation-qa/lbs/deep-squat-side.jpg) |
 | ![Fists](./images/deformation-qa/lbs/fists-hands.jpg) | ![Head turn](./images/deformation-qa/lbs/head-turn-portrait.jpg) |
 | ![Jaw open](./images/deformation-qa/lbs/jaw-open-portrait.jpg) | ![Arms up, side](./images/deformation-qa/lbs/arms-up-side.jpg) |
+
+
+## 2a. Dense body (plan 2.8)
+
+Since 2026-10-07 the GLB is the limit-projected Catmull-Clark level 1 of hm08 (107,024 triangles); skin
+weights are subdivided with the same stencils. Shares are comparable with the coarse table because each
+dense triangle covers a quarter of the area.
+
+| Pose | Collapsed | Inverted | Share | Coarse share |
+|---|---|---|---|---|
+| Arms up | 106 | 378 | 0.45 % | 0.54 % |
+| Elbows 140 | 62 | 222 | 0.27 % | 0.25 % |
+| Deep squat | 140 | 426 | 0.53 % | 0.64 % |
+| Fists | 507 | 901 | 1.32 % | 1.47 % |
+| Head turn | 4 | 60 | 0.06 % | 0.04 % |
+| Jaw open | 2 | 77 | 0.07 % | 0.07 % |
+
+Four poses improve; elbows and head turn rise slightly (smoother weights spread the neck twist over more
+triangles whose first vertex has a different dominant bone).
 
 ## 3. Tried and rejected
 

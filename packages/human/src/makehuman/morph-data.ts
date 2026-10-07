@@ -2,13 +2,15 @@
  * @file morph-data.ts
  * @description Runtime reader for the MakeHuman morph pack (plus the optional modifier pack) and
  *   CPU morphing: base source positions + sum(weight * delta * pack scale), regrounded so the
- *   ground marker sits at y = 0.
+ *   ground marker sits at y = 0. Version 2 packs carry the body cage; its subdivision (plan 2.8)
+ *   is built once here.
  * @scope cinelab-studio
- * @depends ./morph-manifest, ./modifier-catalogue
+ * @depends ./morph-manifest, ./modifier-catalogue, ./subdivision
  */
 
 import type { Modifier } from "./modifier-catalogue";
 import type { ModifierManifest, MorphManifest, PackedTarget } from "./morph-manifest";
+import { buildSubdivision, type Subdivision } from "./subdivision";
 
 /** `scale` converts the Int16 deltas of this target's pack to metres. */
 export type MorphTarget = { indices: Uint16Array; deltas: Int16Array; scale: number };
@@ -16,7 +18,11 @@ export type MorphTarget = { indices: Uint16Array; deltas: Int16Array; scale: num
 export type MorphData = {
   manifest: MorphManifest;
   basePositions: Float32Array;
+  /** Dense vertex per GLB vertex. */
   vertexSource: Uint16Array;
+  /** Coarse closed body, 4 source indices per quad (measurements use it). */
+  cageQuads: Uint16Array;
+  subdivision: Subdivision;
   targets: Map<string, MorphTarget>;
   /** Modifier pack contents once added (plan 2.2). */
   modifiers?: { catalogue: Modifier[]; breastMacros: string[] };
@@ -33,13 +39,18 @@ function readTargets(packed: PackedTarget[], buffer: ArrayBuffer, scale: number,
 }
 
 export function readMorphData(manifest: MorphManifest, buffer: ArrayBuffer): MorphData {
-  if (manifest.version !== 1) throw new Error(`Unsupported morph pack version ${manifest.version}`);
+  if (manifest.version !== 2) throw new Error(`Unsupported morph pack version ${manifest.version}`);
   const targets = new Map<string, MorphTarget>();
   readTargets(manifest.targets, buffer, manifest.scale, targets);
+  const cageQuads = new Uint16Array(buffer, manifest.cageQuads.offset, manifest.cageQuads.length / 2);
+  const subdivision = buildSubdivision(cageQuads, manifest.sourceCount);
+  if (subdivision.denseCount !== manifest.denseCount) throw new Error("Morph pack cage does not match its dense count");
   return {
     manifest,
     basePositions: new Float32Array(buffer, manifest.sourcePositions.offset, manifest.sourceCount * 3),
     vertexSource: new Uint16Array(buffer, manifest.vertexSource.offset, manifest.vertexCount),
+    cageQuads,
+    subdivision,
     targets,
   };
 }

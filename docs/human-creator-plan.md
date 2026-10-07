@@ -23,8 +23,7 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 **Status 2026-10-06 session end (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.7 complete (beard assets wait for decision D7).
 **2026-10-07:** D7 resolved (CC0 + CC-BY with `NOTICE` attribution, AGPL-boilerplate files excluded);
-D5 resolved (denser topology). **Next: 2.8 Denser topology** (scope below, needs approval); beard
-vendoring follows as 2.7b. Separate notes for after the plan:
+D5 resolved (denser topology). 2.8 done (dense body). **Next: 2.7b Facial hair assets** (needs approval). Separate notes for after the plan:
 `docs/aion2-creator-notes.md`.
 
 | Phase | Step | Status |
@@ -32,8 +31,8 @@ vendoring follows as 2.7b. Separate notes for after the plan:
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
 | 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish | done |
-| 2 | **2.8 Denser topology** (D5) | **next** |
-| 2 | 2.7b Facial hair assets (D7) | open |
+| 2 | 2.8 Denser topology (D5) | done |
+| 2 | **2.7b Facial hair assets** (D7) | **next** |
 | 2 | 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
@@ -158,6 +157,14 @@ eyebrows, eyelashes, beards) keep fitting against the coarse mesh. AC: about 4x 
 measurements (2.3) unchanged; rest-pose dense surface within 1 mm of the limit surface; before/after
 portraits in `docs/images/topology/`; creator stays above 60 fps at portrait framing; load time and
 download size reported.
+**Done 2026-10-07:** `subdivision.ts` (level-1 + limit stencils, verified on a cube against five more
+refinement levels), `convert/dense-mesh.ts` (face-varying linear UVs), dense skin weights in
+`skin-weights.ts`; morph pack v2 carries `cageQuads` and `denseCount`; measurements triangulate the cage.
+Body: 13,378 -> 53,512 quads (107,024 triangles), 53,514 dense vertices. Cost: GLB 1.2 -> 4.4 MB, morph
+pack +0.2 MB, stencil build about 120 ms once per load, +7 ms per shape change, about 220 fps at portrait
+framing (Apple M1, uncapped). Cage-to-limit shift: mean 0.8 mm, p95 2.1 mm, max 6.6 mm. Deformation QA
+rebased (docs/deformation-qa.md 2a). Images: `docs/images/topology/` - ear rim and jaw line no longer
+faceted; lip edge slightly softer.
 
 **2.9 Character data v2.** Schema for phenotype, modifiers, appearance and pose; migration from the
 current character store; save, load, deep link. AC: old characters migrate; round-trip tests.

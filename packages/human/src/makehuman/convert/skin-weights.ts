@@ -2,9 +2,12 @@
  * @file skin-weights.ts
  * @description Converts MakeHuman per-bone vertex weights into glTF JOINTS_0/WEIGHTS_0: the four
  *   strongest bones per render vertex, normalised to sum 1. Unweighted vertices bind to bone 0.
+ *   Dense meshes (plan 2.8) carry the full per-bone weights through the subdivision stencils first.
  * @scope cinelab-studio
- * @depends none
+ * @depends ../subdivision.ts
  */
+
+import { subdivide, type Subdivision } from "../subdivision.ts";
 
 export type WeightsJson = { weights: Record<string, Array<[number, number]>> };
 
@@ -83,6 +86,38 @@ export function buildSkin(source: ArrayLike<number>, boneNames: string[], json: 
   let unweighted = 0;
   for (let i = 0; i < source.length; i += 1) {
     if (!writeTop4([...(perVertex.get(source[i]) ?? [])], joints, weights, i)) unweighted += 1;
+  }
+  return { joints, weights, unweighted };
+}
+
+/**
+ * Dense body skinning: every bone weight is subdivided like a position (all stencil weights are
+ * positive), then each render vertex keeps the four strongest bones of its dense vertex.
+ * @param renderSource Dense vertex per render vertex.
+ * @param originals OBJ vertex per compact source index.
+ */
+export function buildDenseSkin(
+  renderSource: ArrayLike<number>,
+  sub: Subdivision,
+  originals: number[],
+  boneNames: string[],
+  json: WeightsJson,
+): SkinAttributes {
+  const perVertex = weightsByVertex(boneNames, json);
+  const stride = boneNames.length;
+  const coarse = new Float32Array(sub.coarseCount * stride);
+  originals.forEach((vertex, i) => {
+    for (const [bone, w] of perVertex.get(vertex) ?? []) coarse[i * stride + bone] = w;
+  });
+  const dense = subdivide(sub, coarse, stride);
+  const joints = new Uint16Array(renderSource.length * 4);
+  const weights = new Float32Array(renderSource.length * 4);
+  let unweighted = 0;
+  for (let i = 0; i < renderSource.length; i += 1) {
+    const row = renderSource[i] * stride;
+    const entries: Array<[number, number]> = [];
+    for (let bone = 0; bone < stride; bone += 1) if (dense[row + bone] > 1e-6) entries.push([bone, dense[row + bone]]);
+    if (!writeTop4(entries, joints, weights, i)) unweighted += 1;
   }
   return { joints, weights, unweighted };
 }

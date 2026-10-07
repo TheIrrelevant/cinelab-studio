@@ -25,7 +25,7 @@ const SETTLE_MS = 250;
 export function useCreator() {
   const [state, setState] = useState<CreatorState>(initialCreatorState);
   const [body, setBody] = useState<LoadedBody | null>(null);
-  const topology = useMemo(() => (body ? measureTopology(body.data, body.mesh.geometry.getIndex()!.array) : null), [body]);
+  const topology = useMemo(() => (body ? measureTopology(body.data) : null), [body]);
   const measure = useMemo(() => (body && topology ? sizeMeasurer(body.data, topology) : null), [body, topology]);
   const measured = useMemo(() => (body && topology ? measureShape(body.data, topology, state.shape) : null), [body, topology, state.shape]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);

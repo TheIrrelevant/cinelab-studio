@@ -28,7 +28,7 @@ beforeAll(async () => {
     glb: buffer(built.glb), manifest: built.manifest, morphs: buffer(built.morphBin), proxyManifest: built.proxyManifest, proxies: buffer(built.proxyBin),
     modifierManifest: built.modifiers!.manifest, modifiers: buffer(built.modifiers!.bin),
   });
-  topology = measureTopology(body.data, body.mesh.geometry.getIndex()!.array);
+  topology = measureTopology(body.data);
 }, 60_000);
 
 const morph = (params: ShapeParams) => morphSourcePositions(body.data, shapeTargetWeights(params, body.data.modifiers!.catalogue));

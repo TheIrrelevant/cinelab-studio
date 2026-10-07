@@ -5,13 +5,25 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-07T00:00:00Z
 last-model: claude-opus-5-5
-last-change: decisions D5 and D7 resolved
+last-change: plan 2.8 dense body topology
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-07 - Dense body topology (plan 2.8)
+
+### Added
+- `packages/human/src/makehuman/subdivision.ts`: Catmull-Clark level 1 plus limit projection as sparse stencils, with tests.
+- `packages/human/src/makehuman/convert/dense-mesh.ts`: body cage quads and the level-1 render mesh with face-varying UVs.
+- `docs/images/topology/`: before/after portraits and a close-up.
+
+### Changed
+- Converter writes the dense body GLB (107,024 triangles) with subdivided skin weights; morph pack version 2 adds `denseCount` and `cageQuads`.
+- `applyBodyShape` subdivides morphed source positions; `measureTopology(data)` triangulates the coarse cage (measurements unchanged).
+- Deformation QA baseline rebased on the dense body (`docs/deformation-qa.md` section 2a).
 
 ## 2026-10-07 - Decisions D5 and D7
 

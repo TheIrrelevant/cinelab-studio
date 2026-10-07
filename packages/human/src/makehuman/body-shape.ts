@@ -1,11 +1,11 @@
 /**
  * @file body-shape.ts
  * @description Applies shape parameters (macros, breast, local modifiers) to a loaded MakeHuman skinned mesh: morphs the vertices
- *   on the CPU, recomputes seam-free normals and re-fits the skeleton (bone rest positions and
+ *   on the CPU, subdivides them to the dense body (plan 2.8), recomputes seam-free normals and re-fits the skeleton (bone rest positions and
  *   inverse bind matrices) to the new joints with head/tail/roll rest frames. Pose deltas are
  *   preserved across re-shapes.
  * @scope cinelab-studio
- * @depends three, ./bone-frames, ./shape-model, ./morph-data, ./normals
+ * @depends three, ./bone-frames, ./shape-model, ./morph-data, ./normals, ./subdivision
  */
 
 import { Quaternion, type BufferAttribute, type SkinnedMesh } from "three";
@@ -13,6 +13,7 @@ import { shapeTargetWeights, type ShapeParams } from "./shape-model";
 import { bonePoseDelta, boneRestQuaternion, setBonePoseDelta } from "./bone-frames";
 import { jointPosition, morphSourcePositions, type MorphData } from "./morph-data";
 import { seamlessNormals } from "./normals";
+import { subdivide } from "./subdivision";
 
 export type BodyShapeResult = {
   /** Morphed, grounded source positions (reusable for measurements). */
@@ -27,20 +28,22 @@ export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: Shape
   const position = geometry.getAttribute("position") as BufferAttribute;
   const normal = geometry.getAttribute("normal") as BufferAttribute;
   const positions = position.array as Float32Array;
-  const { vertexSource } = data;
+  const { vertexSource, subdivision } = data;
   if (position.count !== vertexSource.length) throw new Error("Mesh does not match the morph pack");
 
+  // Height stays on the coarse cage so it matches the measurements.
   let top = 0;
+  for (const v of subdivision.cageVertices) top = Math.max(top, source[v * 3 + 1]);
+  const dense = subdivide(subdivision, source, 3);
   for (let i = 0; i < vertexSource.length; i += 1) {
     const s = vertexSource[i] * 3;
-    positions[i * 3] = source[s];
-    positions[i * 3 + 1] = source[s + 1];
-    positions[i * 3 + 2] = source[s + 2];
-    top = Math.max(top, source[s + 1]);
+    positions[i * 3] = dense[s];
+    positions[i * 3 + 1] = dense[s + 1];
+    positions[i * 3 + 2] = dense[s + 2];
   }
   const index = geometry.getIndex();
   if (!index) throw new Error("MakeHuman mesh must be indexed");
-  seamlessNormals(positions, index.array, vertexSource, data.manifest.sourceCount, normal.array as Float32Array);
+  seamlessNormals(positions, index.array, vertexSource, subdivision.denseCount, normal.array as Float32Array);
   position.needsUpdate = true;
   normal.needsUpdate = true;
   geometry.computeBoundingBox();

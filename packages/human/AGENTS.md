@@ -29,7 +29,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./components/JointHandles` - the handles on their own (`skeleton`, `boneNames`, same options).
   - `./makehuman/body-pose` - `BodyPose` (rig bone name -> rotation delta), `applyBodyPose`, `limitDemoPose`.
   - `./makehuman/appearance` - `Appearance`, `DEFAULT_APPEARANCE`, `HAIR_COLOURS`, `AppearanceCatalog`, `skinWeights`.
-  - `./makehuman/anthropometry` - `BodyMeasurements`, `measureTopology(data, index)`, `measureShape`, `measureBody`, `sizeMeasurer` (plan 2.3: height, mass = volume x 980, waist, BMI).
+  - `./makehuman/anthropometry` - `BodyMeasurements`, `measureTopology(data)`, `measureShape`, `measureBody`, `sizeMeasurer` (plan 2.3: height, mass = volume x 980, waist, BMI).
   - `./makehuman/body-solver` - `solveBody(base, { heightCm, massKg }, measure)`: typed cm/kg -> `height`/`weight` params, clamped, with feasible ranges.
   - `./makehuman/body-types` - `BODY_TYPE_IDS`, `BODY_TYPES`, `BodyTypeChoice` (`ShapeParams.bodyType`), `withBodyType`, `switchBodyType(params, choice, keep, measure)` (plan 2.4).
   - `./makehuman/ethnic-presets` - `ETHNIC_PRESET_IDS`, `ETHNIC_PRESETS`, `applyEthnicPreset(shape, appearance, id)`, `matchEthnicPreset` (plan 2.5, D3).
@@ -40,6 +40,9 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
   18-25 uses the 25-year body unchanged; 25-35 blends up to about 15 % towards the 90-year targets.
 - **Must not know:** characters, studio or rendering.
+- **Topology (plan 2.8):** the GLB is the limit-projected Catmull-Clark level 1 of the hm08 body
+  (`subdivision.ts`); morphs, joints, proxies and measurements stay on the coarse source vertices and
+  `applyBodyShape` subdivides after morphing. `MorphData.vertexSource` maps GLB vertices to dense vertices.
 - **Skinning:** linear blend skinning (MakeHuman weights). Dual quaternion skinning and weight
   smoothing were tried in plan 1.6 and rejected - see docs/deformation-qa.md.
 - **Known asset limits:** stock hair textures have jagged hairline cut-outs in close-ups and the hair
@@ -56,6 +59,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/assets.test.ts` | Integrity checks for the vendored assets |
 | `src/makehuman/macro.ts` | Body params -> macro target weights (own implementation of macro.json ranges) |
 | `src/makehuman/morph-manifest.ts` | Morph pack manifest types (converter + runtime) |
+| `src/makehuman/subdivision.ts` | Catmull-Clark level 1 + limit projection as sparse stencils; `subdivide` |
+| `src/makehuman/convert/dense-mesh.ts` | Body cage quads; dense render mesh with face-varying UVs |
 | `src/makehuman/morph-data.ts` | Reads the morph pack (+ modifier pack via `addModifierPack`; per-target scale); CPU morph + regrounding |
 | `src/makehuman/body-shape.ts` | Applies params to the skinned mesh; refits skeleton with head/tail/roll rest frames, keeps pose deltas |
 | `src/makehuman/bone-frames.ts` | Blender head/tail/roll bone basis in Y-up axes; pose delta on top of the rest frame (`bonePoseDelta`, `setBonePoseDelta`) |

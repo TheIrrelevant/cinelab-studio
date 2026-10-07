@@ -34,14 +34,14 @@ export type MeasureTopology = {
   waistBand: [number[], number[]];
 };
 
-/** Maps the GLB index buffer to source vertices (UV seams share their source vertex). */
-export function measureTopology(data: MorphData, index: ArrayLike<number>): MeasureTopology {
-  const triangles = new Uint32Array(index.length);
-  const used = new Set<number>();
-  for (let i = 0; i < index.length; i += 1) {
-    triangles[i] = data.vertexSource[index[i]];
-    used.add(triangles[i]);
+/** Triangulates the coarse body cage (the dense GLB is a smoothed copy; measurements stay coarse). */
+export function measureTopology(data: MorphData): MeasureTopology {
+  const quads = data.cageQuads;
+  const triangles = new Uint32Array((quads.length / 4) * 6);
+  for (let q = 0; q < quads.length; q += 4) {
+    triangles.set([quads[q], quads[q + 1], quads[q + 2], quads[q], quads[q + 2], quads[q + 3]], (q / 4) * 6);
   }
+  const used = new Set<number>(triangles);
   const bone = (name: string) => {
     const spec = data.manifest.bones.find((b) => b.name === name);
     if (!spec) throw new Error(`Bone missing from morph pack: ${name}`);

@@ -20,14 +20,19 @@ export type PackedTarget = {
 };
 
 export type MorphManifest = {
-  version: 1;
+  /** 2: dense body (plan 2.8). */
+  version: 2;
   units: "m";
   sourceCount: number;
+  /** Vertices of the subdivided body (see `subdivision.ts`). */
+  denseCount: number;
   vertexCount: number;
   /** Float32 xyz per source vertex (grounded base body). */
   sourcePositions: Section;
-  /** Uint16 source index per GLB vertex, in GLB vertex order. */
+  /** Uint16 dense vertex index per GLB vertex, in GLB vertex order. */
   vertexSource: Section;
+  /** Uint16 source indices, 4 per body cage quad (the coarse closed body). */
+  cageQuads: Section;
   /** Source vertices whose mean is the floor contact point. */
   ground: number[];
   /** Parent-first, same order as the GLB skin joints; head/tail are source vertex lists, roll is the Blender roll in radians. */

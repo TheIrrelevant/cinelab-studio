@@ -64,7 +64,7 @@ export default function HumanLabPage() {
   );
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState<LoadedBody | null>(null);
-  const topology = useMemo(() => (body ? measureTopology(body.data, body.mesh.geometry.getIndex()!.array) : null), [body]);
+  const topology = useMemo(() => (body ? measureTopology(body.data) : null), [body]);
   const onBody = useCallback((loaded: LoadedBody) => {
     actions.setBody(loaded);
     setBody(loaded);

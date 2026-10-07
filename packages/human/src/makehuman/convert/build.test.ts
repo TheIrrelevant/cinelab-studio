@@ -1,7 +1,7 @@
 /**
  * @file build.test.ts
  * @description End-to-end conversion of the vendored MakeHuman assets: the GLB loads in three's
- *   GLTFLoader as a skinned, grounded, adult-sized body, the morph pack is consistent, and the
+ *   GLTFLoader as a skinned, grounded, adult-sized dense body, the morph pack is consistent, and the
  *   modifier pack holds every catalogue target within its size budget.
  * @scope cinelab-studio
  * @depends ../../../scripts/build-assets.ts, ./build.ts, three GLTFLoader
@@ -46,6 +46,17 @@ describe("MakeHuman GLB", () => {
     expect(Math.abs(box.min.y)).toBeLessThan(0.05);
   });
 
+  it("is the dense body: four quads per cage quad, UVs in range (plan 2.8)", () => {
+    const mesh = gltf.scene.getObjectByName("makehuman-body") as SkinnedMesh;
+    const cageQuads = result.manifest.cageQuads.length / 8;
+    expect(cageQuads).toBe(13378);
+    expect(mesh.geometry.getIndex()!.count).toBe(cageQuads * 4 * 6);
+    expect(result.manifest.denseCount).toBe(13380 + 26756 + 13378);
+    const uv = mesh.geometry.getAttribute("uv").array;
+    expect(Math.min(...uv)).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...uv)).toBeLessThanOrEqual(1);
+  });
+
   it("places the head bone above the pelvis", () => {
     // GLTFLoader sanitises node names ("pelvis.L" -> "pelvisL").
     const world = (name: string) =>
@@ -60,6 +71,8 @@ describe("MakeHuman morph pack", () => {
     expect(manifest.targets).toHaveLength(192);
     expect(manifest.sourcePositions.length).toBe(manifest.sourceCount * 12);
     expect(manifest.vertexSource.length).toBe(manifest.vertexCount * 2);
+    const vertexSource = new Uint16Array(morphBin.buffer, morphBin.byteOffset + manifest.vertexSource.offset, manifest.vertexCount);
+    expect(Math.max(...vertexSource)).toBe(manifest.denseCount - 1);
     for (const target of manifest.targets) {
       expect(target.deltaOffset + target.count * 6, target.name).toBeLessThanOrEqual(morphBin.byteLength);
     }
