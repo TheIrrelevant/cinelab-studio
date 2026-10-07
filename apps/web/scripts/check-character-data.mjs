@@ -46,7 +46,7 @@ try {
   await page.goto(`${base}/characters`);
   await page.evaluate(([key, v1]) => window.localStorage.setItem(key, JSON.stringify([v1])), [KEY, V1]);
   await page.reload();
-  await page.getByRole("link", { name: "Open Mira in creator" }).click();
+  await page.getByRole("link", { name: "Edit Mira" }).click();
   await page.waitForURL(/\/characters\/creator\?id=legacy-1/);
   await ready(page);
   assert.equal(await page.getByLabel("Character name").inputValue(), "Mira");

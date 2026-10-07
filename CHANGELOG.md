@@ -5,13 +5,22 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-07T00:00:00Z
 last-model: claude-opus-5-5
-last-change: character data v2 (plan 2.9)
+last-change: old form editor removed
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-07 - Old character form editor removed
+
+### Removed
+- `CharacterEditor`, `useCharacterDraft`, `character-draft`, `editor-fields`, `editor-controls`, `CharacterPreview` and their tests.
+
+### Changed
+- `/characters/new` and `/characters/<id>/edit` redirect to the 3D creator; library "New character" / "Edit" and the studio "Create character" link open the creator.
+- `e2e-milestone.mjs` creates, reopens and renames the character in the creator (16/16).
 
 ## 2026-10-07 - Character data v2 (plan 2.9)
 

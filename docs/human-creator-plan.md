@@ -183,8 +183,10 @@ the URL after the first save), library "Create in 3D" and per-card "Creator" lin
 follow the human so the library swatches and the studio mannequin keep working until 4.1. Tests:
 `character-v2.test.ts`, `use-creator-persistence.test.ts`; browser `check-character-data.mjs` (v1
 migrates and opens; save -> reload restores the same cm/kg and an identical picture; no duplicate on
-re-save). Images: `docs/images/character-data/`. The old form editor (`/characters/new`, `/edit`)
-still edits only the v1 fields.
+re-save). Images: `docs/images/character-data/`.
+**2026-10-07 (user request, ahead of 4.3):** the old form editor is removed; `/characters/new` and
+`/characters/<id>/edit` redirect to the creator; library "New character" / "Edit" and the studio
+"Create character" open the creator. Notes and reference images stay in the data but have no UI.
 
 ## 8. Phase 3 - Face and hands
 

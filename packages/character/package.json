@@ -6,7 +6,6 @@
   "type": "module",
   "exports": {
     "./character-store": "./src/character-store.ts",
-    "./components/CharacterEditor": "./src/components/CharacterEditor.tsx",
     "./components/CharacterLibrary": "./src/components/CharacterLibrary.tsx",
     "./components/StoreHydration": "./src/components/StoreHydration.tsx",
     "./components/creator/CharacterCreator": "./src/components/creator/CharacterCreator.tsx",

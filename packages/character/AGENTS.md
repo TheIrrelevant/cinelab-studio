@@ -14,7 +14,7 @@ store, and the library and editor screens.
   - `./schema` (Character, createCharacter, updateCharacter), `./presets` (base models, skin, hair, body)
   - `./repository` (characterRepository), `./character-store` (useCharacterStore)
   - `./mannequin` - `mannequinSpec(character)`, maps a character to `@cinelab/human` proportions
-  - `./components/CharacterEditor`, `./components/CharacterLibrary`, `./components/StoreHydration`
+  - `./components/CharacterLibrary`, `./components/StoreHydration` (the old form editor was removed 2026-10-07; the creator replaces it)
   - `./components/creator/CharacterCreator` - MakeHuman character creator (plan 2.5): 3D viewport + Body tab (gender, ethnicity presets, cm/kg, body types, regions) + Head tab (face shapes, 117 head controls, portrait camera); `characterId` / `onSaved` for save and load (plan 2.9).
   - `./human-schema` - `HumanSchema`, `Human`, `createHuman` (character data v2); `./legacy-mapping` - `humanFromLegacy`, `legacyFromHuman`.
 - **Depends on:** core, human, next, react, zod, zustand, three, @react-three/fiber, @react-three/drei (creator viewport).
@@ -23,9 +23,8 @@ store, and the library and editor screens.
 |---|---|
 | Data | `schema.ts` (v2, migrates v1 on parse), `human-schema.ts`, `legacy-mapping.ts`, `presets.ts`, `repository.ts`, `image-repository.ts` |
 | State | `character-store.ts` |
-| Editor | `components/CharacterEditor.tsx` (layout), `useCharacterDraft.ts` (draft, images, save/cancel), `character-draft.ts`, `editor-fields.tsx`, `editor-controls.tsx` |
 | Creator | `creator/creator-model.ts` (state, locked cm/kg via `keepSize`), `creator/use-creator.ts`, `creator/use-creator-persistence.ts` (save/load), `components/creator/CharacterCreator.tsx`, `BodyTab.tsx`, `HeadTab.tsx`, `SizeFields.tsx`, `RegionGroup.tsx`, `CreatorViewport.tsx` |
-| Library | `components/CharacterLibrary.tsx`, `CharacterPreview.tsx`, `StoreHydration.tsx` |
+| Library | `components/CharacterLibrary.tsx`, `StoreHydration.tsx` |
 
 Notes: reference images are deleted only after save; storage failures raise `StorageWriteError`.
 

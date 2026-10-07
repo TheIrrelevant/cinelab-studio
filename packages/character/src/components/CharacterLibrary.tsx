@@ -1,7 +1,7 @@
 /**
  * @file CharacterLibrary.tsx
- * @description Lists saved characters and lets the user reopen one for editing (form or the 3D
- *   creator, plan 2.9) or delete it. Phase 1 ACs: view a list of saved characters; reopen a saved
+ * @description Lists saved characters and lets the user reopen one in the 3D creator (plan 2.9;
+ *   the old form editor was removed 2026-10-07) or delete it. Phase 1 ACs: view a list of saved characters; reopen a saved
  *   character and continue editing. Pure/presentational over the store — reads
  *   characters from useCharacterStore, deletes via store.remove.
  * @scope cinelab-studio
@@ -38,9 +38,6 @@ export function CharacterLibrary() {
           href="/characters/creator"
           className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-neutral-100 px-6 font-medium text-neutral-950 transition-colors hover:bg-white"
         >
-          Create in 3D
-        </Link>
-        <Link href="/characters/new" className="mt-3 block text-sm text-neutral-400 hover:text-neutral-200">
           New character
         </Link>
       </div>
@@ -51,20 +48,12 @@ export function CharacterLibrary() {
     <div className="mx-auto w-full max-w-5xl px-6 py-10">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Character library</h1>
-        <div className="flex gap-2">
-          <Link
-            href="/characters/creator"
-            className="inline-flex h-10 items-center justify-center rounded-full bg-neutral-100 px-5 text-sm font-medium text-neutral-950 hover:bg-white"
-          >
-            Create in 3D
-          </Link>
-          <Link
-            href="/characters/new"
-            className="inline-flex h-10 items-center justify-center rounded-full border border-neutral-700 px-5 text-sm font-medium hover:bg-neutral-900"
-          >
-            New character
-          </Link>
-        </div>
+        <Link
+          href="/characters/creator"
+          className="inline-flex h-10 items-center justify-center rounded-full bg-neutral-100 px-5 text-sm font-medium text-neutral-950 hover:bg-white"
+        >
+          New character
+        </Link>
       </div>
 
       {error && (
@@ -109,13 +98,6 @@ export function CharacterLibrary() {
               <div className="mt-2 flex gap-2">
                 <Link
                   href={`/characters/creator?id=${encodeURIComponent(c.id)}`}
-                  aria-label={`Open ${c.name} in creator`}
-                  className="inline-flex h-9 flex-1 items-center justify-center rounded-full border border-neutral-600 px-4 text-sm font-medium hover:bg-neutral-800"
-                >
-                  Creator
-                </Link>
-                <Link
-                  href={`/characters/${c.id}/edit`}
                   aria-label={`Edit ${c.name}`}
                   className="inline-flex h-9 flex-1 items-center justify-center rounded-full bg-neutral-100 px-4 text-sm font-medium text-neutral-950 hover:bg-white"
                 >

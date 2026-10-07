@@ -40,7 +40,7 @@ export function ModelPickerPanel({
       {characters.length === 0 ? (
         <div className="space-y-3 text-xs text-white/55">
           <p>No characters yet.</p>
-          <Link href="/characters/new" className="inline-flex rounded-xl bg-white px-3 py-2 font-medium text-neutral-950">
+          <Link href="/characters/creator" className="inline-flex rounded-xl bg-white px-3 py-2 font-medium text-neutral-950">
             Create character
           </Link>
         </div>

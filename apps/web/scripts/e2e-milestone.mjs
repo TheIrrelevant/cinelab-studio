@@ -1,7 +1,7 @@
 /**
  * @file e2e-milestone.mjs
  * @description End-to-end proof of the first milestone: from the studio, create a
- *   named character, save it, reopen it from the library (editor prefilled), then
+ *   named character in the 3D creator, save it, reopen it from the library (creator prefilled), then
  *   open it in the studio and confirm it is loaded and persisted with the scene.
  *   Captures screenshots as real artifacts. Run with the dev server already on
  *   STUDIO_URL (default http://localhost:3000).
@@ -36,34 +36,29 @@ try {
   await page.waitForSelector("text=Character library");
   step("studio links to character library", true);
 
-  // 2. Navigate to new character editor.
+  // 2. "New character" opens the 3D creator (the old form editor was removed 2026-10-07).
   await page.click("a:has-text('New character')");
-  await page.waitForSelector("h1:has-text('New character')");
-  step("editor opens (create mode)", true);
+  await page.waitForURL(/\/characters\/creator$/);
+  await page.getByTestId("creator-measured").filter({ hasText: "Measured" }).waitFor({ timeout: 90_000 });
+  step("creator opens for a new character", true);
 
-  // 3. Enter a name (required). Save should be disabled until a name exists.
-  const saveBtn = page.getByRole("button", { name: "Save" });
-  if (await saveBtn.isDisabled()) step("save disabled until name entered", true);
-  else step("save disabled until name entered", false, "save was not disabled");
+  // 3. Name and shape the character, then save: the id goes into the URL.
+  await page.getByLabel("Character name").fill("Aria Test");
+  await page.getByRole("radio", { name: "Male", exact: true }).click();
+  await page.getByRole("radio", { name: "African", exact: true }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: `${SHOTS_DIR}/02-creator-filled.png` });
+  await page.getByRole("button", { name: "Save" }).click();
+  await page.waitForURL(/\/characters\/creator\?id=.+/);
+  step("save puts the character id into the URL", true, page.url());
 
-  await page.getByLabel("Name").fill("Aria Test");
-  await page.click("label:has-text('Leo')");
-  await page.click("label:has-text('Espresso')");
-  await page.waitForTimeout(200);
-  await page.screenshot({ path: `${SHOTS_DIR}/02-editor-filled.png` });
-  step("editor filled + preview updates", true);
-
-  // 4. Save -> navigates to library.
-  await saveBtn.click();
-  await page.waitForSelector("text=Character library");
-  step("save navigates to library", true);
-
-  // 5. Character appears in the library.
+  // 4. Back to the library: the character is listed.
+  await page.click("a:has-text('Characters')");
   await page.waitForSelector("text=Aria Test");
   step("character listed in library", true);
   await page.screenshot({ path: `${SHOTS_DIR}/03-library.png` });
 
-  // 6. Persisted to localStorage (real artifact check).
+  // 5. Persisted to localStorage as character data v2 (real artifact check).
   const stored = await page.evaluate(() =>
     window.localStorage.getItem("cinelab-studio:characters:v1"),
   );
@@ -71,25 +66,35 @@ try {
   step("persisted to localStorage", parsed.length === 1, `count=${parsed.length}`);
   const charId = parsed[0]?.id;
   step("saved character has id", Boolean(charId), charId);
+  step("saved as version 2 with a male human", parsed[0]?.version === 2 && parsed[0]?.human?.shape?.gender === 1);
 
-  // 7. Reload page (simulate reopen) — character should still be listed.
+  // 6. Reload page (simulate reopen) - character should still be listed.
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForSelector("text=Aria Test");
   step("character survives reload (persistence verified)", true);
 
-  // 8. Reopen the saved character into the editor.
+  // 7. Reopen the saved character in the creator.
   await page.click(`a[aria-label="Edit Aria Test"]`);
-  await page.waitForSelector("h1:has-text('Edit Aria Test')");
-  const nameVal = await page.getByLabel("Name").inputValue();
-  step("editor prefilled with saved name on reopen", nameVal === "Aria Test", `name="${nameVal}"`);
-  await page.screenshot({ path: `${SHOTS_DIR}/04-reopened-edit.png` });
+  await page.waitForURL(/\/characters\/creator\?id=.+/);
+  await page.getByTestId("creator-measured").filter({ hasText: "Measured" }).waitFor({ timeout: 90_000 });
+  await page.waitForFunction(() => document.querySelector('input[aria-label="Character name"]')?.value === "Aria Test");
+  step("creator prefilled with saved name on reopen", true);
+  await page.screenshot({ path: `${SHOTS_DIR}/04-reopened-creator.png` });
 
-  // 9. Edit and save again — confirm update round-trips.
-  await page.getByLabel("Name").fill("Aria Test II");
+  // 8. Rename and save again - confirm update round-trips.
+  await page.getByLabel("Character name").fill("Aria Test II");
   await page.getByRole("button", { name: "Save" }).click();
+  await page.click("a:has-text('Characters')");
   await page.waitForSelector("text=Aria Test II");
-  step("edit round-trips and updates library", true);
+  const count = await page.evaluate(() => JSON.parse(window.localStorage.getItem("cinelab-studio:characters:v1") || "[]").length);
+  step("edit round-trips and updates library", count === 1, `count=${count}`);
   await page.screenshot({ path: `${SHOTS_DIR}/05-edited-library.png` });
+
+  // 9. The old editor routes redirect to the creator.
+  await page.goto(`${BASE}/characters/${charId}/edit`);
+  await page.waitForURL(new RegExp(`/characters/creator\\?id=${charId}`));
+  step("old edit route redirects to the creator", true);
+  await page.goto(`${BASE}/characters`, { waitUntil: "networkidle" });
 
   // 10. Open the saved character in the studio.
   await page.click(`a[aria-label="Open Aria Test II in studio"]`);

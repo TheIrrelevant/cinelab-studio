@@ -47,7 +47,7 @@ describe("Studio character model", () => {
     expect(screen.getByRole("link", { name: "Characters" })).toHaveAttribute("href", "/characters");
     fireEvent.click(screen.getByRole("button", { name: "Model" }));
     expect(screen.getByRole("complementary", { name: "Choose a character" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Create character" })).toHaveAttribute("href", "/characters/new");
+    expect(screen.getByRole("link", { name: "Create character" })).toHaveAttribute("href", "/characters/creator");
   });
 
   it("places a picked character, persists it with the scene, and restores it", async () => {

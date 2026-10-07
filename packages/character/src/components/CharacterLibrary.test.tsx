@@ -37,7 +37,7 @@ describe("CharacterLibrary", () => {
     expect(screen.getByText(/no characters yet/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /new character/i })).toHaveAttribute(
       "href",
-      "/characters/new",
+      "/characters/creator",
     );
   });
 
@@ -69,7 +69,7 @@ describe("CharacterLibrary", () => {
     });
     render(<CharacterLibrary />);
     const editLink = screen.getByRole("link", { name: /edit aria/i });
-    expect(editLink).toHaveAttribute("href", `/characters/${c.id}/edit`);
+    expect(editLink).toHaveAttribute("href", `/characters/creator?id=${encodeURIComponent(c.id)}`);
     await user.click(editLink);
     expect(pushMock).not.toHaveBeenCalled(); // it's a Next <Link>, not a router.push
   });
@@ -118,11 +118,11 @@ describe("CharacterLibrary studio link", () => {
 });
 
 describe("CharacterLibrary creator links (plan 2.9)", () => {
-  it("opens the 3D creator for new and saved characters", () => {
+  it("opens the 3D creator for new and saved characters (old form editor removed)", () => {
     const aria = useCharacterStore.getState().createNew({ name: "Aria", baseModelId: BASE_MODELS[0].id });
     render(<CharacterLibrary />);
-    expect(screen.getByRole("link", { name: "Create in 3D" })).toHaveAttribute("href", "/characters/creator");
-    expect(screen.getByRole("link", { name: "Open Aria in creator" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "New character" })).toHaveAttribute("href", "/characters/creator");
+    expect(screen.getByRole("link", { name: "Edit Aria" })).toHaveAttribute(
       "href",
       `/characters/creator?id=${encodeURIComponent(aria.id)}`,
     );
