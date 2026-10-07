@@ -3,15 +3,20 @@ type: changelog
 category: release-notes
 scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
-last-updated: 2026-10-06T00:00:00Z
+last-updated: 2026-10-07T00:00:00Z
 last-model: claude-opus-5-5
-last-change: plan resume point (session end)
+last-change: decisions D5 and D7 resolved
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-07 - Decisions D5 and D7
+
+### Changed
+- `docs/human-creator-plan.md`: D7 resolved (facial hair CC0 + CC-BY with attribution, AGPL-boilerplate files excluded) as new step 2.7b; D5 resolved (denser topology) and step 2.8 rescoped to a build-time Catmull-Clark level with a sparse subdivision matrix.
 
 ## 2026-10-06 - Plan resume point
 

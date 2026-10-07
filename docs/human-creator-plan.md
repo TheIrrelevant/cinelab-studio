@@ -1,7 +1,7 @@
 ---
 type: plan
 description: Step-by-step plan for the Cinelab human creator - skeleton and gizmo foundation, detailed body and face creation, expressions and hands, studio integration.
-last-updated: 2026-10-05
+last-updated: 2026-10-07
 last-model: claude-opus-5-5
 depends_on: [../packages/human/AGENTS.md, ../AGENTS.md, ./render-contract.md, ./anny-notes.md]
 ---
@@ -22,9 +22,9 @@ multiple characters, pose libraries, anatomy (muscle) view.
 ## 2. Progress (resume here)
 
 **Status 2026-10-06 session end (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.7 complete (beard assets wait for decision D7).
-**Next: 2.8 Mesh quality gate** (needs approval to start). **Open on resume:** answer D7 (facial hair:
-CC0 only / CC0 + CC-BY with attribution / defer) - recommendation was CC0 + CC-BY with `NOTICE`
-attribution, skipping files with AGPL boilerplate. Separate notes for after the plan:
+**2026-10-07:** D7 resolved (CC0 + CC-BY with `NOTICE` attribution, AGPL-boilerplate files excluded);
+D5 resolved (denser topology). **Next: 2.8 Denser topology** (scope below, needs approval); beard
+vendoring follows as 2.7b. Separate notes for after the plan:
 `docs/aion2-creator-notes.md`.
 
 | Phase | Step | Status |
@@ -32,7 +32,8 @@ attribution, skipping files with AGPL boilerplate. Separate notes for after the 
 | 0 | 0.1 Branch strategy, 0.2 Anny study | done |
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
 | 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish | done |
-| 2 | **2.8 Mesh quality gate** | **next** |
+| 2 | **2.8 Denser topology** (D5) | **next** |
+| 2 | 2.7b Facial hair assets (D7) | open |
 | 2 | 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
@@ -144,8 +145,19 @@ AC: all face modifiers reachable; portrait screenshots per group.
 assets. AC: before/after portraits.
 **Done 2026-10-06:** face band removed (low-frequency flattening of the face UV island in the skin compositor, `skin-detail.ts`); tiled procedural micro-normal on the skin; eye whites lit by their own texture (emissive map); `darkbrown` eye colour derived from the maroon stock `brown` (vendor script, presets use it); hair and eyebrows matte (roughness 0.82) with alpha-to-coverage edges; procedural RoomEnvironment light in the creator. Portraits: `docs/images/appearance/{female,male}-{before,after}.jpg` (`capture-appearance.mjs`). Not solved: hairline cut-outs of the stock hair textures stay jagged in close-ups; hair reads as a shell (asset geometry). Beards: the system pack has none; candidates in MakeHuman Bodyparts 05 (CC0) and 06 (CC-BY) packs - see D7.
 
-**2.8 Mesh quality gate.** Evaluate subdivision or a denser topology for close-ups using the 2.6
-portraits (decision D5). AC: written comparison with images and cost.
+**2.7b Facial hair assets (D7).** Vendor Bodyparts 05 (CC0: viking moustache/beard, faun beard) and
+Bodyparts 06 (CC-BY: grinsegold full beard and moustache) as checksum-pinned proxies; skip files with
+AGPL boilerplate; CC-BY authors in `NOTICE`. AC: beards fit all body types and follow face modifiers;
+license test fails on a missing attribution.
+
+**2.8 Denser topology (D5).** No CC0 high-resolution hm08 exists, so the denser mesh is derived from
+hm08 at build time: one Catmull-Clark level on the body faces only (helper geometry excluded), stored as
+a sparse subdivision matrix S (dense = S x coarse). Morphs stay on the coarse mesh (pack size
+unchanged); dense positions, UVs and skin weights (top-4, renormalised) come from S. Proxies (hair,
+eyebrows, eyelashes, beards) keep fitting against the coarse mesh. AC: about 4x body faces;
+measurements (2.3) unchanged; rest-pose dense surface within 1 mm of the limit surface; before/after
+portraits in `docs/images/topology/`; creator stays above 60 fps at portrait framing; load time and
+download size reported.
 
 **2.9 Character data v2.** Schema for phenotype, modifiers, appearance and pose; migration from the
 current character store; save, load, deep link. AC: old characters migrate; round-trip tests.
@@ -178,8 +190,8 @@ AC: studio e2e passes with the new body; render contract tests updated.
 | D2 | Body type list - resolved 2026-10-06: Slim, Average, Athletic, Muscular, Curvy, Soft, Heavy + intensity | 2.4 |
 | D3 | Ethnicity - resolved 2026-10-06: presets Asian, African, European, Latin that load a standard model | 2.5 |
 | D4 | Body regions - resolved 2026-10-06: chest, shoulders/torso, waist/hips, stomach, arms, legs, neck | 2.5 |
-| D5 | Close-up mesh quality: keep hm08, subdivide, or denser topology | 2.8 |
-| D7 | Facial hair: CC0 only (Bodyparts 05: viking moustache/beard, faun beard - verified CC0 headers; scruffy/Sigmund beards CC0 on site but AGPL boilerplate in files) or also CC-BY with attribution (Bodyparts 06: grinsegold full beard and moustache - best young-adult fit); no stubble asset exists | 2.7 review |
+| D5 | Close-up mesh quality - resolved 2026-10-07: denser topology (user choice; comparison skipped) | 2.8 |
+| D7 | Facial hair - resolved 2026-10-07: CC0 + CC-BY with `NOTICE` attribution (Bodyparts 05 viking/faun, Bodyparts 06 grinsegold beard and moustache); files with AGPL boilerplate (scruffy, Sigmund) excluded; no stubble asset | 2.7 review |
 | D6 | Bone roll stability: tail and roll only, or Procrustes roll correction if roll flips across shapes (`docs/anny-notes.md` section 5) | 1.1 review |
 
 ## 11. Risks
