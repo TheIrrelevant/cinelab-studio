@@ -2,7 +2,8 @@
  * @file HeadTab.tsx
  * @description Head tab of the character creator (plan 2.6): face-shape presets and the collapsible
  *   head groups (head shape, forehead, eyebrows, eyes, nose, cheeks, mouth, chin, ears, neck) with
- *   every head modifier; left and right move together; each group has its own reset.
+ *   every head modifier; left and right move together; each group has its own reset. Facial hair is
+ *   shown but disabled until its asset licences are settled (plan 2.7b, D7 open).
  * @scope cinelab-studio
  * @depends ./RegionGroup, @cinelab/human (head-regions, body-regions, modifier-catalogue)
  */
@@ -26,6 +27,7 @@ type Props = { shape: ShapeParams; catalogue: readonly Modifier[] | null; action
 
 const chip = (active: boolean) =>
   `rounded-lg border px-2 py-1.5 text-xs capitalize ${active ? "border-neutral-200 bg-neutral-100 text-neutral-950" : "border-neutral-700 hover:border-neutral-400"}`;
+const FACIAL_HAIR = ["None", "Beard", "Moustache"] as const;
 
 export function HeadTab({ shape, catalogue, actions }: Props) {
   const regions = useMemo(() => (catalogue ? headRegions(catalogue) : []), [catalogue]);
@@ -46,6 +48,17 @@ export function HeadTab({ shape, catalogue, actions }: Props) {
             </button>
           ))}
         </div>
+      </section>
+      <section className="space-y-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Facial hair</h3>
+        <div className="grid grid-cols-3 gap-1.5 opacity-50" role="radiogroup" aria-label="Facial hair" aria-disabled="true">
+          {FACIAL_HAIR.map((option) => (
+            <button key={option} type="button" role="radio" aria-checked={option === "None"} disabled className={`${chip(option === "None")} cursor-not-allowed`}>
+              {option}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-neutral-500">Coming later.</p>
       </section>
       <section className="space-y-2">
         <h3 className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Features</h3>

@@ -5,13 +5,21 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-07T00:00:00Z
 last-model: claude-opus-5-5
-last-change: plan 2.8 dense body topology
+last-change: facial hair placeholder (2.7b deferred)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-07 - Facial hair placeholder (plan 2.7b deferred)
+
+### Added
+- Head tab: disabled `Facial hair` choice (None / Beard / Moustache, "Coming later.") with a test.
+
+### Changed
+- `docs/human-creator-plan.md`: D7 reopened - file headers of the Bodyparts 05/06 beards carry AGPL3 boilerplate in their `.obj`; 2.7b deferred by the user.
 
 ## 2026-10-07 - Dense body topology (plan 2.8)
 

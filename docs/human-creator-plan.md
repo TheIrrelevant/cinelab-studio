@@ -23,7 +23,9 @@ multiple characters, pose libraries, anatomy (muscle) view.
 
 **Status 2026-10-06 session end (branch `main`):** Phase 0 and Phase 1 complete; Phase 2 steps 2.1-2.7 complete (beard assets wait for decision D7).
 **2026-10-07:** D7 resolved (CC0 + CC-BY with `NOTICE` attribution, AGPL-boilerplate files excluded);
-D5 resolved (denser topology). 2.8 done (dense body). **Next: 2.7b Facial hair assets** (needs approval). Separate notes for after the plan:
+D5 resolved (denser topology). 2.8 done (dense body). 2.7b deferred: D7 reopened after the file
+license check (see D7); the Head tab shows facial hair disabled. User priority: the female side.
+**Next:** 2.9 Character data v2 or female-side work (needs approval). Separate notes for after the plan:
 `docs/aion2-creator-notes.md`.
 
 | Phase | Step | Status |
@@ -32,7 +34,7 @@ D5 resolved (denser topology). 2.8 done (dense body). **Next: 2.7b Facial hair a
 | 1 | 1.1 Bone orientation, 1.2 Joint limits, 1.3 Joint handles, 1.4 Selection and gizmo, 1.5 IK, 1.6 Deformation QA | done |
 | 2 | 2.1 Modifier data, 2.2 Shape model v2, 2.3 Anthropometry and solvers, 2.4 Body types, 2.5 Character tab - body, 2.6 Character tab - head, 2.7 Appearance polish | done |
 | 2 | 2.8 Denser topology (D5) | done |
-| 2 | **2.7b Facial hair assets** (D7) | **next** |
+| 2 | 2.7b Facial hair assets (D7) | deferred (disabled UI placeholder) |
 | 2 | 2.9 Character data v2 | open |
 | 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
@@ -148,6 +150,11 @@ assets. AC: before/after portraits.
 Bodyparts 06 (CC-BY: grinsegold full beard and moustache) as checksum-pinned proxies; skip files with
 AGPL boilerplate; CC-BY authors in `NOTICE`. AC: beards fit all body types and follow face modifiers;
 license test fails on a missing attribution.
+**Deferred 2026-10-07:** the file check found AGPL3 boilerplate in the `.obj` of every candidate except
+`elvs_scruffy_beard1` (CC-BY, long scruffy beard - poor fit for 18-35). Pack zips: bodyparts05_cc0.zip
+SHA-256 `262bba42...28fd`, bodyparts06_cc-by.zip `09ed7143...e770`. User decision: keep the choice
+visible but disabled in the Head tab (`Facial hair: None / Beard / Moustache`, "Coming later.") and
+revisit later.
 
 **2.8 Denser topology (D5).** No CC0 high-resolution hm08 exists, so the denser mesh is derived from
 hm08 at build time: one Catmull-Clark level on the body faces only (helper geometry excluded), stored as
@@ -198,7 +205,7 @@ AC: studio e2e passes with the new body; render contract tests updated.
 | D3 | Ethnicity - resolved 2026-10-06: presets Asian, African, European, Latin that load a standard model | 2.5 |
 | D4 | Body regions - resolved 2026-10-06: chest, shoulders/torso, waist/hips, stomach, arms, legs, neck | 2.5 |
 | D5 | Close-up mesh quality - resolved 2026-10-07: denser topology (user choice; comparison skipped) | 2.8 |
-| D7 | Facial hair - resolved 2026-10-07: CC0 + CC-BY with `NOTICE` attribution (Bodyparts 05 viking/faun, Bodyparts 06 grinsegold beard and moustache); files with AGPL boilerplate (scruffy, Sigmund) excluded; no stubble asset | 2.7 review |
+| D7 | Facial hair - reopened 2026-10-07: CC0 + CC-BY was chosen, but every candidate except `elvs_scruffy_beard1` carries AGPL3 boilerplate in its `.obj` (viking/faun `.mhclo` are CC0, their `.obj` are not; grinsegold beard and moustache are AGPL3 in both). Options: own in-app beard, elvs only, trust the pack pages, defer. Deferred by the user | 2.7b |
 | D6 | Bone roll stability: tail and roll only, or Procrustes roll correction if roll flips across shapes (`docs/anny-notes.md` section 5) | 1.1 review |
 
 ## 11. Risks

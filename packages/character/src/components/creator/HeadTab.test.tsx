@@ -1,7 +1,8 @@
 /**
  * @file HeadTab.test.tsx
  * @description Plan 2.6 head tab wiring with a small catalogue: face-shape presets (and Natural),
- *   group sliders (bipolar with end words, unipolar from 0), per-group reset, loading state.
+ *   group sliders (bipolar with end words, unipolar from 0), per-group reset, disabled facial hair,
+ *   loading state.
  * @scope cinelab-studio
  * @depends ./HeadTab
  */
@@ -38,6 +39,14 @@ describe("HeadTab (plan 2.6)", () => {
     expect(screen.getByRole("radio", { name: "oval" })).toHaveAttribute("aria-checked", "true");
     fireEvent.click(nose.getByRole("button", { name: "Reset nose" }));
     expect(a.resetRegion).toHaveBeenCalledWith(expect.objectContaining({ id: "head-nose" }));
+  });
+
+  it("shows facial hair as disabled with None selected (plan 2.7b)", () => {
+    render(<HeadTab shape={DEFAULT_SHAPE} catalogue={catalogue} actions={actions()} />);
+    const group = within(screen.getByRole("radiogroup", { name: "Facial hair" }));
+    for (const name of ["None", "Beard", "Moustache"]) expect(group.getByRole("radio", { name })).toBeDisabled();
+    expect(group.getByRole("radio", { name: "None" })).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByText("Coming later.")).toBeInTheDocument();
   });
 
   it("waits for the catalogue", () => {
