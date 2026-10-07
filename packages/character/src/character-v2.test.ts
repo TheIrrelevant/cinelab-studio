@@ -36,6 +36,7 @@ const edited = (): Human => ({
   size: { heightCm: 171.5, massKg: 63.2 },
   pose: { "upperarm01.L": [0.1, 0.2, -0.3, 0.927], jaw: [0.2, 0, 0, 0.98] },
   rootOffset: [0, -0.12, 0.05],
+  expression: { jawOpen: 0.3, mouthSmileLeft: 0.8 },
 });
 
 beforeEach(() => window.localStorage.clear());
@@ -70,6 +71,15 @@ describe("character data v2", () => {
     expect(CharacterSchema.safeParse({ ...character, human: { ...character.human, shape: { ...character.human.shape, gender: 2 } } }).success).toBe(false);
     expect(CharacterSchema.safeParse({ ...character, human: { ...character.human, pose: { jaw: [0, 0, 1] } } }).success).toBe(false);
     expect(CharacterSchema.safeParse({ ...character, version: 3 }).success).toBe(false);
+    expect(CharacterSchema.safeParse({ ...character, human: { ...character.human, expression: { tongueOut: 1 } } }).success).toBe(false);
+    expect(CharacterSchema.safeParse({ ...character, human: { ...character.human, expression: { jawOpen: 2 } } }).success).toBe(false);
+  });
+
+  it("reads v2 characters saved before facial actions with an empty expression", () => {
+    const { expression: _e, ...older } = createCharacter({ name: "Lena", baseModelId: "base-aria" }).human;
+    void _e;
+    const character = CharacterSchema.parse({ ...createCharacter({ name: "Lena", baseModelId: "base-aria" }), human: older });
+    expect(character.human.expression).toEqual({});
   });
 
   it("migrates stored v1 records and writes them back as v2", () => {

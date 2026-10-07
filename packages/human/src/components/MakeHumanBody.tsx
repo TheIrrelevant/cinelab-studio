@@ -2,16 +2,17 @@
  * @file MakeHumanBody.tsx
  * @description react-three-fiber MakeHuman body: loads the generated GLB, morph and proxy packs
  *   once per URL, then re-shapes the body when `params` change and updates skin, eyes, hair,
- *   eyebrows and eyelashes when `appearance` changes. Optional clamped pose and root offset, joint handles, transform or IK target gizmo and
+ *   eyebrows and eyelashes when `appearance` changes, and the facial expression (plan 3.1: surface
+ *   morph plus eye bone look) when `expression` changes. Optional clamped pose and root offset, joint handles, transform or IK target gizmo and
  *   bone axes overlay.
  * @scope cinelab-studio
  * @depends react, ../makehuman/load-body, ../makehuman/body-controller, ../makehuman/bone-axes, ../makehuman/body-pose, ./JointHandles, ./PoseGizmo, ./IkTargetGizmo, ../makehuman/shape-model,
- *   ../makehuman/appearance
+ *   ../makehuman/appearance, ../makehuman/face-units, ../makehuman/eye-look
  */
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { appearanceCatalog, DEFAULT_APPEARANCE, type Appearance, type AppearanceCatalog } from "../makehuman/appearance";
 import { BodyController } from "../makehuman/body-controller";
 import { attachBoneAxes } from "../makehuman/bone-axes";
@@ -22,6 +23,8 @@ import { IkTargetGizmo, type IkTargetGizmoProps } from "./IkTargetGizmo";
 import type { BodyShapeResult } from "../makehuman/body-shape";
 import { loadBody, type LoadedBody } from "../makehuman/load-body";
 import type { ShapeParams } from "../makehuman/shape-model";
+import { eyeLookAngles, type FaceExpression } from "../makehuman/face-units";
+import { eyeLookPose } from "../makehuman/eye-look";
 
 type Props = {
   params: ShapeParams;
@@ -46,12 +49,15 @@ type Props = {
   ikTarget?: IkTargetGizmoProps;
   /** The loaded body, once (for IK solving and measurements). */
   onBody?: (body: LoadedBody) => void;
+  /** Facial actions (unit id -> 0..1); changes re-render only the surface and the eye bones. */
+  expression?: FaceExpression;
 };
 
 type Ready = { body: LoadedBody; controller: BodyController };
 
-export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles, rootOffset, gizmo, ikTarget, onBody }: Props) {
+export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl = "/human/", onShape, onCatalog, onError, showBoneAxes = false, pose, handles, rootOffset, gizmo, ikTarget, onBody, expression }: Props) {
   const [ready, setReady] = useState<Ready | null>(null);
+  const expressionRef = useRef(expression);
 
   useEffect(() => {
     let cancelled = false;
@@ -80,7 +86,7 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
   useEffect(() => {
     if (!ready) return;
     // Shape first: `onShape?.(setShape())` would skip the call when no listener is passed.
-    const result = ready.controller.setShape(params);
+    const result = ready.controller.setShape(params, expressionRef.current);
     onShape?.(result);
     // onShape is a notification only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -94,10 +100,18 @@ export function MakeHumanBody({ params, appearance = DEFAULT_APPEARANCE, baseUrl
   }, [ready, appearance]);
 
   useEffect(() => {
+    expressionRef.current = expression;
+    ready?.controller.setExpression(expression);
+  }, [ready, expression]);
+
+  useEffect(() => {
     if (!ready) return;
-    applyBodyPose(ready.body.mesh.skeleton, ready.body.data.manifest.bones, pose ?? {}, rootOffset);
+    const { skeleton } = ready.body.mesh;
+    const names = ready.body.data.manifest.bones.map((bone) => bone.name);
+    const eyes = expression ? eyeLookPose(skeleton, names, eyeLookAngles(expression)) : {};
+    applyBodyPose(skeleton, ready.body.data.manifest.bones, { ...pose, ...eyes }, rootOffset);
     // params: the re-shape refit resets the root position, so the offset is applied again.
-  }, [ready, pose, rootOffset, params]);
+  }, [ready, pose, rootOffset, params, expression]);
 
   useEffect(() => {
     if (!ready || !showBoneAxes) return;

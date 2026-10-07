@@ -50,5 +50,7 @@ export type ModifierManifest = {
   catalogue: Modifier[];
   /** Pack names of the breast macro targets (`breast/female-young-...`). */
   breastMacros: string[];
+  /** Pack names of the facial action targets (`faceunits/<ARKit name>`, plan 3.1). */
+  faceUnits: string[];
   targets: PackedTarget[];
 };

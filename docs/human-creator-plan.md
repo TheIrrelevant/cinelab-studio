@@ -25,7 +25,8 @@ multiple characters, pose libraries, anatomy (muscle) view.
 **2026-10-07:** D7 resolved (CC0 + CC-BY with `NOTICE` attribution, AGPL-boilerplate files excluded);
 D5 resolved (denser topology). 2.8 done (dense body). 2.7b deferred: D7 reopened after the file
 license check (see D7); the Head tab shows facial hair disabled. User priority: the female side.
-2.9 done (character data v2, save/load/deep link). **Next: 3.1 Facial actions** (needs approval). Separate notes for after the plan:
+2.9 done (character data v2, save/load/deep link). 3.1 done (facial actions). **Next: 3.2 Expression
+presets** (needs approval). Separate notes for after the plan:
 `docs/aion2-creator-notes.md`.
 
 | Phase | Step | Status |
@@ -36,7 +37,8 @@ license check (see D7); the Head tab shows facial hair disabled. User priority: 
 | 2 | 2.8 Denser topology (D5) | done |
 | 2 | 2.7b Facial hair assets (D7) | deferred (disabled UI placeholder) |
 | 2 | 2.9 Character data v2 | done |
-| 3 | 3.1-3.4 Facial actions, expressions, hands, visemes | open |
+| 3 | 3.1 Facial actions | done |
+| 3 | 3.2-3.4 Expression presets, hands, visemes | open |
 | 4 | 4.1-4.3 Studio integration | open |
 
 Current state of the body: MakeHuman hm08 with real bone frames, joint limits, handles, gizmo, undo,
@@ -192,6 +194,19 @@ re-save). Images: `docs/images/character-data/`.
 
 **3.1 Facial actions.** Vendor Face Units 01 (52 ARKit-style actions); eye look and blink controls
 (override eyes); jaw open. AC: each action moves only its region; combined actions stay stable.
+**Done 2026-10-07:** Face Units 01 vendored (`tools/vendor-faceunits.mjs`, SHA-256 pinned, all 52 listed
+CC0 by Mika Suominen, no license headers in the files) into the modifier pack (+0.4 MB). `face-units.ts`
+(51 units in five groups; `tongueOut` left out - the tongue is helper geometry missing from the body),
+`eye-look.ts` (eye bones turned in rest-pose axes, +/-30 degrees horizontal, +/-25 vertical, twist removed
+by the eye joint limit). The expression only changes the rendered surface (`applyExpression`): skeleton,
+measurements and cm/kg are untouched; eyebrows and eyelashes refit to the expressed surface. Creator
+Face tab (frontal face camera, group and whole-face reset); expression saved in character data v2.
+Tests: `face-units.test.ts` (region bands per group, own side >= 75 % of the displacement, mirrored
+pairs, all 51 at once finite and under 6 cm, source unchanged, eye direction), `FaceTab.test.tsx`;
+browser `check-face.mjs` (every action changes the portrait and resets, expressions captured, saved
+expression restored with 0.0000 difference). Images: `docs/images/face/`. Known gap: an open mouth shows
+a flat interior - teeth and tongue are not in the body (MakeHuman system teeth/tongue proxies, CC0,
+are a candidate).
 
 **3.2 Expression presets.** Preset grid with large hover preview; thumbnails rendered in-app.
 AC: at least 20 expressions; applying one is undoable.

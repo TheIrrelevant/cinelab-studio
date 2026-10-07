@@ -1,7 +1,8 @@
 /**
  * @file modifier-inputs.ts
  * @description Loads the vendored modifier data for the converter: target.json, every target of
- *   the vendored modifier groups (named `<group>/<file>`), and the breast cup/firmness macro names.
+ *   the vendored modifier groups (named `<group>/<file>`), the breast cup/firmness macro names and
+ *   the 52 Face Units (`faceunits/<name>`, plan 3.1, vendored by tools/vendor-faceunits.mjs).
  *   The groups are the target.json groups that were vendored (see tools/vendor-makehuman.mjs).
  * @scope cinelab-studio
  * @depends ../src/makehuman/target-file.ts, ../src/makehuman/modifier-catalogue.ts, ../assets/makehuman
@@ -30,5 +31,10 @@ export function loadModifierInput(assets: string): ModifierInput {
       })),
   );
   const breastMacros = targets.map((t) => t.name).filter((name) => name.startsWith("breast/") && isBreastMacro(name.slice(7)));
-  return { json, groups, targets, breastMacros };
+  const faceDir = join(root, "faceunits");
+  const faceUnits = readdirSync(faceDir)
+    .filter((file) => file.endsWith(SUFFIX))
+    .sort()
+    .map((file) => ({ name: `faceunits/${file.slice(0, -SUFFIX.length)}`, target: parseTarget(gunzipSync(readFileSync(join(faceDir, file))).toString("utf8")) }));
+  return { json, groups, targets, breastMacros, faceUnits };
 }

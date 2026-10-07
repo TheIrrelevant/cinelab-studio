@@ -15,7 +15,7 @@ store, and the library and editor screens.
   - `./repository` (characterRepository), `./character-store` (useCharacterStore)
   - `./mannequin` - `mannequinSpec(character)`, maps a character to `@cinelab/human` proportions
   - `./components/CharacterLibrary`, `./components/StoreHydration` (the old form editor was removed 2026-10-07; the creator replaces it)
-  - `./components/creator/CharacterCreator` - MakeHuman character creator (plan 2.5): 3D viewport + Body tab (gender, ethnicity presets, cm/kg, body types, regions) + Head tab (face shapes, 117 head controls, portrait camera); `characterId` / `onSaved` for save and load (plan 2.9).
+  - `./components/creator/CharacterCreator` - MakeHuman character creator (plan 2.5): 3D viewport + Body tab (gender, ethnicity presets, cm/kg, body types, regions) + Head tab (face shapes, 117 head controls, portrait camera) + Face tab (51 facial actions, plan 3.1); `characterId` / `onSaved` for save and load (plan 2.9).
   - `./human-schema` - `HumanSchema`, `Human`, `createHuman` (character data v2); `./legacy-mapping` - `humanFromLegacy`, `legacyFromHuman`.
 - **Depends on:** core, human, next, react, zod, zustand, three, @react-three/fiber, @react-three/drei (creator viewport).
 

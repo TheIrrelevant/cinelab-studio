@@ -27,22 +27,24 @@ export type CreatorState = {
   /** Saved pose, kept as loaded. */
   pose: Human["pose"];
   rootOffset: Human["rootOffset"];
+  /** Facial actions (plan 3.1). */
+  expression: Human["expression"];
 };
 
 /** The creator opens on the European female standard model. */
 export function initialCreatorState(): CreatorState {
   const loaded = applyEthnicPreset({ ...DEFAULT_SHAPE, gender: 0 }, DEFAULT_APPEARANCE, "european");
-  return { shape: loaded.shape, appearance: loaded.appearance, size: null, note: null, pose: {}, rootOffset: [0, 0, 0] };
+  return { shape: loaded.shape, appearance: loaded.appearance, size: null, note: null, pose: {}, rootOffset: [0, 0, 0], expression: {} };
 }
 
 /** Creator state for a saved human (the body re-solves its saved size once it is measured). */
 export function stateFromHuman(human: Human): CreatorState {
-  return { shape: { ...human.shape }, appearance: { ...human.appearance }, size: human.size, note: null, pose: human.pose, rootOffset: human.rootOffset };
+  return { shape: { ...human.shape }, appearance: { ...human.appearance }, size: human.size, note: null, pose: human.pose, rootOffset: human.rootOffset, expression: human.expression };
 }
 
 /** The human to save; validated so a broken state never reaches storage. */
 export function humanFromState(state: CreatorState): Human {
-  return HumanSchema.parse({ shape: state.shape, appearance: state.appearance, size: state.size, pose: state.pose, rootOffset: state.rootOffset });
+  return HumanSchema.parse({ shape: state.shape, appearance: state.appearance, size: state.size, pose: state.pose, rootOffset: state.rootOffset, expression: state.expression });
 }
 
 const range = (r: { min: number; max: number }, digits: number, unit: string) => `${r.min.toFixed(digits)}-${r.max.toFixed(digits)} ${unit}`;

@@ -5,13 +5,24 @@ scope: cinelab-studio
 description: Changelog for Cinelab Studio. Append before every commit.
 last-updated: 2026-10-07T00:00:00Z
 last-model: claude-opus-5-5
-last-change: old form editor removed
+last-change: facial actions (plan 3.1)
 ---
 
 # Changelog
 
 All notable changes to Cinelab Studio are recorded here. Format mirrors
 Keep a Changelog; dates are absolute.
+
+## 2026-10-07 - Facial actions (plan 3.1)
+
+### Added
+- Face Units 01 (52 ARKit-style targets, CC0) vendored by `tools/vendor-faceunits.mjs` and packed into the modifier pack.
+- `face-units.ts`, `eye-look.ts`; `MakeHumanBody` `expression` prop (surface morph + eye bones); `BodyController.setExpression`.
+- Creator Face tab (`FaceTab.tsx`, frontal face camera); `expression` in character data v2.
+- Tests `face-units.test.ts`, `FaceTab.test.tsx`; browser `check-face.mjs` (chained); images `docs/images/face/`.
+
+### Changed
+- `applyBodyShape` returns `surface` (source + expression); proxies fit the surface, the skeleton and measurements keep the unexpressed source.
 
 ## 2026-10-07 - Old character form editor removed
 

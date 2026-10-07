@@ -4,12 +4,13 @@
  *   skin texture blend and tone, eyes, and the optional hair / eyebrow / eyelash proxies, which
  *   are created on demand, re-fitted on every shape change and share the body skeleton.
  * @scope cinelab-studio
- * @depends three, ./body-shape, ./appearance, ./materials, ./proxy-data, ./load-body, ./shape-model
+ * @depends three, ./face-units, ./body-shape, ./appearance, ./materials, ./proxy-data, ./load-body, ./shape-model
  */
 
 import type { MeshStandardMaterial, SkinnedMesh } from "three";
 import { skinWeights, type Appearance } from "./appearance";
-import { applyBodyShape, type BodyShapeResult } from "./body-shape";
+import { applyBodyShape, applyExpression, type BodyShapeResult } from "./body-shape";
+import type { FaceExpression } from "./face-units";
 import type { LoadedBody } from "./load-body";
 import type { ShapeParams } from "./shape-model";
 import {
@@ -29,7 +30,10 @@ export class BodyController {
   private readonly skin = new SkinCompositor();
   private readonly skinMaterial: MeshStandardMaterial;
   private readonly slots = new Map<Slot, { name: string; mesh: SkinnedMesh; material: MeshStandardMaterial }>();
+  /** Rendered (expressed) surface that proxies fit to. */
   private source: Float32Array | null = null;
+  /** Shaped source without expression. */
+  private shaped: Float32Array | null = null;
   private appearanceVersion = 0;
 
   constructor(private readonly body: LoadedBody, private readonly baseUrl: string) {
@@ -42,12 +46,20 @@ export class BodyController {
     await this.skin.load(this.baseUrl, this.body.proxyManifest.skins);
   }
 
-  setShape(params: ShapeParams): BodyShapeResult {
-    const result = applyBodyShape(this.body.mesh, this.body.data, params);
-    this.source = result.source;
+  setShape(params: ShapeParams, expression?: FaceExpression): BodyShapeResult {
+    const result = applyBodyShape(this.body.mesh, this.body.data, params, expression);
+    this.shaped = result.source;
+    this.source = result.surface;
     this.skin.update(skinWeights(params));
     for (const [slot, entry] of this.slots) this.refit(slot, entry.mesh);
     return result;
+  }
+
+  /** Changes only the expression on the shaped body (plan 3.1); proxies follow the surface. */
+  setExpression(expression: FaceExpression | undefined) {
+    if (!this.shaped) return;
+    this.source = applyExpression(this.body.mesh, this.body.data, this.shaped, expression);
+    for (const [slot, entry] of this.slots) this.refit(slot, entry.mesh);
   }
 
   /** Applies appearance; later calls supersede earlier ones that are still loading textures. */

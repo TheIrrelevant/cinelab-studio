@@ -1,29 +1,48 @@
 /**
  * @file body-shape.ts
  * @description Applies shape parameters (macros, breast, local modifiers) to a loaded MakeHuman skinned mesh: morphs the vertices
- *   on the CPU, subdivides them to the dense body (plan 2.8), recomputes seam-free normals and re-fits the skeleton (bone rest positions and
+ *   on the CPU, adds the facial expression (plan 3.1) to the rendered surface only, subdivides it
+ *   to the dense body (plan 2.8), recomputes seam-free normals and re-fits the skeleton (bone rest positions and
  *   inverse bind matrices) to the new joints with head/tail/roll rest frames. Pose deltas are
  *   preserved across re-shapes.
  * @scope cinelab-studio
- * @depends three, ./bone-frames, ./shape-model, ./morph-data, ./normals, ./subdivision
+ * @depends three, ./bone-frames, ./shape-model, ./morph-data, ./normals, ./subdivision, ./face-units
  */
 
 import { Quaternion, type BufferAttribute, type SkinnedMesh } from "three";
 import { shapeTargetWeights, type ShapeParams } from "./shape-model";
 import { bonePoseDelta, boneRestQuaternion, setBonePoseDelta } from "./bone-frames";
-import { jointPosition, morphSourcePositions, type MorphData } from "./morph-data";
+import { addMorphTargets, jointPosition, morphSourcePositions, type MorphData } from "./morph-data";
+import { faceUnitWeights, type FaceExpression } from "./face-units";
 import { seamlessNormals } from "./normals";
 import { subdivide } from "./subdivision";
 
 export type BodyShapeResult = {
-  /** Morphed, grounded source positions (reusable for measurements). */
+  /** Morphed, grounded source positions without expression (skeleton, measurements). */
   source: Float32Array;
+  /** `source` plus the expression: the rendered surface (proxies fit to it). */
+  surface: Float32Array;
   /** Top of the body in metres (floor is y = 0). */
   heightMetres: number;
 };
 
-export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: ShapeParams): BodyShapeResult {
+export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: ShapeParams, expression?: FaceExpression): BodyShapeResult {
   const source = morphSourcePositions(data, shapeTargetWeights(params, data.modifiers?.catalogue));
+  // Height stays on the coarse cage so it matches the measurements.
+  let top = 0;
+  for (const v of data.subdivision.cageVertices) top = Math.max(top, source[v * 3 + 1]);
+  const surface = applyExpression(mesh, data, source, expression);
+  refitSkeleton(mesh, data, source);
+  return { source, surface, heightMetres: top };
+}
+
+/**
+ * Renders `source` plus the expression on the mesh (dense positions and normals) without touching
+ * the skeleton, so expressions change cheaply. Returns the expressed source positions.
+ */
+export function applyExpression(mesh: SkinnedMesh, data: MorphData, source: Float32Array, expression?: FaceExpression): Float32Array {
+  const weights = faceUnitWeights(expression);
+  const surface = weights.size ? addMorphTargets(data, weights, Float32Array.from(source)) : source;
   const geometry = mesh.geometry;
   const position = geometry.getAttribute("position") as BufferAttribute;
   const normal = geometry.getAttribute("normal") as BufferAttribute;
@@ -31,10 +50,7 @@ export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: Shape
   const { vertexSource, subdivision } = data;
   if (position.count !== vertexSource.length) throw new Error("Mesh does not match the morph pack");
 
-  // Height stays on the coarse cage so it matches the measurements.
-  let top = 0;
-  for (const v of subdivision.cageVertices) top = Math.max(top, source[v * 3 + 1]);
-  const dense = subdivide(subdivision, source, 3);
+  const dense = subdivide(subdivision, surface, 3);
   for (let i = 0; i < vertexSource.length; i += 1) {
     const s = vertexSource[i] * 3;
     positions[i * 3] = dense[s];
@@ -48,9 +64,7 @@ export function applyBodyShape(mesh: SkinnedMesh, data: MorphData, params: Shape
   normal.needsUpdate = true;
   geometry.computeBoundingBox();
   geometry.computeBoundingSphere();
-
-  refitSkeleton(mesh, data, source);
-  return { source, heightMetres: top };
+  return surface;
 }
 
 /**

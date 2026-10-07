@@ -25,7 +25,7 @@ export type MorphData = {
   subdivision: Subdivision;
   targets: Map<string, MorphTarget>;
   /** Modifier pack contents once added (plan 2.2). */
-  modifiers?: { catalogue: Modifier[]; breastMacros: string[] };
+  modifiers?: { catalogue: Modifier[]; breastMacros: string[]; faceUnits: string[] };
 };
 
 function readTargets(packed: PackedTarget[], buffer: ArrayBuffer, scale: number, into: Map<string, MorphTarget>) {
@@ -59,7 +59,7 @@ export function readMorphData(manifest: MorphManifest, buffer: ArrayBuffer): Mor
 export function addModifierPack(data: MorphData, manifest: ModifierManifest, buffer: ArrayBuffer): void {
   if (manifest.version !== 1 || manifest.sourceCount !== data.manifest.sourceCount) throw new Error("Modifier pack does not match the morph pack");
   readTargets(manifest.targets, buffer, manifest.scale, data.targets);
-  data.modifiers = { catalogue: manifest.catalogue, breastMacros: manifest.breastMacros };
+  data.modifiers = { catalogue: manifest.catalogue, breastMacros: manifest.breastMacros, faceUnits: manifest.faceUnits };
 }
 
 /**
@@ -72,6 +72,16 @@ export function morphSourcePositions(
   out: Float32Array = new Float32Array(data.basePositions.length),
 ): Float32Array {
   out.set(data.basePositions);
+  addMorphTargets(data, weights, out);
+  let groundY = 0;
+  for (const v of data.manifest.ground) groundY += out[v * 3 + 1];
+  groundY /= data.manifest.ground.length;
+  for (let p = 1; p < out.length; p += 3) out[p] -= groundY;
+  return out;
+}
+
+/** Adds `weight * delta` of each named target to `out` in place (no regrounding); missing names throw. */
+export function addMorphTargets(data: MorphData, weights: Map<string, number>, out: Float32Array): Float32Array {
   for (const [name, weight] of weights) {
     const target = data.targets.get(name);
     if (!target) throw new Error(`Morph target missing from pack: ${name}`);
@@ -84,10 +94,6 @@ export function morphSourcePositions(
       out[p + 2] += deltas[i * 3 + 2] * factor;
     }
   }
-  let groundY = 0;
-  for (const v of data.manifest.ground) groundY += out[v * 3 + 1];
-  groundY /= data.manifest.ground.length;
-  for (let p = 1; p < out.length; p += 3) out[p] -= groundY;
   return out;
 }
 

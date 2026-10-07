@@ -21,6 +21,7 @@ const edited = (): CreatorState => {
     appearance: { ...base.appearance, hair: "braid01", hairColour: "#8a3b1f" },
     size: { heightCm: 168, massKg: 58.5 },
     pose: { jaw: [0.2, 0, 0, 0.98] },
+    expression: { eyeBlinkLeft: 1, mouthSmileRight: 0.4 },
   };
 };
 

@@ -1,10 +1,11 @@
 /**
  * @file CharacterCreator.tsx
  * @description Character creator screen (plan 2.5): large 3D viewport and a side panel with tabs.
- *   Body tab (plan 2.5) and Head tab (plan 2.6, camera frames the head). Name and Save store the
+ *   Body tab (plan 2.5), Head tab (plan 2.6, camera frames the head) and Face tab (plan 3.1, facial
+ *   actions, frontal face camera). Name and Save store the
  *   character as data v2 (plan 2.9); `characterId` opens a saved character (deep link).
  * @scope cinelab-studio
- * @depends react, next/link, ../../creator/use-creator, ../../creator/use-creator-persistence, ./BodyTab, ./HeadTab, ./CreatorViewport
+ * @depends react, next/link, ../../creator/use-creator, ../../creator/use-creator-persistence, ./BodyTab, ./HeadTab, ./FaceTab, ./CreatorViewport
  */
 
 "use client";
@@ -15,11 +16,13 @@ import { useCreator } from "../../creator/use-creator";
 import { useCreatorPersistence } from "../../creator/use-creator-persistence";
 import { BodyTab } from "./BodyTab";
 import { HeadTab } from "./HeadTab";
+import { FaceTab } from "./FaceTab";
 import { CreatorViewport } from "./CreatorViewport";
 
 const TABS = [
   { id: "body", label: "Body" },
   { id: "head", label: "Head" },
+  { id: "face", label: "Face" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -40,7 +43,7 @@ export function CharacterCreator({ characterId = null, onSaved }: Props) {
   return (
     <div className="flex h-screen w-full flex-col bg-neutral-950 text-neutral-100 md:flex-row">
       <div className="relative min-h-[55vh] flex-1" data-testid="creator-viewport">
-        <CreatorViewport shape={state.shape} appearance={state.appearance} focus={tab} onBody={setBody} onError={onError} />
+        <CreatorViewport shape={state.shape} appearance={state.appearance} expression={state.expression} focus={tab} onBody={setBody} onError={onError} />
         {error ? <p className="absolute left-4 top-4 rounded bg-red-950 px-3 py-2 text-sm text-red-200">{error}</p> : null}
       </div>
       <aside className="flex w-full shrink-0 flex-col border-neutral-800 md:h-screen md:w-80 md:border-l">
@@ -90,8 +93,10 @@ export function CharacterCreator({ characterId = null, onSaved }: Props) {
         <div className="flex-1 overflow-y-auto p-4">
           {tab === "body" ? (
             <BodyTab state={state} measured={measured} ready={Boolean(body)} actions={actions} />
-          ) : (
+          ) : tab === "head" ? (
             <HeadTab shape={state.shape} catalogue={catalogue} actions={actions} />
+          ) : (
+            <FaceTab expression={state.expression} ready={Boolean(body)} actions={actions} />
           )}
         </div>
       </aside>

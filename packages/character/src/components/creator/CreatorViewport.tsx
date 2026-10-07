@@ -19,14 +19,16 @@ import { MakeHumanBody } from "@cinelab/human/components/MakeHumanBody";
 import type { Appearance } from "@cinelab/human/makehuman/appearance";
 import type { LoadedBody } from "@cinelab/human/makehuman/load-body";
 import type { ShapeParams } from "@cinelab/human/makehuman/shape-model";
+import type { FaceExpression } from "@cinelab/human/makehuman/face-units";
 
-export type ViewFocus = "body" | "head";
-type Props = { shape: ShapeParams; appearance: Appearance; focus?: ViewFocus; onBody: (body: LoadedBody) => void; onError: (error: Error) => void };
+export type ViewFocus = "body" | "head" | "face";
+type Props = { shape: ShapeParams; appearance: Appearance; expression?: FaceExpression; focus?: ViewFocus; onBody: (body: LoadedBody) => void; onError: (error: Error) => void };
 
-/** Camera and orbit target per focus: full body, or a three-quarter portrait of the head. */
+/** Camera and orbit target per focus: full body, a three-quarter head portrait, or the face from the front. */
 const VIEWS: Record<ViewFocus, { position: [number, number, number]; target: [number, number, number] }> = {
   body: { position: [0, 1.1, 3.4], target: [0, 0.95, 0] },
   head: { position: [0.32, 1.55, 0.62], target: [0, 1.52, 0] },
+  face: { position: [0.08, 1.51, 0.66], target: [0, 1.49, 0] },
 };
 
 /** Soft image-based light from three's procedural room (no external files), plan 2.7. */
@@ -56,7 +58,7 @@ function CameraRig({ focus }: { focus: ViewFocus }) {
   return null;
 }
 
-export function CreatorViewport({ shape, appearance, focus = "body", onBody, onError }: Props) {
+export function CreatorViewport({ shape, appearance, expression, focus = "body", onBody, onError }: Props) {
   return (
     <Canvas shadows camera={{ position: [0, 1.1, 3.4], fov: 35 }} gl={{ preserveDrawingBuffer: true }} scene={{ environmentIntensity: 0.35 }}>
       <color attach="background" args={["#1f1f23"]} />
@@ -67,7 +69,7 @@ export function CreatorViewport({ shape, appearance, focus = "body", onBody, onE
         <circleGeometry args={[1.6, 48]} />
         <meshStandardMaterial color="#2c2c31" />
       </mesh>
-      <MakeHumanBody params={shape} appearance={appearance} onBody={onBody} onError={onError} />
+      <MakeHumanBody params={shape} appearance={appearance} expression={expression} onBody={onBody} onError={onError} />
       <OrbitControls target={VIEWS.body.target} minDistance={0.3} maxDistance={6} enablePan={false} makeDefault />
       <CameraRig focus={focus} />
       <RoomLight />

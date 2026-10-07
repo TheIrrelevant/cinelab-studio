@@ -35,6 +35,7 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
   - `./makehuman/ethnic-presets` - `ETHNIC_PRESET_IDS`, `ETHNIC_PRESETS`, `applyEthnicPreset(shape, appearance, id)`, `matchEthnicPreset` (plan 2.5, D3).
   - `./makehuman/body-regions` - `BODY_REGIONS`, `regionValue`, `withRegionValue`, `resetRegion` (plan 2.5, D4).
   - `./makehuman/head-regions` - `headRegions(catalogue)`, `headControlLabel`, `FACE_SHAPE_IDS`, `applyFaceShape`, `currentFaceShape` (plan 2.6).
+  - `./makehuman/face-units` - `FACE_GROUPS`, `FACE_UNIT_IDS` (51), `FaceExpression`, `faceUnitWeights`, `eyeLookAngles` (plan 3.1); `./makehuman/eye-look` - `eyeLookPose`, `worldTurnDelta`. `MakeHumanBody` takes `expression`.
   - `./makehuman/macro` - `BodyParams`, `DEFAULT_BODY`, `MIN_AGE_YEARS`/`MAX_AGE_YEARS` (18/35), `macroTargetWeights`, `ageToMacro`.
 - **Depends on:** core, react, three, @react-three/fiber, @react-three/drei (gizmo).
 - **Age:** 18-35 years (product decision 2026-10-04). MakeHuman has no adult data below 25, so
@@ -59,6 +60,8 @@ The planned MakeHuman-based body (morph targets + skeleton) belongs here.
 | `src/makehuman/assets.test.ts` | Integrity checks for the vendored assets |
 | `src/makehuman/macro.ts` | Body params -> macro target weights (own implementation of macro.json ranges) |
 | `src/makehuman/morph-manifest.ts` | Morph pack manifest types (converter + runtime) |
+| `src/makehuman/face-units.ts` | Facial action groups, morph weights, eye look angles |
+| `src/makehuman/eye-look.ts` | Eye bone deltas from rest-pose yaw/pitch |
 | `src/makehuman/subdivision.ts` | Catmull-Clark level 1 + limit projection as sparse stencils; `subdivide` |
 | `src/makehuman/convert/dense-mesh.ts` | Body cage quads; dense render mesh with face-varying UVs |
 | `src/makehuman/morph-data.ts` | Reads the morph pack (+ modifier pack via `addModifierPack`; per-target scale); CPU morph + regrounding |

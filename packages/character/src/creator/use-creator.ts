@@ -3,7 +3,7 @@
  * @description React state for the character creator (plan 2.5). Holds the creator model, the
  *   loaded body and its measuring topology; every body action re-solves to the locked cm/kg.
  *   Region sliders update the body live and re-solve 250 ms after the last change, so dragging
- *   stays smooth.
+ *   stays smooth. Facial actions (plan 3.1) only change the expression.
  * @scope cinelab-studio
  * @depends react, ./creator-model, @cinelab/human (anthropometry, body-regions, body-types, ethnic-presets, head-regions, load-body)
  */
@@ -68,6 +68,15 @@ export function useCreator() {
       },
       resetRegion: (region: BodyRegion) => reshape((s) => resetRegion(s.shape, region)),
       setFaceShape: (id: FaceShapeId | null) => reshape((s) => applyFaceShape(s.shape, id)),
+      /** Facial actions (plan 3.1): the expression never changes the body size, so no re-solve. */
+      setFaceUnit: (id: string, value: number) =>
+        setState((s) => {
+          const expression = { ...s.expression, [id]: value };
+          if (value <= 0) delete expression[id];
+          return { ...s, expression };
+        }),
+      resetFaceUnits: (ids: readonly string[]) =>
+        setState((s) => ({ ...s, expression: Object.fromEntries(Object.entries(s.expression).filter(([id]) => !ids.includes(id))) })),
       /** Replaces the whole state (a loaded character, plan 2.9). */
       load: (next: CreatorState) => setState(next),
     }),
